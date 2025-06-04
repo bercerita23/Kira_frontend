@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Body -->
+  <ellipse cx="100" cy="110" rx="60" ry="70" fill="#58cc02" />
+  
+  <!-- Head -->
+  <circle cx="100" cy="70" r="50" fill="#58cc02" />
+  
+  <!-- Eyes background -->
+  <circle cx="80" cy="60" r="15" fill="white" />
+  <circle cx="120" cy="60" r="15" fill="white" />
+  
+  <!-- Eyes pupils -->
+  <circle cx="80" cy="60" r="8" fill="#3c3c3c" />
+  <circle cx="120" cy="60" r="8" fill="#3c3c3c" />
+  
+  <!-- Eye highlights -->
+  <circle cx="76" cy="56" r="3" fill="white" />
+  <circle cx="116" cy="56" r="3" fill="white" />
+  
+  <!-- Beak -->
+  <path d="M85,80 Q100,95 115,80" stroke="#ffc800" stroke-width="8" fill="none" stroke-linecap="round" />
+  
+  <!-- Feet -->
+  <path d="M80,180 Q90,170 100,180" stroke="#ffc800" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M100,180 Q110,170 120,180" stroke="#ffc800" stroke-width="8" fill="none" stroke-linecap="round" />
+  
+  <!-- Book -->
+  <rect x="70" y="110" width="60" height="40" rx="5" fill="#ff9600" />
+  <rect x="70" y="110" width="30" height="40" rx="0" fill="#ff9600" />
+  <rect x="100" y="110" width="30" height="40" rx="0" fill="#ff7d00" />
+  <line x1="100" y1="110" x2="100" y2="150" stroke="#fff" stroke-width="2" />
+  
+  <!-- Arms -->
+  <path d="M40,100 Q50,110 60,100" stroke="#58cc02" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M160,100 Q150,110 140,100" stroke="#58cc02" stroke-width="8" fill="none" stroke-linecap="round" />
+</svg> 

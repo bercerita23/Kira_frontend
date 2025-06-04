@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Duolingo Colors */
+  --primary: 145 42 131; /* Purple */
+  --primary-foreground: 255 255 255;
+  --secondary: 88 204 2; /* Green */
+  --secondary-foreground: 255 255 255;
+  --accent: 255 200 0; /* Yellow */
+  --accent-foreground: 0 0 0;
+  --background: 255 255 255;
+  --foreground: 28 28 28;
+  --muted: 241 241 241;
+  --muted-foreground: 115 115 115;
+  --card: 255 255 255;
+  --card-foreground: 28 28 28;
+  --border: 229 229 229;
+  --input: 229 229 229;
+  --ring: 145 42 131;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: 28 28 28;
+  --foreground: 255 255 255;
+  --muted: 38 38 38;
+  --muted-foreground: 150 150 150;
+  --card: 38 38 38;
+  --card-foreground: 255 255 255;
+  --border: 48 48 48;
+  --input: 48 48 48;
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* Duolingo-style components */
+.btn-primary {
+  @apply bg-primary text-white font-bold py-4 px-6 rounded-2xl hover:opacity-90 transition-opacity;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white font-bold py-4 px-6 rounded-2xl hover:opacity-90 transition-opacity;
+}
+
+.card-hover {
+  @apply transition-transform hover:scale-105 hover:shadow-lg;
+}
+
+.lesson-card {
+  @apply rounded-3xl border-2 overflow-hidden hover:border-primary transition-colors;
+}
+
+.progress-bar {
+  @apply h-3 rounded-full bg-secondary;
+}

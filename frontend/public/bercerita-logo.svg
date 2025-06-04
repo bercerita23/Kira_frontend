@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" fill="none">
+  <!-- Speech bubble background -->
+  <path d="M40 10 C20 10 10 25 10 40 C10 55 20 70 40 70 L50 70 L50 80 L60 70 L200 70 C220 70 230 55 230 40 C230 25 220 10 200 10 L40 10 Z" fill="#58cc02"/>
+  
+  <!-- Inner speech bubble -->
+  <path d="M40 20 C25 20 20 30 20 40 C20 50 25 60 40 60 L55 60 L55 72 L65 60 L200 60 C215 60 220 50 220 40 C220 30 215 20 200 20 L40 20 Z" fill="#ffffff"/>
+  
+  <!-- Indonesian flag inside -->
+  <rect x="30" y="30" width="30" height="10" fill="#ff0000"/>
+  <rect x="30" y="40" width="30" height="10" fill="#ffffff"/>
+  
+  <!-- English flag inside -->
+  <rect x="70" y="30" width="30" height="20" fill="#1cb0f6"/>
+  <path d="M70 30 L100 50 M100 30 L70 50" stroke="#ffffff" stroke-width="3"/>
+  <path d="M85 30 L85 50 M70 40 L100 40" stroke="#ffffff" stroke-width="6"/>
+  <path d="M85 30 L85 50 M70 40 L100 40" stroke="#1cb0f6" stroke-width="2"/>
+  
+  <!-- Arrow connecting -->
+  <path d="M60 40 L70 40" stroke="#58cc02" stroke-width="4" stroke-linecap="round" marker-end="url(#arrowhead)"/>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#58cc02"/>
+    </marker>
+  </defs>
+  
+  <!-- Text -->
+  <text x="110" y="45" font-family="Arial" font-size="24" font-weight="bold" fill="#58cc02">BERCERITA</text>
+</svg> 
