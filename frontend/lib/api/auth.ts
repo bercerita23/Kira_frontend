@@ -40,22 +40,29 @@ export interface SignupResponse {
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
-    const response = await api.post<TokenResponse>('/login', credentials);
+    const params = new URLSearchParams();
+    params.append('username', credentials.email); // OAuth2 expects 'username'
+    params.append('password', credentials.password);
+    const response = await api.post<TokenResponse>(
+      '/auth/login',
+      params,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
     return response.data;
   },
 
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
-    const response = await api.post<SignupResponse>('/register', credentials);
+    const response = await api.post<SignupResponse>('/auth/register', credentials);
     return response.data;
   },
 
   logout: async (): Promise<void> => {
-    await api.post('/logout');
+    await api.post('/auth/logout');
     localStorage.removeItem('token');
   },
 
   getCurrentUser: async (): Promise<any> => {
-    const response = await api.get('/me');
+    const response = await api.get('/auth/me');
     return response.data;
   },
 };
