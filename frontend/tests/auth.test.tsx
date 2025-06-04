@@ -54,8 +54,8 @@ describe('Authentication Flow', () => {
       });
     });
 
-    it('should show error message for invalid credentials', async () => {
-      (authApi.login as any).mockRejectedValueOnce(new Error('Incorrect Credentials'));
+    it('should show error message for non-existent email', async () => {
+      (authApi.login as any).mockRejectedValueOnce(new Error('No account found with this email address'));
 
       render(
         <AuthProvider>
@@ -67,12 +67,34 @@ describe('Authentication Flow', () => {
       const passwordInput = screen.getByLabelText(/password/i);
       const submitButton = screen.getByRole('button', { name: /login|sign in/i });
 
-      await userEvent.type(emailInput, 'wrong@example.com');
-      await userEvent.type(passwordInput, 'wrongpass');
+      await userEvent.type(emailInput, 'nonexistent@example.com');
+      await userEvent.type(passwordInput, 'somepassword');
       await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/incorrect credentials/i)).toBeInTheDocument();
+        expect(screen.getByText(/no account found with this email address/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should show error message for incorrect password', async () => {
+      (authApi.login as any).mockRejectedValueOnce(new Error('Incorrect password'));
+
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      );
+
+      const emailInput = screen.getByLabelText(/email/i);
+      const passwordInput = screen.getByLabelText(/password/i);
+      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+
+      await userEvent.type(emailInput, 'test@example.com');
+      await userEvent.type(passwordInput, 'wrongpassword');
+      await userEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/incorrect password/i)).toBeInTheDocument();
       });
     });
   });
@@ -113,7 +135,7 @@ describe('Authentication Flow', () => {
     });
 
     it('should show error message for existing email', async () => {
-      (authApi.signup as any).mockRejectedValueOnce(new Error('Email already registered'));
+      (authApi.signup as any).mockRejectedValueOnce(new Error('An account with this email address already exists'));
 
       render(
         <AuthProvider>
@@ -136,7 +158,7 @@ describe('Authentication Flow', () => {
       await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/email already registered/i)).toBeInTheDocument();
+        expect(screen.getByText(/an account with this email address already exists/i)).toBeInTheDocument();
       });
     });
   });

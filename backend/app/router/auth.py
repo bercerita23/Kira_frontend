@@ -32,16 +32,18 @@ def login_for_access_token(
     user = db.query(user_model.User).filter(
         user_model.User.email == form_data.username).first()
     
-    # if user is not found or password is incorrect, raise an exception
+    # if user is not found, raise a specific exception
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect Credentials",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No account found with this email address",
         )
+    
+    # if password is incorrect, raise a specific exception
     if not auth_util.verify_password(form_data.password, user.password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect Credentials",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
         )
 
     # access token creation
@@ -71,8 +73,8 @@ def register(user_register: UserRegister, db: Session = Depends(get_db)):
     
     if user: 
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email address already exists",
         )
     else: 
         hashed_password = auth_util.get_password_hash(user_register.password)

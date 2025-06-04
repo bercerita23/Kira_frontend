@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -16,6 +16,33 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Add response interceptor to handle errors consistently
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    // Extract error message from response
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.response?.data) {
+      const data = error.response.data as any;
+      if (data.detail) {
+        errorMessage = data.detail;
+      } else if (data.message) {
+        errorMessage = data.message;
+      } else if (typeof data === 'string') {
+        errorMessage = data;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    // Create a new error with the extracted message
+    const customError = new Error(errorMessage);
+    customError.name = 'APIError';
+    return Promise.reject(customError);
+  }
+);
 
 export interface LoginCredentials {
   email: string;
@@ -40,20 +67,30 @@ export interface SignupResponse {
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
-    const params = new URLSearchParams();
-    params.append('username', credentials.email); // OAuth2 expects 'username'
-    params.append('password', credentials.password);
-    const response = await api.post<TokenResponse>(
-      '/auth/login',
-      params,
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    return response.data;
+    try {
+      const params = new URLSearchParams();
+      params.append('username', credentials.email); // OAuth2 expects 'username'
+      params.append('password', credentials.password);
+      const response = await api.post<TokenResponse>(
+        '/auth/login',
+        params,
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
+      return response.data;
+    } catch (error) {
+      // Re-throw the error with proper message
+      throw error;
+    }
   },
 
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
-    const response = await api.post<SignupResponse>('/auth/register', credentials);
-    return response.data;
+    try {
+      const response = await api.post<SignupResponse>('/auth/register', credentials);
+      return response.data;
+    } catch (error) {
+      // Re-throw the error with proper message
+      throw error;
+    }
   },
 
   logout: async (): Promise<void> => {

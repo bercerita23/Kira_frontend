@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/context/auth-context';
 import { authApi } from '@/lib/api/auth';
@@ -28,7 +29,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError(''); // Clear previous errors
     
     try {
       const response = await authApi.signup({
@@ -42,7 +43,17 @@ export default function SignupPage() {
         description: "Welcome to Bercerita! Your account has been created successfully.",
       });
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Email already registered");
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
+      
+      // Show toast for critical errors
+      if (errorMessage.includes('network') || errorMessage.includes('server')) {
+        toast({
+          title: "Connection Error",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +65,20 @@ export default function SignupPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    
+    // Clear error when user starts typing
+    if (error) {
+      setError('');
+    }
+  };
+
+  const getErrorType = (errorMessage: string) => {
+    if (errorMessage.includes('email')) {
+      return 'email';
+    } else if (errorMessage.includes('password')) {
+      return 'password';
+    }
+    return 'general';
   };
   
   return (
@@ -74,6 +99,15 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First name</Label>
@@ -106,6 +140,7 @@ export default function SignupPage() {
                   required 
                   value={formData.email}
                   onChange={handleChange}
+                  className={error && getErrorType(error) === 'email' ? 'border-red-500' : ''}
                 />
               </div>
               <div className="space-y-2">
@@ -117,6 +152,7 @@ export default function SignupPage() {
                   required 
                   value={formData.password}
                   onChange={handleChange}
+                  className={error && getErrorType(error) === 'password' ? 'border-red-500' : ''}
                 />
                 <p className="text-xs text-muted-foreground">
                   Must be at least 8 characters long
@@ -144,8 +180,7 @@ export default function SignupPage() {
                   </Link>
                 </Label>
               </div>
-              {error && <p className="text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading || !formData.terms}>
                 {isLoading ? (
                   <span className="flex items-center justify-center">
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
