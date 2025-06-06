@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/lib/context/auth-context';
 
 // Create a context for the mobile menu state
 export const MobileMenuContext = createContext({
@@ -22,6 +23,34 @@ export const MobileMenuContext = createContext({
 
 export function DashboardHeader() {
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useContext(MobileMenuContext);
+  const { user, logout } = useAuth();
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    const firstInitial = user.first_name?.charAt(0)?.toUpperCase() || '';
+    const lastInitial = user.last_name?.charAt(0)?.toUpperCase() || '';
+    return firstInitial + lastInitial || user.email?.charAt(0)?.toUpperCase() || 'U';
+  };
+
+  // Get display name
+  const getDisplayName = () => {
+    if (!user) return 'User';
+    const firstName = user.first_name || '';
+    const lastName = user.last_name || '';
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    return user.email || 'User';
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
   
   return (
     <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 z-40 h-12">
@@ -52,14 +81,14 @@ export function DashboardHeader() {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
                 <Avatar className="h-8 w-8 border-2 border-gray-100 dark:border-gray-800">
                   <AvatarFallback className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-sm font-medium">
-                    JD
+                    {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel className="text-xs font-normal text-gray-500">
-                Signed in as <span className="font-medium text-gray-700 dark:text-gray-300">Jamie Doe</span>
+                Signed in as <span className="font-medium text-gray-700 dark:text-gray-300">{getDisplayName()}</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-sm">
@@ -71,7 +100,10 @@ export function DashboardHeader() {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-sm text-red-500 dark:text-red-400">
+              <DropdownMenuItem 
+                className="text-sm text-red-500 dark:text-red-400"
+                onClick={handleLogout}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>

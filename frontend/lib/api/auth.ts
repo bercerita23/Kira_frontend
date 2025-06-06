@@ -1,8 +1,9 @@
 import axios, { AxiosError } from 'axios';
+import Cookies from 'js-cookie';
 
-// Create axios instance with base URL
+// Create axios instance with base URL pointing to local API proxy
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001', // Replace with your backend URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,7 +11,7 @@ const api = axios.create({
 
 // Add request interceptor to add auth token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = Cookies.get('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -65,6 +66,22 @@ export interface SignupResponse {
   message: string;
 }
 
+export interface User {
+  id: string | number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role?: string;
+  created_at?: string;
+  updated_at?: string;
+  school_id?: number | null;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
     try {
@@ -94,13 +111,34 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
-    localStorage.removeItem('token');
+    // Note: Kira API may not have a logout endpoint, so we just remove the token
+    Cookies.remove('token');
   },
 
-  getCurrentUser: async (): Promise<any> => {
-    const response = await api.get('/auth/me');
-    return response.data;
+  getCurrentUser: async (): Promise<User | null> => {
+    try {
+      // Kira API provides /auth/db endpoint that returns a list of users
+      // We'll need to find the current user from this list
+      // Since there's no /auth/me endpoint, this is a limitation
+      // For now, we'll return null and handle this in the auth context
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getAllUsers: async (): Promise<User[]> => {
+    try {
+      const response = await api.get('/auth/db');
+      // Handle the Kira API response format which wraps users in "Hello From: " object
+      if (response.data && response.data['Hello From: ']) {
+        return response.data['Hello From: '];
+      }
+      // Fallback for direct array response
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 };
 

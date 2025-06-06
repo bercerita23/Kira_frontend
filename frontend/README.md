@@ -9,14 +9,35 @@ BERCERITA is a Duolingo-inspired English learning platform specifically designed
 - **Interactive Learning**: Learn English through fun, game-like activities
 - **Daily Challenges**: Build language learning habits with daily streaks and challenges
 - **Learning Path**: Progressive learning journey from basics to advanced English
+- **User Authentication**: Secure login and registration system powered by Kira API
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 
 ## Technology Stack
 
 - **Frontend**: Next.js 15 with React 19
+- **Backend API**: Kira API (https://kira-api.com)
+- **Authentication**: OAuth2 with JWT tokens
 - **Styling**: TailwindCSS 4
 - **Language**: TypeScript
 - **Build Tool**: Turbopack
+
+## API Integration
+
+This frontend is integrated with the Kira API backend. The following endpoints are used:
+
+- **Login**: `POST https://kira-api.com/auth/login` (OAuth2PasswordRequestForm)
+- **Register**: `POST https://kira-api.com/auth/register` (JSON)
+- **Get Users**: `GET https://kira-api.com/auth/db` (Returns list of users)
+
+### Environment Configuration
+
+Create a `.env.local` file in the project root to configure the API URL:
+
+```bash
+NEXT_PUBLIC_API_URL=https://kira-api.com
+```
+
+If not set, the default API URL will be used.
 
 ## Getting Started
 
@@ -40,14 +61,31 @@ npm install
 yarn install
 ```
 
-3. Run the development server:
+3. Configure environment variables (optional):
+```bash
+cp .env.example .env.local
+# Edit .env.local with your configuration
+```
+
+4. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
 ```
 
-4. Open your browser and navigate to http://localhost:3000
+5. Open your browser and navigate to http://localhost:3000
+
+## Authentication Flow
+
+The application uses a JWT-based authentication system:
+
+1. Users log in with email/password using OAuth2PasswordRequestForm
+2. Upon successful login, a JWT token is stored in cookies
+3. The token is included in subsequent API requests
+4. User information is retrieved from the users list endpoint
+
+Note: Due to the Kira API structure, the application stores the user's email in cookies to identify the current user from the users list, as there is no dedicated `/auth/me` endpoint.
 
 ## Project Structure
 

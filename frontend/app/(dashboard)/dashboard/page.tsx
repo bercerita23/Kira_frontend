@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { DashboardHeader, MobileMenuContext } from '@/components/dashboard/header';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
+import { useAuth } from '@/lib/context/auth-context';
 import Link from 'next/link';
 import { ChevronRight, Star, Award, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,50 @@ import { Badge } from '@/components/ui/badge';
 
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isLoading } = useAuth();
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show simple login message if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Please log in to access your dashboard.</p>
+          <div className="space-x-4">
+            <Button asChild>
+              <Link href="/login">Go to Login</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get user's display name
+  const getDisplayName = () => {
+    if (!user) return 'User';
+    const firstName = user.first_name || '';
+    const lastName = user.last_name || '';
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    return user.email || 'User';
+  };
 
   return (
     <MobileMenuContext.Provider value={{ isMobileMenuOpen, setIsMobileMenuOpen }}>
@@ -24,7 +69,7 @@ export default function DashboardPage() {
             <div className="max-w-4xl mx-auto py-6">
               {/* Welcome Section */}
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hello, Jamie!</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hello, {getDisplayName()}!</h1>
                 <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                   Continue your English learning journey
                 </p>

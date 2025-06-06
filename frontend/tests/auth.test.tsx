@@ -13,6 +13,7 @@ vi.mock('@/lib/api/auth', () => {
     signup: vi.fn(),
     logout: vi.fn(),
     getCurrentUser: vi.fn(),
+    getAllUsers: vi.fn(),
   };
   return {
     __esModule: true,
@@ -21,16 +22,28 @@ vi.mock('@/lib/api/auth', () => {
   };
 });
 
+// Mock cookies
+vi.mock('js-cookie', () => ({
+  default: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+  },
+}));
+
 describe('Authentication Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (authApi.getCurrentUser as any).mockResolvedValue(null);
+    (authApi.getAllUsers as any).mockResolvedValue([]);
   });
 
   describe('Login Flow', () => {
     it('should successfully log in a user', async () => {
       const mockResponse = { access_token: 'fake-token', token_type: 'bearer' };
+      const mockUsers = [{ id: '1', email: 'test@example.com', first_name: 'Test', last_name: 'User' }];
       (authApi.login as any).mockResolvedValueOnce(mockResponse);
+      (authApi.getAllUsers as any).mockResolvedValueOnce(mockUsers);
 
       render(
         <AuthProvider>
@@ -101,8 +114,13 @@ describe('Authentication Flow', () => {
 
   describe('Signup Flow', () => {
     it('should successfully create a new account', async () => {
-      const mockResponse = { message: 'User created successfully' };
-      (authApi.signup as any).mockResolvedValueOnce(mockResponse);
+      const mockSignupResponse = { message: 'User created successfully' };
+      const mockLoginResponse = { access_token: 'fake-token', token_type: 'bearer' };
+      const mockUsers = [{ id: '1', email: 'new@example.com', first_name: 'New', last_name: 'User' }];
+      
+      (authApi.signup as any).mockResolvedValueOnce(mockSignupResponse);
+      (authApi.login as any).mockResolvedValueOnce(mockLoginResponse);
+      (authApi.getAllUsers as any).mockResolvedValueOnce(mockUsers);
 
       render(
         <AuthProvider>

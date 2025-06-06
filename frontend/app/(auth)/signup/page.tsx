@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/context/auth-context';
-import { authApi } from '@/lib/api/auth';
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -32,12 +31,12 @@ export default function SignupPage() {
     setError(''); // Clear previous errors
     
     try {
-      const response = await authApi.signup({
-        email: formData.email,
-        password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName
-      });
+      await signup(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.password
+      );
       toast({
         title: "Account created",
         description: "Welcome to Bercerita! Your account has been created successfully.",
