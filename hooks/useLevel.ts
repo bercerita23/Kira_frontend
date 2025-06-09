@@ -14,7 +14,7 @@ export function useLevel() {
     level: 1,
     xp: 0,
     xpForNextLevel: 100,
-    progressPercentage: 0
+    progressPercentage: 0,
   });
 
   // Calculate XP needed for each level
@@ -26,34 +26,41 @@ export function useLevel() {
   const calculateLevelFromXp = (totalXp: number) => {
     let level = 1;
     let xpUsed = 0;
-    
+
     while (xpUsed + getXpForLevel(level) <= totalXp) {
       xpUsed += getXpForLevel(level);
       level++;
     }
-    
+
     const currentLevelXp = totalXp - xpUsed;
     const xpForNextLevel = getXpForLevel(level);
-    const progressPercentage = Math.round((currentLevelXp / xpForNextLevel) * 100);
-    
+    const progressPercentage = Math.round(
+      (currentLevelXp / xpForNextLevel) * 100
+    );
+
     return {
       level,
       xp: currentLevelXp,
       xpForNextLevel,
-      progressPercentage
+      progressPercentage,
     };
   };
 
   useEffect(() => {
     if (!user) {
-      setLevelData({ level: 1, xp: 0, xpForNextLevel: 100, progressPercentage: 0 });
+      setLevelData({
+        level: 1,
+        xp: 0,
+        xpForNextLevel: 100,
+        progressPercentage: 0,
+      });
       return;
     }
 
     const userId = user.email || user.id;
     const totalXpKey = `totalXp:${userId}`;
     const totalXp = Number(localStorage.getItem(totalXpKey) || 0);
-    
+
     const newLevelData = calculateLevelFromXp(totalXp);
     setLevelData(newLevelData);
   }, [user]);
@@ -65,31 +72,31 @@ export function useLevel() {
     const totalXpKey = `totalXp:${userId}`;
     const currentTotalXp = Number(localStorage.getItem(totalXpKey) || 0);
     const newTotalXp = currentTotalXp + xpGained;
-    
+
     const oldLevel = levelData.level;
     const newLevelData = calculateLevelFromXp(newTotalXp);
-    
+
     localStorage.setItem(totalXpKey, String(newTotalXp));
     setLevelData(newLevelData);
-    
+
     return newLevelData.level > oldLevel;
   };
 
-  // Keep updateLevel for backward compatibility
+  // method used for updating Level (backward compatibility)
   const updateLevel = (newLevel: number) => {
     if (!user) return;
     const userId = user.email || user.id;
     const levelKey = `level:${userId}`;
     localStorage.setItem(levelKey, String(newLevel));
-    setLevelData(prev => ({ ...prev, level: newLevel }));
+    setLevelData((prev) => ({ ...prev, level: newLevel }));
   };
 
-  return { 
+  return {
     level: levelData.level,
     xp: levelData.xp,
     xpForNextLevel: levelData.xpForNextLevel,
     progressPercentage: levelData.progressPercentage,
     addXp,
-    updateLevel // Add this back for compatibility
+    updateLevel, // Add this back for compatibility
   };
 }

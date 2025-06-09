@@ -36,8 +36,8 @@ export default function LessonPage() {
   const [progress, setProgress] = useState(0);
   const [xpEarned, setXpEarned] = useState(0);
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
-  const { startTracking, stopTracking, isTracking, getCurrentSessionMinutes } =
-    useTodaysGoal();
+  const { startTracking, stopTracking, completeActivity } = useTodaysGoal();
+
   // Mock lesson data - in a real app this would come from an API
   const lessonSteps = [
     {
@@ -238,8 +238,7 @@ export default function LessonPage() {
   };
 
   const handleFinish = () => {
-    // Navigate back to dashboard
-    stopTracking();
+    completeActivity();
     router.push("/dashboard");
   };
   const handleExit = () => {
