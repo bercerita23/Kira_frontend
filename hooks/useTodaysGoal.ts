@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 
-// Helper to get today's date as YYYY-MM-DD
+// today's date as YYYY-MM-DD
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -11,7 +11,6 @@ export function useTodaysGoal(goalMinutes = 20) {
   const [minutes, setMinutes] = useState(0);
   const [sessionStart, setSessionStart] = useState<number | null>(null);
 
-  // Load today's minutes on mount or when user changes
   useEffect(() => {
     if (!user) {
       setMinutes(0);
@@ -24,27 +23,24 @@ export function useTodaysGoal(goalMinutes = 20) {
     setMinutes(stored);
   }, [user]);
 
-  // Start tracking when activity starts
+  // tracks when activity starts
   const startTracking = () => {
     if (!user || sessionStart) return;
     setSessionStart(Date.now());
   };
 
-  // Stop tracking WITHOUT saving (for early exits)
   const stopTracking = () => {
     if (!user || !sessionStart) return;
-    setSessionStart(null); // Just reset, don't save time
+    setSessionStart(null);
   };
 
-  // Complete activity and save elapsed time (only call this on successful completion)
   const completeActivity = () => {
     if (!user || !sessionStart) return;
 
     const sessionEnd = Date.now();
     const elapsedMs = sessionEnd - sessionStart;
-    const elapsedMinutes = Math.round(elapsedMs / (1000 * 60)); // No minimum time
+    const elapsedMinutes = Math.round(elapsedMs / (1000 * 60));
 
-    // Only save if there was actual time spent (at least 1 minute)
     if (elapsedMinutes > 0) {
       const userId = user.email || user.id;
       const todayKey = getTodayKey();
@@ -58,7 +54,6 @@ export function useTodaysGoal(goalMinutes = 20) {
     setSessionStart(null);
   };
 
-  // Daily reset at midnight
   useEffect(() => {
     const interval = setInterval(() => {
       if (!user) return;
@@ -67,7 +62,7 @@ export function useTodaysGoal(goalMinutes = 20) {
       const storageKey = `goalMinutes:${userId}:${todayKey}`;
       const stored = Number(localStorage.getItem(storageKey) || 0);
       setMinutes(stored);
-    }, 60 * 1000); // check every minute
+    }, 60 * 1000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -79,6 +74,6 @@ export function useTodaysGoal(goalMinutes = 20) {
     percent,
     startTracking,
     stopTracking,
-    completeActivity, // New function for successful completion
+    completeActivity,
   };
 }

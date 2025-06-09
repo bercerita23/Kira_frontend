@@ -31,6 +31,24 @@ export default function DashboardPage() {
   const streak = useStreak();
   const { level, xp, xpForNextLevel, progressPercentage } = useLevel();
   const { minutes, goalMinutes, percent } = useTodaysGoal();
+  const topicId = "greetings";
+  const weekKey = new Date().toISOString().slice(0, 10);
+  const correctCount = Number(
+    typeof window !== "undefined" && user
+      ? localStorage.getItem(
+          `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
+        ) || 0
+      : 0
+  );
+  const totalQuestions = 5;
+  // basic Phrases (if you have multiple topics):
+  const basicPhrasesCorrect = Number(
+    typeof window !== "undefined" && user
+      ? localStorage.getItem(
+          `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
+        ) || 0
+      : 0
+  );
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -235,10 +253,16 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div className="relative mr-4">
                           <CircularProgress
-                            value={100}
+                            value={Math.round(
+                              (correctCount / totalQuestions) * 100
+                            )}
                             size={48}
                             strokeWidth={4}
-                            color="green"
+                            color={
+                              correctCount >= totalQuestions
+                                ? "green"
+                                : "primary"
+                            }
                           />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-xl">👋</span>
@@ -249,7 +273,7 @@ export default function DashboardPage() {
                             Greetings
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            5 of 5 activities completed
+                            {correctCount} of {totalQuestions} questions correct
                           </p>
                         </div>
                         <Button
@@ -273,10 +297,16 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div className="relative mr-4">
                           <CircularProgress
-                            value={60}
+                            value={Math.round(
+                              (basicPhrasesCorrect / totalQuestions) * 100
+                            )}
                             size={48}
                             strokeWidth={4}
-                            color="primary"
+                            color={
+                              basicPhrasesCorrect >= totalQuestions
+                                ? "green"
+                                : "primary"
+                            }
                           />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-xl">💬</span>
@@ -287,7 +317,8 @@ export default function DashboardPage() {
                             Basic Phrases
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            3 of 5 activities completed
+                            {basicPhrasesCorrect} of {totalQuestions} questions
+                            correct
                           </p>
                         </div>
                         <Button

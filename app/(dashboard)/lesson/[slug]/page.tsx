@@ -5,6 +5,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTodaysGoal } from "@/hooks/useTodaysGoal";
+import { useTopicProgress } from "@/hooks/useTopicProgress";
+import { useAuth } from "@/lib/context/auth-context";
+
 import {
   CheckCircle,
   X,
@@ -37,7 +40,11 @@ export default function LessonPage() {
   const [xpEarned, setXpEarned] = useState(0);
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
   const { startTracking, stopTracking, completeActivity } = useTodaysGoal();
-
+  const [correctCount, setCorrectCount] = useState(0);
+  const { user } = useAuth();
+  //later on can be dynamically changed based on lesson
+  const topicId = "greetings";
+  const weekKey = new Date().toISOString().slice(0, 10);
   // Mock lesson data - in a real app this would come from an API
   const lessonSteps = [
     {
@@ -199,6 +206,7 @@ export default function LessonPage() {
     setIsSubmitted(true);
 
     if (correct) {
+      setCorrectCount((prev) => prev + 1);
       // Add XP for correct answer
       addXp(10);
       setXpEarned((prev) => prev + 10);
@@ -238,6 +246,15 @@ export default function LessonPage() {
   };
 
   const handleFinish = () => {
+    if (user) {
+      const userId = user.email || user.id;
+      const key = `topicScore:${userId}:${topicId}:${weekKey}`;
+      const prevHigh = Number(localStorage.getItem(key) || 0);
+
+      if (correctCount > prevHigh) {
+        localStorage.setItem(key, `${correctCount}`);
+      }
+    }
     completeActivity();
     router.push("/dashboard");
   };
