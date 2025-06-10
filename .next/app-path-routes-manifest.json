@@ -2,16 +2,16 @@
   "/_not-found": "/_not-found",
   "/page": "/",
   "/debug-auth/page": "/debug-auth",
-  "/(dashboard)/dashboard/page": "/dashboard",
-  "/(auth)/login/page": "/login",
   "/(auth)/signup/page": "/signup",
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/dashboard/page": "/dashboard",
   "/api/health/route": "/api/health",
   "/api_disabled_temp/health/route": "/api_disabled_temp/health",
+  "/api/auth/register/route": "/api/auth/register",
+  "/api/auth/db/route": "/api/auth/db",
   "/api/auth/login/route": "/api/auth/login",
   "/(dashboard)/lesson/[slug]/page": "/lesson/[slug]",
-  "/api/auth/db/route": "/api/auth/db",
-  "/api/auth/register/route": "/api/auth/register",
-  "/api_disabled_temp/auth/db/route": "/api_disabled_temp/auth/db",
   "/api_disabled_temp/auth/login/route": "/api_disabled_temp/auth/login",
-  "/api_disabled_temp/auth/register/route": "/api_disabled_temp/auth/register"
+  "/api_disabled_temp/auth/register/route": "/api_disabled_temp/auth/register",
+  "/api_disabled_temp/auth/db/route": "/api_disabled_temp/auth/db"
 }
