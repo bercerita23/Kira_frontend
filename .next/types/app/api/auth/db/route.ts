@@ -1,4 +1,4 @@
-// File: /Users/lixinwei/Documents/GitHub/Kira_frontend/app/api/auth/db/route.ts
+// File: /Users/lixinwei/Documents/GitHub/Kira/Kira_frontend/app/api/auth/db/route.ts
 import * as entry from '../../../../../../app/api/auth/db/route.js'
 import type { NextRequest } from 'next/server.js'
 

@@ -1,4 +1,4 @@
-// File: /Users/lixinwei/Documents/GitHub/Kira_frontend/app/(dashboard)/dashboard/page.tsx
+// File: /Users/lixinwei/Documents/GitHub/Kira/Kira_frontend/app/(dashboard)/dashboard/page.tsx
 import * as entry from '../../../../../app/(dashboard)/dashboard/page.js'
 import type { ResolvingMetadata } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

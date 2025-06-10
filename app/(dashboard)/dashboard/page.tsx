@@ -7,8 +7,6 @@ import { useAuth } from '@/lib/context/auth-context';
 import Link from 'next/link';
 import { ChevronRight, Star, Award, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { CircularProgress } from '@/components/ui/circular-progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -77,40 +75,48 @@ export default function DashboardPage() {
               
               {/* Stats Overview */}
               <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                      <Star className="h-5 w-5 text-blue-500" />
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                        <Star className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Daily Streak</p>
+                        <p className="text-xl font-semibold text-gray-900 dark:text-white">15 days</p>
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Daily Streak</p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">15 days</p>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
                 
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Today's Goal</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm font-medium">15/20 minutes</p>
-                      <p className="text-xs font-medium text-blue-500">75%</p>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Today's Goal</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-sm font-medium">15/20 minutes</p>
+                        <p className="text-xs font-medium text-blue-500">75%</p>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mt-2">
+                        <div className="h-full bg-primary rounded-full" style={{ width: '75%' }}></div>
+                      </div>
                     </div>
-                    <Progress value={75} className="h-1.5 mt-2" />
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
                 
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
-                      <Award className="h-5 w-5 text-purple-500" />
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+                        <Award className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Level</p>
+                        <p className="text-xl font-semibold text-gray-900 dark:text-white">3</p>
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Level</p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">3</p>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </div>
               
               {/* Today's Activities */}
@@ -158,13 +164,11 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">This Week's Topics</h2>
                 
                 <div className="space-y-4">
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-green-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
+                  <Card>
+                    <CardContent className="p-4">
                       <div className="flex items-center">
                         <div className="relative mr-4">
-                          <CircularProgress value={100} size={48} strokeWidth={4} color="green" />
-                          <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
                             <span className="text-xl">👋</span>
                           </div>
                         </div>
@@ -179,16 +183,14 @@ export default function DashboardPage() {
                           </Link>
                         </Button>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                   
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-blue-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
+                  <Card>
+                    <CardContent className="p-4">
                       <div className="flex items-center">
                         <div className="relative mr-4">
-                          <CircularProgress value={60} size={48} strokeWidth={4} color="primary" />
-                          <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
                             <span className="text-xl">💬</span>
                           </div>
                         </div>
@@ -203,29 +205,8 @@ export default function DashboardPage() {
                           </Link>
                         </Button>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                            <span className="text-xl opacity-70">👪</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-700 dark:text-gray-300">Family</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-500">Complete Basic Phrases to unlock</p>
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-gray-400" disabled>
-                          <span>Locked</span>
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -234,4 +215,4 @@ export default function DashboardPage() {
       </div>
     </MobileMenuContext.Provider>
   );
-}
+} 
