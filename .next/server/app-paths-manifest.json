@@ -7,11 +7,11 @@
   "/(auth)/signup/page": "app/(auth)/signup/page.js",
   "/api/health/route": "app/api/health/route.js",
   "/api_disabled_temp/health/route": "app/api_disabled_temp/health/route.js",
-  "/api/auth/db/route": "app/api/auth/db/route.js",
   "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/(dashboard)/lesson/[slug]/page": "app/(dashboard)/lesson/[slug]/page.js",
+  "/api/auth/db/route": "app/api/auth/db/route.js",
   "/api/auth/register/route": "app/api/auth/register/route.js",
-  "/api_disabled_temp/auth/register/route": "app/api_disabled_temp/auth/register/route.js",
   "/api_disabled_temp/auth/db/route": "app/api_disabled_temp/auth/db/route.js",
   "/api_disabled_temp/auth/login/route": "app/api_disabled_temp/auth/login/route.js",
-  "/(dashboard)/lesson/[slug]/page": "app/(dashboard)/lesson/[slug]/page.js"
+  "/api_disabled_temp/auth/register/route": "app/api_disabled_temp/auth/register/route.js"
 }

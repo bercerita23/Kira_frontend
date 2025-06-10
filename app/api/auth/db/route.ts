@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch('https://kira-api.com/auth/db', {
+    // Use environment variable for API URL with kira-api.com as default
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://kira-api.com';
+    
+    const response = await fetch(`${apiUrl}/auth/db`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
