@@ -247,8 +247,9 @@ export default function DashboardPage() {
                 </h2>
 
                 <div className="space-y-4">
-                  <Card>
-                    <CardContent className="p-4">
+                  <div className="relative">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-green-500">
+                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
                       <div className="flex items-center">
                         <div className="relative mr-4">
                           <CircularProgress
