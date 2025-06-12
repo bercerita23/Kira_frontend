@@ -15,7 +15,7 @@ export function useStreak() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) {
+    if (!user || typeof window === "undefined") {
       setStreak(0);
       return;
     }
@@ -46,11 +46,12 @@ export function useStreak() {
       setStreak(streakCount);
     } else {
       streakCount = 1;
-      localStorage.setItem(streakCountKey, "1"); 
+      localStorage.setItem(streakCountKey, "1");
       setStreak(1);
     }
-    localStorage.setItem(streakLastActiveKey, today); 
-  }, [user]); 
+
+    localStorage.setItem(streakLastActiveKey, today);
+  }, [user]);
 
   return streak;
 }

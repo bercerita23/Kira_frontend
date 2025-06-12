@@ -13,7 +13,7 @@ const TOPIC_CONFIG = {
   greetings: { total: 5, name: "Greetings" },
   "basic-phrases": { total: 5, name: "Basic Phrases" },
   family: { total: 4, name: "Family" },
-  //more topics as needed
+  // add more topics as needed
 };
 
 export function useTopicProgress() {
@@ -21,7 +21,7 @@ export function useTopicProgress() {
   const [topicProgress, setTopicProgress] = useState<TopicProgress>({});
 
   useEffect(() => {
-    if (!user) {
+    if (!user || typeof window === "undefined") {
       setTopicProgress({});
       return;
     }
@@ -37,7 +37,6 @@ export function useTopicProgress() {
         setTopicProgress({});
       }
     } else {
-      // Initialize with all topics at 0 completed
       const initialProgress: TopicProgress = {};
       Object.keys(TOPIC_CONFIG).forEach((topicId) => {
         initialProgress[topicId] = {
@@ -48,8 +47,9 @@ export function useTopicProgress() {
       setTopicProgress(initialProgress);
     }
   }, [user]);
+
   const completeActivity = (topicId: string) => {
-    if (!user) return;
+    if (!user || typeof window === "undefined") return;
 
     const config = TOPIC_CONFIG[topicId as keyof typeof TOPIC_CONFIG];
     if (!config) return;
@@ -65,6 +65,7 @@ export function useTopicProgress() {
           completed: newCompleted,
         },
       };
+
       const userId = user.email || user.id;
       const progressKey = `topicProgress:${userId}`;
       localStorage.setItem(progressKey, JSON.stringify(updated));
@@ -81,7 +82,10 @@ export function useTopicProgress() {
       completed: 0,
       total: config.total,
     };
-    const percentage = Math.round((progress.completed / progress.total) * 100);
+    const percentage =
+      progress.total > 0
+        ? Math.round((progress.completed / progress.total) * 100)
+        : 0;
 
     return {
       ...progress,
@@ -89,7 +93,6 @@ export function useTopicProgress() {
     };
   };
 
-  // check if a topic is completed
   const isTopicCompleted = (topicId: string) => {
     const progress = getTopicProgress(topicId);
     return progress.completed >= progress.total;
@@ -98,7 +101,6 @@ export function useTopicProgress() {
   const isTopicUnlocked = (topicId: string) => {
     const topicIds = Object.keys(TOPIC_CONFIG);
     const currentIndex = topicIds.indexOf(topicId);
-
     if (currentIndex === 0) return true;
 
     const previousTopicId = topicIds[currentIndex - 1];

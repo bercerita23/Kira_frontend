@@ -17,12 +17,10 @@ export function useLevel() {
     progressPercentage: 0,
   });
 
-  // Calculate XP needed for each level
   const getXpForLevel = (level: number): number => {
     return level * 100;
   };
 
-  // Calculate current level based on total XP
   const calculateLevelFromXp = (totalXp: number) => {
     let level = 1;
     let xpUsed = 0;
@@ -34,9 +32,9 @@ export function useLevel() {
 
     const currentLevelXp = totalXp - xpUsed;
     const xpForNextLevel = getXpForLevel(level);
-    const progressPercentage = Math.round(
-      (currentLevelXp / xpForNextLevel) * 100
-    );
+    const progressPercentage = isFinite(currentLevelXp / xpForNextLevel)
+      ? Math.round((currentLevelXp / xpForNextLevel) * 100)
+      : 0;
 
     return {
       level,
@@ -47,7 +45,7 @@ export function useLevel() {
   };
 
   useEffect(() => {
-    if (!user) {
+    if (!user || typeof window === "undefined") {
       setLevelData({
         level: 1,
         xp: 0,
@@ -66,7 +64,7 @@ export function useLevel() {
   }, [user]);
 
   const addXp = (xpGained: number) => {
-    if (!user) return false;
+    if (!user || typeof window === "undefined") return false;
 
     const userId = user.email || user.id;
     const totalXpKey = `totalXp:${userId}`;
@@ -82,9 +80,9 @@ export function useLevel() {
     return newLevelData.level > oldLevel;
   };
 
-  // method used for updating Level (backward compatibility)
   const updateLevel = (newLevel: number) => {
-    if (!user) return;
+    if (!user || typeof window === "undefined") return;
+
     const userId = user.email || user.id;
     const levelKey = `level:${userId}`;
     localStorage.setItem(levelKey, String(newLevel));
@@ -92,11 +90,13 @@ export function useLevel() {
   };
 
   return {
-    level: levelData.level,
-    xp: levelData.xp,
-    xpForNextLevel: levelData.xpForNextLevel,
-    progressPercentage: levelData.progressPercentage,
+    level: levelData.level ?? 1,
+    xp: levelData.xp ?? 0,
+    xpForNextLevel: levelData.xpForNextLevel ?? 100,
+    progressPercentage: isFinite(levelData.progressPercentage)
+      ? levelData.progressPercentage
+      : 0,
     addXp,
-    updateLevel, // Add this back for compatibility
+    updateLevel,
   };
 }

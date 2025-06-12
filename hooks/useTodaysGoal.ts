@@ -12,7 +12,7 @@ export function useTodaysGoal(goalMinutes = 20) {
   const [sessionStart, setSessionStart] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || typeof window === "undefined") {
       setMinutes(0);
       return;
     }
@@ -23,19 +23,18 @@ export function useTodaysGoal(goalMinutes = 20) {
     setMinutes(stored);
   }, [user]);
 
-  // tracks when activity starts
   const startTracking = () => {
-    if (!user || sessionStart) return;
+    if (!user || sessionStart || typeof window === "undefined") return;
     setSessionStart(Date.now());
   };
 
   const stopTracking = () => {
-    if (!user || !sessionStart) return;
+    if (!user || !sessionStart || typeof window === "undefined") return;
     setSessionStart(null);
   };
 
   const completeActivity = () => {
-    if (!user || !sessionStart) return;
+    if (!user || !sessionStart || typeof window === "undefined") return;
 
     const sessionEnd = Date.now();
     const elapsedMs = sessionEnd - sessionStart;
@@ -55,6 +54,8 @@ export function useTodaysGoal(goalMinutes = 20) {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const interval = setInterval(() => {
       if (!user) return;
       const userId = user.email || user.id;
@@ -63,15 +64,16 @@ export function useTodaysGoal(goalMinutes = 20) {
       const stored = Number(localStorage.getItem(storageKey) || 0);
       setMinutes(stored);
     }, 60 * 1000);
+
     return () => clearInterval(interval);
   }, [user]);
 
   const percent = Math.min(100, Math.round((minutes / goalMinutes) * 100));
 
   return {
-    minutes,
-    goalMinutes,
-    percent,
+    minutes: minutes ?? 0,
+    goalMinutes: goalMinutes ?? 1,
+    percent: isNaN(percent) || !isFinite(percent) ? 0 : percent,
     startTracking,
     stopTracking,
     completeActivity,
