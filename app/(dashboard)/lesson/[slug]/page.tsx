@@ -344,7 +344,12 @@ export default function LessonPage() {
           </button>
 
           <div className="w-full max-w-md mx-4">
-            <Progress value={progress} className="h-2.5" />
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
