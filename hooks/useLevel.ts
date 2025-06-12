@@ -32,9 +32,9 @@ export function useLevel() {
 
     const currentLevelXp = totalXp - xpUsed;
     const xpForNextLevel = getXpForLevel(level);
-    const progressPercentage = Math.round(
-      (currentLevelXp / xpForNextLevel) * 100
-    );
+    const progressPercentage = isFinite(currentLevelXp / xpForNextLevel)
+      ? Math.round((currentLevelXp / xpForNextLevel) * 100)
+      : 0;
 
     return {
       level,
@@ -90,10 +90,12 @@ export function useLevel() {
   };
 
   return {
-    level: levelData.level,
-    xp: levelData.xp,
-    xpForNextLevel: levelData.xpForNextLevel,
-    progressPercentage: levelData.progressPercentage,
+    level: levelData.level ?? 1,
+    xp: levelData.xp ?? 0,
+    xpForNextLevel: levelData.xpForNextLevel ?? 100,
+    progressPercentage: isFinite(levelData.progressPercentage)
+      ? levelData.progressPercentage
+      : 0,
     addXp,
     updateLevel,
   };

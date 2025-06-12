@@ -148,7 +148,12 @@ export default function DashboardPage() {
                         {percent}%
                       </p>
                     </div>
-                    <Progress value={percent} className="h-1.5 mt-2" />
+<div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
+  <div
+    className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
+    style={{ width: `${percent ?? 0}%` }}
+  />
+</div>
                   </div>
                 </div>
 
@@ -156,10 +161,16 @@ export default function DashboardPage() {
                   <div className="flex items-center">
                     <div className="relative mr-4">
                       <CircularProgress
-                        value={progressPercentage}
+                          value={
+                             Number.isFinite(progressPercentage) &&
+                             progressPercentage >= 0 &&
+                             progressPercentage <= 100
+                             ? progressPercentage
+                             : 0
+                           }
                         size={48}
                         strokeWidth={4}
-                        color="primary" // Use "primary", "secondary", "green", "yellow" as allowed by your component
+                        color="primary"
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Award className="h-5 w-5 text-purple-500" />
@@ -256,9 +267,13 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div className="relative mr-4">
                           <CircularProgress
-                            value={Math.round(
-                              (correctCount / totalQuestions) * 100
-                            )}
+                            value={
+                              totalQuestions > 0
+                                ? Math.round(
+                                    (correctCount / totalQuestions) * 100
+                                  )
+                                : 0
+                            }
                             size={48}
                             strokeWidth={4}
                             color={
@@ -300,9 +315,13 @@ export default function DashboardPage() {
                       <div className="flex items-center">
                         <div className="relative mr-4">
                           <CircularProgress
-                            value={Math.round(
-                              (basicPhrasesCorrect / totalQuestions) * 100
-                            )}
+                            value={
+                              totalQuestions > 0
+                                ? Math.round(
+                                    (basicPhrasesCorrect / totalQuestions) * 100
+                                  )
+                                : 0
+                            }
                             size={48}
                             strokeWidth={4}
                             color={

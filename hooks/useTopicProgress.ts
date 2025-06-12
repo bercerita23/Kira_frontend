@@ -82,7 +82,10 @@ export function useTopicProgress() {
       completed: 0,
       total: config.total,
     };
-    const percentage = Math.round((progress.completed / progress.total) * 100);
+    const percentage =
+      progress.total > 0
+        ? Math.round((progress.completed / progress.total) * 100)
+        : 0;
 
     return {
       ...progress,

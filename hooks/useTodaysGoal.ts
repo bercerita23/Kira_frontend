@@ -71,9 +71,9 @@ export function useTodaysGoal(goalMinutes = 20) {
   const percent = Math.min(100, Math.round((minutes / goalMinutes) * 100));
 
   return {
-    minutes,
-    goalMinutes,
-    percent,
+    minutes: minutes ?? 0,
+    goalMinutes: goalMinutes ?? 1,
+    percent: isNaN(percent) || !isFinite(percent) ? 0 : percent,
     startTracking,
     stopTracking,
     completeActivity,
