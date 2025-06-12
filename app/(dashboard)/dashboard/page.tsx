@@ -1,7 +1,7 @@
 //(dashboard)/dashboard/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DashboardHeader,
   MobileMenuContext,
@@ -32,23 +32,26 @@ export default function DashboardPage() {
   const { level, xp, xpForNextLevel, progressPercentage } = useLevel();
   const { minutes, goalMinutes, percent } = useTodaysGoal();
   const topicId = "greetings";
-  const weekKey = new Date().toISOString().slice(0, 10);
-  const correctCount = Number(
-    typeof window !== "undefined" && user
-      ? localStorage.getItem(
-          `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
-        ) || 0
-      : 0
-  );
   const totalQuestions = 5;
-  // basic Phrases (if you have multiple topics):
-  const basicPhrasesCorrect = Number(
-    typeof window !== "undefined" && user
-      ? localStorage.getItem(
-          `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
-        ) || 0
-      : 0
-  );
+
+  const weekKey = new Date().toISOString().slice(0, 10);
+
+  const [correctCount, setCorrectCount] = useState(0);
+  const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && user) {
+      const storedCorrect = localStorage.getItem(
+        `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
+      );
+      const storedBasic = localStorage.getItem(
+        `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
+      );
+
+      setCorrectCount(Number(storedCorrect ?? 0));
+      setBasicPhrasesCorrect(Number(storedBasic ?? 0));
+    }
+  }, [user, topicId, weekKey]);
   // Show loading state while checking authentication
   if (isLoading) {
     return (
