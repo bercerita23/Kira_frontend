@@ -40,6 +40,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       hasToken: !!token, 
       userEmail: userEmail ? `${userEmail.substring(0, 3)}***` : 'none' 
     });
+
+    // Check if user is trying to access protected routes without authentication
+    const isProtectedRoute = typeof window !== 'undefined' && 
+      ['/dashboard', '/admin', '/lessons', '/speaking', '/progress', '/achievements']
+        .some(path => window.location.pathname.startsWith(path));
+
+    if (isProtectedRoute && !token) {
+      console.log('🚫 AuthProvider: Redirecting unauthenticated user from protected route');
+      setIsLoading(false);
+      if (typeof window !== 'undefined') {
+        window.location.href = `/login?from=${encodeURIComponent(window.location.pathname)}`;
+      }
+      return;
+    }
     
     if (token && userEmail) {
       console.log('🔄 Attempting to authenticate with stored credentials...');

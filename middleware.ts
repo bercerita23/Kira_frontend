@@ -13,6 +13,12 @@ export function middleware(request: NextRequest) {
   const userEmail = request.cookies.get('userEmail')?.value;
   const { pathname } = request.nextUrl;
 
+  console.log('🛡️ Middleware check:', { 
+    pathname, 
+    hasToken: !!token, 
+    hasEmail: !!userEmail 
+  });
+
   // Check if the path is protected
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
   // Check if the path is an auth path (login/signup)
@@ -20,8 +26,15 @@ export function middleware(request: NextRequest) {
   // Check if the path is admin-only
   const isAdminPath = adminPaths.some(path => pathname.startsWith(path));
 
+  console.log('🛡️ Path checks:', { 
+    isProtectedPath, 
+    isAuthPath, 
+    isAdminPath 
+  });
+
   // If trying to access protected path without token, redirect to login
   if (isProtectedPath && !token) {
+    console.log('🚫 Redirecting to login - no token for protected path');
     const url = new URL('/login', request.url);
     url.searchParams.set('from', pathname);
     return NextResponse.redirect(url);
@@ -29,6 +42,7 @@ export function middleware(request: NextRequest) {
 
   // If trying to access auth paths with token, redirect based on role
   if (isAuthPath && token) {
+    console.log('🔄 Redirecting authenticated user away from auth path');
     // For now, we'll redirect to dashboard by default
     // The actual role-based redirect will happen in the auth context after login
     return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -37,6 +51,7 @@ export function middleware(request: NextRequest) {
   // For admin paths, we'll let the component handle role checking
   // since we can't easily access user role in middleware without making API calls
 
+  console.log('✅ Middleware allowing request to proceed');
   return NextResponse.next();
 }
 

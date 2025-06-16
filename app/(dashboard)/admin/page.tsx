@@ -21,6 +21,13 @@ export default function AdminDashboardPage() {
   const [students, setStudents] = useState<User[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
+  console.log('🔒 Admin page render:', { 
+    isLoading, 
+    hasUser: !!user, 
+    userRole: user?.role,
+    userEmail: user?.email 
+  });
+
   // Fetch all users and filter students
   useEffect(() => {
     const fetchStudents = async () => {
@@ -49,11 +56,12 @@ export default function AdminDashboardPage() {
 
   // Show loading state while checking authentication
   if (isLoading) {
+    console.log('⏳ Admin page: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">Verifying access...</p>
         </div>
       </div>
     );
@@ -61,12 +69,17 @@ export default function AdminDashboardPage() {
 
   // Show login message if not authenticated
   if (!user) {
+    console.log('🚫 Admin page: No user found, showing login prompt');
+    // Force redirect to login
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login?from=/admin';
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Please log in to access the admin dashboard.
+            Redirecting to login...
           </p>
           <div className="space-x-4">
             <Button asChild>
@@ -80,6 +93,7 @@ export default function AdminDashboardPage() {
 
   // Check if user is admin
   if (user.role !== 'admin' && user.role !== 'adm') {
+    console.log('🚫 Admin page: User is not admin, denying access', { userRole: user.role });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -97,6 +111,8 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
+
+  console.log('✅ Admin page: Access granted for admin user');
 
   // Helper function to get user initials
   const getUserInitials = (user: User) => {
