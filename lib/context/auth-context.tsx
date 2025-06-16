@@ -81,9 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       Cookies.set('userEmail', email, { expires: 30 }); // Store email to identify user later
       
       // Try to get user info from the users list
+      let currentUser: any = null;
       try {
         const users = await authApi.getAllUsers();
-        const currentUser = users.find(u => u.email === email);
+        currentUser = users.find(u => u.email === email);
         if (currentUser) {
           console.log('✅ User data retrieved from API');
           setUser(currentUser);
@@ -91,17 +92,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.log('⚠️ Could not fetch user data, creating basic user object');
         // If we can't get user info, create a basic user object
-        setUser({
+        currentUser = {
           id: 'unknown',
           email: email,
           first_name: '',
           last_name: '',
-        });
+          role: 'stu' // Default to student role
+        };
+        setUser(currentUser);
       }
       
-      // Redirect to the original requested page or dashboard
-      const from = searchParams.get('from') || '/dashboard';
-      router.push(from);
+      // Role-based redirect
+      const from = searchParams.get('from');
+      let redirectPath = '/dashboard'; // Default for students
+      
+      if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'adm')) {
+        redirectPath = '/admin';
+      }
+      
+      // Use the 'from' parameter if provided, otherwise use role-based redirect
+      const finalRedirect = from || redirectPath;
+      console.log(`🔄 Redirecting to: ${finalRedirect} (role: ${currentUser?.role || 'unknown'})`);
+      router.push(finalRedirect);
     } catch (error) {
       console.log('❌ Login failed:', error);
       throw error;

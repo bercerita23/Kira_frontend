@@ -129,10 +129,18 @@ export const authApi = {
 
   getAllUsers: async (): Promise<User[]> => {
     try {
-      const response = await api.get('/auth/db');
+      // Add timestamp to prevent caching
+      const timestamp = Date.now();
+      console.log('🌐 API: Fetching users with timestamp:', timestamp);
+      
+      const response = await api.get(`/auth/db?_t=${timestamp}`);
+      console.log('🌐 API: Raw response data:', response.data);
+      
       // Handle the Kira API response format which wraps users in "Hello From: " object
       if (response.data && response.data['Hello From: ']) {
-        return response.data['Hello From: '];
+        const users = response.data['Hello From: '];
+        console.log('🌐 API: Extracted users:', users);
+        return users;
       }
       // Fallback for direct array response
       return response.data;

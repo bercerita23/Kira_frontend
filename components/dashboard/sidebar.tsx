@@ -3,6 +3,7 @@
 import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/context/auth-context';
 import { 
   BarChart2, 
   BookOpen, 
@@ -12,7 +13,8 @@ import {
   HelpCircle,
   Home,
   X,
-  Mic
+  Mic,
+  Crown
 } from 'lucide-react';
 import { MobileMenuContext } from './header';
 
@@ -20,6 +22,7 @@ export function DashboardSidebar() {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const { isMobileMenuOpen, setIsMobileMenuOpen } = useContext(MobileMenuContext);
+  const { user } = useAuth();
   
   useEffect(() => {
     setIsMounted(true);
@@ -35,6 +38,12 @@ export function DashboardSidebar() {
       href: '/dashboard',
       icon: <Home className="h-5 w-5" />,
     },
+    // Conditionally add Admin Dashboard for admin users
+    ...(user?.role === 'admin' || user?.role === 'adm' ? [{
+      name: 'Admin Dashboard',
+      href: '/admin',
+      icon: <Crown className="h-5 w-5" />,
+    }] : []),
     {
       name: 'Lessons',
       href: '/lessons',
