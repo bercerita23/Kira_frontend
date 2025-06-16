@@ -21,6 +21,7 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // for step 1
+  //~~~~~~~~~~~~
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -49,6 +50,7 @@ export default function ForgotPasswordPage() {
   };
 
   // for step 2
+  //~~~~~~~~~~~~
   // verify code
   const handleCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +62,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    // settomh new password
+    // set new password
     try {
       const response = await fetch('/auth/reset-pw', {
         method: 'POST',
