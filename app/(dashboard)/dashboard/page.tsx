@@ -105,8 +105,8 @@ export default function DashboardPage() {
         <DashboardHeader />
         <div className="flex flex-col md:flex-row">
           <DashboardSidebar />
-          <main className="flex-1 pt-16 px-4 md:px-6 md:pt-8 md:pl-72">
-            <div className="max-w-4xl mx-auto py-6">
+          <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
+            <div className="max-w-none py-4">
               {/* Welcome Section */}
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
