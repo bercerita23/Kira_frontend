@@ -4,17 +4,17 @@ import Image from 'next/image';
 export function LandingTestimonials() {
   const testimonials = [
     {
-      content: "Bercerita's immersive approach helped me gain confidence in English. The story-based learning is both fun and effective!",
-      author: "Maria Rodriguez",
-      role: "Student, Spain",
-      avatar: "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=150",
+      name: "Sarah Johnson",
+      role: "University Student",
+      content: "Kira's immersive approach helped me gain confidence in English. The story-based learning is both fun and effective!",
+      avatar: "/avatars/sarah.jpg",
       rating: 5
     },
     {
-      content: "I've tried many language apps, but Bercerita's focus on natural learning through stories has been the most effective for me.",
-      author: "Hiroshi Tanaka",
-      role: "Software Engineer, Japan",
-      avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150",
+      name: "Ahmad Rahman",
+      role: "Working Professional", 
+      content: "I've tried many language apps, but Kira's focus on natural learning through stories has been the most effective for me.",
+      avatar: "/avatars/ahmad.jpg",
       rating: 5
     },
     {
@@ -31,8 +31,8 @@ export function LandingTestimonials() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Learners Say</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of satisfied learners who have improved their English skills with Bercerita
+          <p className="text-xl text-center text-gray-600 dark:text-gray-300 mb-12">
+            Join thousands of satisfied learners who have improved their English skills with Kira
           </p>
         </div>
 
@@ -55,13 +55,13 @@ export function LandingTestimonials() {
                 <div className="mr-4 relative w-12 h-12 rounded-full overflow-hidden">
                   <Image 
                     src={testimonial.avatar} 
-                    alt={testimonial.author}
+                    alt={testimonial.name}
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div>
-                  <p className="font-medium">{testimonial.author}</p>
+                  <p className="font-medium">{testimonial.name}</p>
                   <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                 </div>
               </div>

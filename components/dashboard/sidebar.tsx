@@ -166,7 +166,7 @@ export function DashboardSidebar() {
                     ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex items-center justify-between h-12 px-4 border-b border-gray-100 dark:border-gray-800">
-          <span className="font-semibold text-blue-600 dark:text-blue-400">Bercerita</span>
+          <span className="font-semibold text-blue-600 dark:text-blue-400">Kira</span>
           <button onClick={() => setIsMobileMenuOpen(false)} 
                   className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
             <X size={20} />

@@ -63,8 +63,8 @@ export function DashboardHeader() {
           >
             <Menu size={20} />
           </button>
-          <Link href="/dashboard" className="flex items-center">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">Bercerita</span>
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="font-semibold text-blue-600 dark:text-blue-400">Kira</span>
           </Link>
         </div>
         

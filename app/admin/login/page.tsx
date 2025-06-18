@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">Bercerita Admin</span>
+            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">Kira Admin</span>
           </Link>
         </div>
         

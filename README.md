@@ -1,8 +1,8 @@
-# BERCERITA - English Learning Platform for Indonesian Students
+# KIRA - English Learning Platform for Indonesian Students
 
-![Bercerita Logo](/bercerita_logo.jpeg)
+![Kira Logo](/kira_logo.jpeg)
 
-BERCERITA is a Duolingo-inspired English learning platform specifically designed for Indonesian students. The name "Bercerita" means "storytelling" in Indonesian, reflecting the platform's approach to teaching English through engaging stories and interactive activities.
+KIRA is a Duolingo-inspired English learning platform specifically designed for Indonesian students. The name "Kira" reflects the platform's approach to teaching English through engaging stories and interactive activities.
 
 ## Features
 
@@ -50,8 +50,8 @@ If not set, the default API URL will be used.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/BERCERITA_Frontend.git
-cd BERCERITA_Frontend
+git clone https://github.com/yourusername/KIRA_Frontend.git
+cd KIRA_Frontend
 ```
 
 2. Install dependencies:
@@ -90,20 +90,20 @@ Note: Due to the Kira API structure, the application stores the user's email in 
 ## Project Structure
 
 ```
-BERCERITA_Frontend/
+KIRA_Frontend/
 ├── app/                # Next.js app directory
 │   ├── components/     # Reusable UI components
 │   ├── globals.css     # Global styles
 │   ├── layout.tsx      # Root layout component
 │   └── page.tsx        # Home page
 ├── public/             # Static assets
-│   └── bercerita_logo.jpeg  # Logo image
+│   └── kira_logo.jpeg  # Logo image
 └── ...config files
 ```
 
 ## Design Philosophy
 
-BERCERITA's design is inspired by Duolingo's effective learning approach, but tailored specifically for Indonesian students learning English. The UI features:
+KIRA's design is inspired by Duolingo's effective learning approach, but tailored specifically for Indonesian students learning English. The UI features:
 
 - Bright, engaging colors similar to Duolingo's palette
 - Gamified elements to keep users motivated

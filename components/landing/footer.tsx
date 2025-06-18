@@ -7,29 +7,15 @@ export function LandingFooter() {
   return (
     <footer className="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 pt-12 pb-8">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-          <div className="lg:col-span-2">
-            <Link href="/" className="inline-block mb-4">
-              <span className="text-2xl font-bold text-primary">Bercerita</span>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <span className="text-2xl font-bold text-primary">Kira</span>
             </Link>
-            <p className="text-muted-foreground mb-4 max-w-md">
-              Bercerita helps you learn English through interactive stories and exercises, 
-              making language acquisition natural and enjoyable.
+            <p className="text-muted-foreground">
+              Kira helps you learn English through interactive stories and exercises,
+              making language learning engaging and effective.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-500 hover:text-primary" aria-label="Twitter">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-primary" aria-label="Facebook">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-primary" aria-label="Instagram">
-                <Instagram size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-primary" aria-label="YouTube">
-                <Youtube size={20} />
-              </a>
-            </div>
           </div>
           
           <div>
@@ -62,16 +48,15 @@ export function LandingFooter() {
           </div>
         </div>
         
-        <div className="pt-8 mt-8 border-t border-gray-200 dark:border-gray-800 text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center">
-          <p>&copy; {currentYear} Bercerita. All rights reserved.</p>
-          <div className="mt-4 md:mt-0">
-            <select className="bg-transparent border border-gray-300 dark:border-gray-700 rounded py-1 px-2 text-sm">
-              <option value="en">English (US)</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-              <option value="de">Deutsch</option>
-              <option value="jp">日本語</option>
-            </select>
+        <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p>&copy; {currentYear} Kira. All rights reserved.</p>
+          <div className="flex space-x-6 mt-4 md:mt-0">
+            <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>

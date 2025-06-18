@@ -38,8 +38,8 @@ export default function SignupPage() {
         formData.password
       );
       toast({
-        title: "Account created",
-        description: "Welcome to Bercerita! Your account has been created successfully.",
+        title: "Account created successfully!",
+        description: "Welcome to Kira! Your account has been created successfully.",
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
@@ -85,7 +85,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-primary">Bercerita</span>
+            <span className="text-2xl font-bold text-primary">Kira</span>
           </Link>
         </div>
         
@@ -93,7 +93,7 @@ export default function SignupPage() {
           <CardHeader>
             <CardTitle className="text-2xl text-center">Create an account</CardTitle>
             <CardDescription className="text-center">
-              Start your English learning journey with Bercerita
+              Start your English learning journey with Kira
             </CardDescription>
           </CardHeader>
           <CardContent>

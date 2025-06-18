@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Bercerita | English Learning Platform',
-  description: 'Learn English through interactive stories and exercises',
+  title: 'Kira | English Learning Platform',
+  description: 'Learn English through interactive stories and engaging exercises with Kira - the modern language learning platform.',
 };
 
 export default function RootLayout({

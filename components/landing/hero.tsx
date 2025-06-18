@@ -12,7 +12,7 @@ export function LandingHero() {
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4">
               Learn English Through 
-              <span className="text-primary"> Stories</span>
+              <span className="text-primary"> Large Language Models</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-lg mx-auto md:mx-0">
               Master English naturally with interactive lessons and engaging stories at your own pace.

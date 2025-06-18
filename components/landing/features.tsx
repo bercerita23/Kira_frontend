@@ -38,7 +38,7 @@ export function LandingFeatures() {
     <section className="py-20 bg-white dark:bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Learn With Bercerita?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Learn With Kira?</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Our science-based approach makes learning English effective and enjoyable
           </p>
