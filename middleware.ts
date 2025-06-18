@@ -5,8 +5,10 @@ import type { NextRequest } from 'next/server';
 const protectedPaths = ['/dashboard', '/admin', '/lessons', '/speaking', '/progress', '/achievements'];
 // Add paths that should be accessible only to non-authenticated users
 const authPaths = ['/login', '/signup'];
-// Admin-only paths
+// Admin-only paths (excluding admin login)
 const adminPaths = ['/admin'];
+// Admin auth paths that should be accessible to non-authenticated users
+const adminAuthPaths = ['/admin/login'];
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
@@ -19,37 +21,53 @@ export function middleware(request: NextRequest) {
     hasEmail: !!userEmail 
   });
 
-  // Check if the path is protected
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  // Check if the path is admin auth (should be accessible to non-authenticated users)
+  const isAdminAuthPath = adminAuthPaths.some(path => pathname.startsWith(path));
+  
   // Check if the path is an auth path (login/signup)
   const isAuthPath = authPaths.some(path => pathname === path);
-  // Check if the path is admin-only
-  const isAdminPath = adminPaths.some(path => pathname.startsWith(path));
+  
+  // Check if the path is protected (but exclude admin auth paths)
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path)) && !isAdminAuthPath;
+  
+  // Check if the path is admin-only (excluding admin login)
+  const isAdminPath = adminPaths.some(path => pathname.startsWith(path)) && !isAdminAuthPath;
 
   console.log('🛡️ Path checks:', { 
     isProtectedPath, 
     isAuthPath, 
-    isAdminPath 
+    isAdminPath,
+    isAdminAuthPath
   });
 
-  // If trying to access protected path without token, redirect to login
+  // If trying to access admin routes without token, redirect to admin login
+  if (isAdminPath && !token) {
+    console.log('🚫 Redirecting to admin login - no token for admin path');
+    const url = new URL('/admin/login', request.url);
+    url.searchParams.set('from', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // If trying to access other protected paths without token, redirect to student login
   if (isProtectedPath && !token) {
-    console.log('🚫 Redirecting to login - no token for protected path');
+    console.log('🚫 Redirecting to student login - no token for protected path');
     const url = new URL('/login', request.url);
     url.searchParams.set('from', pathname);
     return NextResponse.redirect(url);
   }
 
-  // If trying to access auth paths with token, redirect based on role
+  // If trying to access student auth paths with token, redirect to dashboard
   if (isAuthPath && token) {
-    console.log('🔄 Redirecting authenticated user away from auth path');
-    // For now, we'll redirect to dashboard by default
-    // The actual role-based redirect will happen in the auth context after login
+    console.log('🔄 Redirecting authenticated user away from student auth path');
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // For admin paths, we'll let the component handle role checking
-  // since we can't easily access user role in middleware without making API calls
+  // If trying to access admin auth paths with token, redirect based on role
+  if (isAdminAuthPath && token) {
+    console.log('🔄 Redirecting authenticated user away from admin auth path');
+    // The auth context will handle role-based routing
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
 
   console.log('✅ Middleware allowing request to proceed');
   return NextResponse.next();

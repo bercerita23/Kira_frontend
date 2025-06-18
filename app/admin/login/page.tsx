@@ -2,53 +2,55 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { Shield, Crown, AlertCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/context/auth-context';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
+  console.log('🔑 Admin Login Page loaded successfully');
+  
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    remember: false
+    password: ''
   });
   const [error, setError] = useState('');
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(''); // Clear previous errors
+    setError('');
     
     try {
-      await login(formData.email, formData.password, 'student');
+      await login(formData.email, formData.password, 'admin');
       toast({
-        title: "Login successful",
-        description: "Welcome back to Bercerita!",
+        title: "Admin login successful",
+        description: "Welcome to the admin dashboard!",
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
       
-      // Show specific error messages
-      if (errorMessage.includes('Admin users must')) {
+      // Show specific error for non-admin users
+      if (errorMessage.includes('Access denied')) {
         toast({
-          title: "Wrong Portal",
-          description: "Admin users must use the Admin Portal below.",
+          title: "Access Denied",
+          description: "This portal is for administrators only.",
           variant: "destructive",
         });
-      } else if (errorMessage.includes('network') || errorMessage.includes('server')) {
+      } else if (errorMessage.includes('Incorrect Credentials')) {
+        setError('Invalid admin credentials. Please check your email and password.');
+      } else {
         toast({
-          title: "Connection Error",
-          description: "Please check your internet connection and try again.",
+          title: "Login Failed",
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -58,13 +60,12 @@ export default function LoginPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
     
-    // Clear error when user starts typing
     if (error) {
       setError('');
     }
@@ -78,21 +79,24 @@ export default function LoginPage() {
     }
     return 'general';
   };
-
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-primary">Bercerita</span>
+            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">Bercerita Admin</span>
           </Link>
         </div>
         
-        <Card>
+        <Card className="shadow-xl border-purple-200 dark:border-purple-700">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Shield className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">Administrator Access</CardTitle>
+            </div>
             <CardDescription className="text-center">
-              Student login - Sign in to your Bercerita account
+              Admin login - Sign in to access the administration panel
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,28 +111,21 @@ export default function LoginPage() {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Admin Email</Label>
                 <Input 
                   id="email" 
                   name="email"
                   type="email" 
-                  placeholder="name@example.com" 
+                  placeholder="admin@example.com" 
                   required 
                   value={formData.email}
                   onChange={handleChange}
-                  className={error && getErrorType(error) === 'email' ? 'border-red-500' : ''}
+                  className={`focus:ring-purple-500 focus:border-purple-500 ${error && getErrorType(error) === 'email' ? 'border-red-500' : ''}`}
                 />
               </div>
+              
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link 
-                    href="/forgot-password" 
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input 
                   id="password" 
                   name="password"
@@ -136,60 +133,54 @@ export default function LoginPage() {
                   required 
                   value={formData.password}
                   onChange={handleChange}
-                  className={error && getErrorType(error) === 'password' ? 'border-red-500' : ''}
+                  className={`focus:ring-purple-500 focus:border-purple-500 ${error && getErrorType(error) === 'password' ? 'border-red-500' : ''}`}
                 />
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
-                  name="remember"
-                  checked={formData.remember}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, remember: checked as boolean }))
-                  }
-                />
-                <Label htmlFor="remember" className="text-sm font-normal">
-                  Remember me for 30 days
-                </Label>
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              
+              <Button 
+                type="submit" 
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white" 
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Signing in...
+                    Authenticating...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center">
-                    <LogIn className="mr-2 h-4 w-4" /> Sign in
+                    <LogIn className="mr-2 h-4 w-4" /> Access Admin Panel
                   </span>
                 )}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-primary hover:underline font-medium">
-                Sign up
-              </Link>
-            </p>
+            <div className="flex items-center justify-center text-xs text-muted-foreground">
+              <Shield className="inline h-3 w-3 mr-1" />
+              Authorized Personnel Only
+            </div>
             <div className="border-t pt-3 w-full text-center">
               <p className="text-xs text-muted-foreground">
-                Administrator?{' '}
-                <Link 
-                  href="/admin/login"
-                  className="text-blue-600 hover:underline font-medium"
-                >
-                  Admin Portal
+                Not an admin?{' '}
+                <Link href="/login" className="text-purple-600 hover:underline font-medium">
+                  Student Login
                 </Link>
               </p>
             </div>
           </CardFooter>
         </Card>
+        
+        {/* Security Notice */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-purple-600 dark:text-purple-400">
+            This portal is protected and monitored for security.
+          </p>
+        </div>
       </div>
     </div>
   );
-}
+} 

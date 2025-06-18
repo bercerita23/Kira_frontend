@@ -70,20 +70,20 @@ export default function AdminDashboardPage() {
   // Show login message if not authenticated
   if (!user) {
     console.log('🚫 Admin page: No user found, showing login prompt');
-    // Force redirect to login
+    // Force redirect to admin login
     if (typeof window !== 'undefined') {
-      window.location.href = '/login?from=/admin';
+      window.location.href = '/admin/login?from=/admin';
     }
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+          <h1 className="text-2xl font-bold mb-4">Admin Authentication Required</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Redirecting to login...
+            Redirecting to admin login...
           </p>
           <div className="space-x-4">
             <Button asChild>
-              <Link href="/login">Go to Login</Link>
+              <Link href="/admin/login">Go to Admin Login</Link>
             </Button>
           </div>
         </div>

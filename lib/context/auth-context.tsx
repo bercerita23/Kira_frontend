@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, loginType?: 'student' | 'admin') => Promise<void>;
   signup: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void;
@@ -46,11 +46,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ['/dashboard', '/admin', '/lessons', '/speaking', '/progress', '/achievements']
         .some(path => window.location.pathname.startsWith(path));
 
+    const isAdminRoute = typeof window !== 'undefined' && 
+      window.location.pathname.startsWith('/admin') && 
+      !window.location.pathname.startsWith('/admin/login');
+
     if (isProtectedRoute && !token) {
       console.log('🚫 AuthProvider: Redirecting unauthenticated user from protected route');
       setIsLoading(false);
       if (typeof window !== 'undefined') {
-        window.location.href = `/login?from=${encodeURIComponent(window.location.pathname)}`;
+        // Redirect to appropriate login based on route
+        const loginPath = isAdminRoute ? '/admin/login' : '/login';
+        window.location.href = `${loginPath}?from=${encodeURIComponent(window.location.pathname)}`;
       }
       return;
     }
@@ -83,9 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, loginType?: 'student' | 'admin') => {
     try {
-      console.log('🔐 Attempting login for:', email);
+      console.log('🔐 Attempting login for:', email, 'via', loginType || 'unknown', 'portal');
       const response: TokenResponse = await authApi.login({ email, password });
       
       console.log('✅ Login successful, storing credentials');
@@ -101,9 +107,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         currentUser = users.find(u => u.email === email);
         if (currentUser) {
           console.log('✅ User data retrieved from API');
+          
+          // Enforce role-based login restrictions
+          const isAdmin = currentUser.role === 'admin' || currentUser.role === 'adm';
+          const isStudent = currentUser.role === 'stu';
+          
+          if (loginType === 'admin' && !isAdmin) {
+            console.log('🚫 Student user attempted to login via admin portal');
+            clearAuth();
+            throw new Error('Access denied. This portal is for administrators only. Please use the student login.');
+          }
+          
+          if (loginType === 'student' && isAdmin) {
+            console.log('🚫 Admin user attempted to login via student portal');
+            clearAuth();
+            throw new Error('Admin users must use the Admin Portal. Please use the admin login.');
+          }
+          
           setUser(currentUser);
         }
       } catch (error) {
+        // If the error is from role checking, re-throw it
+        if (error instanceof Error && (error.message.includes('Access denied') || error.message.includes('Admin users must'))) {
+          throw error;
+        }
+        
         console.log('⚠️ Could not fetch user data, creating basic user object');
         // If we can't get user info, create a basic user object
         currentUser = {
@@ -120,12 +148,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const from = searchParams.get('from');
       let redirectPath = '/dashboard'; // Default for students
       
+      // Check if user is admin
       if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'adm')) {
         redirectPath = '/admin';
+        console.log('👑 Admin user detected, redirecting to admin dashboard');
+      } else {
+        console.log('🎓 Student user detected, redirecting to student dashboard');
+        
+        // If student tried to access admin routes, redirect them to student dashboard
+        if (from && from.startsWith('/admin')) {
+          console.log('⚠️ Student attempted to access admin route, redirecting to dashboard');
+          redirectPath = '/dashboard';
+        }
       }
       
-      // Use the 'from' parameter if provided, otherwise use role-based redirect
-      const finalRedirect = from || redirectPath;
+      // Use the 'from' parameter if provided and user has appropriate role, otherwise use role-based redirect
+      const finalRedirect = (from && !from.includes('/login')) ? from : redirectPath;
       console.log(`🔄 Redirecting to: ${finalRedirect} (role: ${currentUser?.role || 'unknown'})`);
       router.push(finalRedirect);
     } catch (error) {
@@ -146,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('✅ Signup successful, auto-logging in...');
       // After successful signup, automatically log the user in
-      await login(email, password);
+      await login(email, password, 'student');
     } catch (error) {
       console.log('❌ Signup failed:', error);
       throw error;
