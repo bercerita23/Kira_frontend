@@ -1,44 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kira-api.com';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://kira-api.com";
 
 // Handle GET request
 export async function GET(request: NextRequest) {
-  return handleRequest(request, 'GET');
+  return handleRequest(request, "GET");
 }
 
 // Handle DELETE request
 export async function DELETE(request: NextRequest) {
-  return handleRequest(request, 'DELETE');
+  return handleRequest(request, "DELETE");
 }
 
 // Shared handler function for both GET and DELETE
-async function handleRequest(request: NextRequest, method: 'GET' | 'DELETE') {
-  
+async function handleRequest(request: NextRequest, method: "GET" | "DELETE") {
   try {
     const url = new URL(request.url);
-    const email = url.searchParams.get('email');
+    const email = url.searchParams.get("email");
 
     if (!email) {
-      return NextResponse.json({ detail: 'Missing email parameter' }, { status: 400 });
+      return NextResponse.json(
+        { detail: "Missing email parameter" },
+        { status: 400 }
+      );
     }
 
     const backendResponse = await fetch(`${apiUrl}/auth/code?email=${email}`, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
-if (backendResponse.status === 204) {
-  return new NextResponse(null, { status: 204 });
-}
-    const contentType = backendResponse.headers.get('content-type');
+    if (backendResponse.status === 204) {
+      return new NextResponse(null, { status: 204 });
+    }
+    const contentType = backendResponse.headers.get("content-type");
     let data;
 
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType && contentType.includes("application/json")) {
       data = await backendResponse.json();
     } else {
       const text = await backendResponse.text();
-      console.error('Non-JSON response from backend:', text);
-      return NextResponse.json({ detail: text }, { status: backendResponse.status });
+      console.error("Non-JSON response from backend:", text);
+      return NextResponse.json(
+        { detail: text },
+        { status: backendResponse.status }
+      );
     }
 
     if (!backendResponse.ok) {
@@ -47,7 +52,10 @@ if (backendResponse.status === 204) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Proxy error:', error);
-    return NextResponse.json({ detail: 'Network error occurred' }, { status: 500 });
+    console.error("Proxy error:", error);
+    return NextResponse.json(
+      { detail: "Network error occurred" },
+      { status: 500 }
+    );
   }
 }

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
-import { authApi, DbUser } from "@/lib/api/auth";import Link from "next/link";
+import { authApi, DbUser } from "@/lib/api/auth";
+import Link from "next/link";
 import { Users, UserCheck, Crown, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,50 +21,55 @@ export default function AdminDashboardPage() {
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
-  console.log('🔒 Admin page render:', { 
-    isLoading, 
-    hasUser: !!user, 
+  console.log("🔒 Admin page render:", {
+    isLoading,
+    hasUser: !!user,
     userRole: user?.role,
-    userEmail: user?.email 
+    userEmail: user?.email,
   });
 
   // Fetch all users and filter students
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        console.log('🔄 Admin Dashboard: Fetching all users from API...');
+        console.log("🔄 Admin Dashboard: Fetching all users from API...");
         const allUsers = await authApi.getAllUsers();
-        console.log('📊 Admin Dashboard: Received users:', allUsers);
-        console.log('📊 Admin Dashboard: User emails:', allUsers.map(u => u.email));
+        console.log("📊 Admin Dashboard: Received users:", allUsers);
+        console.log(
+          "📊 Admin Dashboard: User emails:",
+          allUsers.map((u) => u.email)
+        );
 
-        
-        const studentUsers = allUsers.filter(u => !u.is_admin && !u.is_super_admin);
+        const studentUsers = allUsers.filter(
+          (u) => !u.is_admin && !u.is_super_admin
+        );
 
-        console.log('🎓 Admin Dashboard: Filtered students:', studentUsers);
-        console.log('🎓 Admin Dashboard: Student count:', studentUsers.length);
-        
+        console.log("🎓 Admin Dashboard: Filtered students:", studentUsers);
+        console.log("🎓 Admin Dashboard: Student count:", studentUsers.length);
+
         setStudents(studentUsers);
       } catch (error) {
-        console.error('Failed to fetch students:', error);
+        console.error("Failed to fetch students:", error);
       } finally {
         setLoadingStudents(false);
       }
     };
 
-    if (user && (user.role === 'admin' || user.role === 'super_admin')) {
-
+    if (user && (user.role === "admin" || user.role === "super_admin")) {
       fetchStudents();
     }
   }, [user]);
 
   // Show loading state while checking authentication
   if (isLoading) {
-    console.log('⏳ Admin page: Showing loading state');
+    console.log("⏳ Admin page: Showing loading state");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Verifying access...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Verifying access...
+          </p>
         </div>
       </div>
     );
@@ -71,15 +77,17 @@ export default function AdminDashboardPage() {
 
   // Show login message if not authenticated
   if (!user) {
-    console.log('🚫 Admin page: No user found, showing login prompt');
+    console.log("🚫 Admin page: No user found, showing login prompt");
     // Force redirect to admin login
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login?from=/admin';
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login?from=/admin";
     }
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Admin Authentication Required</h1>
+          <h1 className="text-2xl font-bold mb-4">
+            Admin Authentication Required
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             Redirecting to admin login...
           </p>
@@ -94,13 +102,17 @@ export default function AdminDashboardPage() {
   }
 
   // Check if user is admin
-  if (user.role !== 'admin' && user.role !== 'super_admin') {
-    console.log('🚫 Admin page: User is not admin, denying access', { userRole: user.role });
+  if (user.role !== "admin" && user.role !== "super_admin") {
+    console.log("🚫 Admin page: User is not admin, denying access", {
+      userRole: user.role,
+    });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Access Denied</h1>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">
+            Access Denied
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             You don't have permission to access the admin dashboard.
           </p>
@@ -114,31 +126,33 @@ export default function AdminDashboardPage() {
     );
   }
 
-  console.log('✅ Admin page: Access granted for admin user');
+  console.log("✅ Admin page: Access granted for admin user");
 
   // Helper function to get user initials
   const getUserInitials = (user: DbUser) => {
-    const firstInitial = user.first_name?.charAt(0)?.toUpperCase() || '';
-    const lastInitial = user.last_name?.charAt(0)?.toUpperCase() || '';
-    return firstInitial + lastInitial || user.email?.charAt(0)?.toUpperCase() || 'U';
+    const firstInitial = user.first_name?.charAt(0)?.toUpperCase() || "";
+    const lastInitial = user.last_name?.charAt(0)?.toUpperCase() || "";
+    return (
+      firstInitial + lastInitial || user.email?.charAt(0)?.toUpperCase() || "U"
+    );
   };
 
   // Helper function to get display name
   const getDisplayName = (user: DbUser) => {
-    const firstName = user.first_name || '';
-    const lastName = user.last_name || '';
+    const firstName = user.first_name || "";
+    const lastName = user.last_name || "";
     if (firstName || lastName) {
       return `${firstName} ${lastName}`.trim();
     }
-    return user.email || 'Unknown User';
+    return user.email || "Unknown User";
   };
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -159,7 +173,7 @@ export default function AdminDashboardPage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -169,8 +183,8 @@ export default function AdminDashboardPage() {
                   Administrator
                 </p>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={logout}
                 className="flex items-center gap-2"
@@ -196,9 +210,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{students.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Active learners
-              </p>
+              <p className="text-xs text-muted-foreground">Active learners</p>
             </CardContent>
           </Card>
 
@@ -211,16 +223,16 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {students.filter(s => {
-                  const signupDate = new Date(s.created_at || '');
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return signupDate > weekAgo;
-                }).length}
+                {
+                  students.filter((s) => {
+                    const signupDate = new Date(s.created_at || "");
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return signupDate > weekAgo;
+                  }).length
+                }
               </div>
-              <p className="text-xs text-muted-foreground">
-                Last 7 days
-              </p>
+              <p className="text-xs text-muted-foreground">Last 7 days</p>
             </CardContent>
           </Card>
 
@@ -233,7 +245,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {students.filter(s => s.school_id).length}
+                {students.filter((s) => s.school_id).length}
               </div>
               <p className="text-xs text-muted-foreground">
                 Students with schools
@@ -248,8 +260,8 @@ export default function AdminDashboardPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               All Students ({students.length})
             </h2>
-            <Button 
-              onClick={() => window.location.reload()} 
+            <Button
+              onClick={() => window.location.reload()}
               variant="outline"
               size="sm"
             >
@@ -260,7 +272,9 @@ export default function AdminDashboardPage() {
           {loadingStudents ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading students...</span>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">
+                Loading students...
+              </span>
             </div>
           ) : students.length === 0 ? (
             <Card>
@@ -277,7 +291,10 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {students.map((student) => (
-                <Card key={student.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+                <Card
+                  key={student.user_id}
+                  className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-12 w-12">
@@ -298,14 +315,18 @@ export default function AdminDashboardPage() {
                   <CardContent className="pt-0">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Role:</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Role:
+                        </span>
                         <Badge variant="secondary" className="text-xs">
                           Student
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">ID:</span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          ID:
+                        </span>
                         <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                           #{student.user_id}
                         </span>
@@ -313,7 +334,9 @@ export default function AdminDashboardPage() {
 
                       {student.school_id && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">School ID:</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            School ID:
+                          </span>
                           <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                             #{student.school_id}
                           </span>
@@ -322,7 +345,9 @@ export default function AdminDashboardPage() {
 
                       {student.created_at && (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Joined:</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Joined:
+                          </span>
                           <span className="text-sm text-gray-900 dark:text-gray-100">
                             {formatDate(student.created_at)}
                           </span>
@@ -338,4 +363,4 @@ export default function AdminDashboardPage() {
       </div>
     </div>
   );
-} 
+}

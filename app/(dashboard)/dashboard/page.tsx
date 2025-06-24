@@ -148,12 +148,12 @@ export default function DashboardPage() {
                         {percent}%
                       </p>
                     </div>
-<div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
-  <div
-    className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
-    style={{ width: `${percent ?? 0}%` }}
-  />
-</div>
+                    <div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
+                      <div
+                        className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
+                        style={{ width: `${percent ?? 0}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -161,13 +161,13 @@ export default function DashboardPage() {
                   <div className="flex items-center">
                     <div className="relative mr-4">
                       <CircularProgress
-                          value={
-                             Number.isFinite(progressPercentage) &&
-                             progressPercentage >= 0 &&
-                             progressPercentage <= 100
-                             ? progressPercentage
-                             : 0
-                           }
+                        value={
+                          Number.isFinite(progressPercentage) &&
+                          progressPercentage >= 0 &&
+                          progressPercentage <= 100
+                            ? progressPercentage
+                            : 0
+                        }
                         size={48}
                         strokeWidth={4}
                         color="primary"

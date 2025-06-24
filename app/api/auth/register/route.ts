@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://kira-api.com';
-    
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.API_URL ||
+      "https://kira-api.com";
+
     const response = await fetch(`${apiUrl}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
@@ -19,7 +22,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Register proxy error:', error);
-    return NextResponse.json({ detail: 'Network error occurred' }, { status: 500 });
+    console.error("Register proxy error:", error);
+    return NextResponse.json(
+      { detail: "Network error occurred" },
+      { status: 500 }
+    );
   }
 }

@@ -1,56 +1,67 @@
-"use client"
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { LogIn, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/context/auth-context';
+import { useState } from "react";
+import Link from "next/link";
+import { LogIn, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/context/auth-context";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-const [formData, setFormData] = useState({
-  email: '',
-  user_id: '',
-  password: '',
-  remember: false
-});
-  const [error, setError] = useState('');
-  
+  const [formData, setFormData] = useState({
+    email: "",
+    user_id: "",
+    password: "",
+    remember: false,
+  });
+  const [error, setError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(''); // Clear previous errors
-    
+    setError(""); // Clear previous errors
+
     try {
       await login({
-  email: formData.email || undefined,
-  user_id: formData.user_id || undefined,
-  password: formData.password,
-});
+        email: formData.email || undefined,
+        user_id: formData.user_id || undefined,
+        password: formData.password,
+      });
       toast({
         title: "Login successful",
         description: "Welcome back to Kira!",
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
-      
+
       // Show specific error messages
-      if (errorMessage.includes('Admin users must')) {
+      if (errorMessage.includes("Admin users must")) {
         toast({
           title: "Wrong Portal",
           description: "Admin users must use the Admin Portal below.",
           variant: "destructive",
         });
-      } else if (errorMessage.includes('network') || errorMessage.includes('server')) {
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("server")
+      ) {
         toast({
           title: "Connection Error",
           description: "Please check your internet connection and try again.",
@@ -62,25 +73,25 @@ const [formData, setFormData] = useState({
     }
   };
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value, type, checked } = e.target;
-  setFormData(prev => ({
-    ...prev,
-    [name]: type === 'checkbox' ? checked : value
-  }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
 
-  if (error) {
-    setError('');
-  }
-};
+    if (error) {
+      setError("");
+    }
+  };
 
   const getErrorType = (errorMessage: string) => {
-    if (errorMessage.includes('email') || errorMessage.includes('account')) {
-      return 'email';
-    } else if (errorMessage.includes('password')) {
-      return 'password';
+    if (errorMessage.includes("email") || errorMessage.includes("account")) {
+      return "email";
+    } else if (errorMessage.includes("password")) {
+      return "password";
     }
-    return 'general';
+    return "general";
   };
 
   return (
@@ -91,7 +102,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             <span className="text-2xl font-bold text-primary">Kira</span>
           </Link>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
@@ -104,63 +115,71 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {error}
-                  </AlertDescription>
+                  <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
               <div className="space-y-2">
-  <Label htmlFor="user_id">User ID (optional)</Label>
-  <Input 
-    id="user_id" 
-    name="user_id"
-    type="text" 
-    placeholder="Enter your user ID" 
-    value={formData.user_id}
-    onChange={handleChange}
-  />
-</div>
+                <Label htmlFor="user_id">User ID (optional)</Label>
+                <Input
+                  id="user_id"
+                  name="user_id"
+                  type="text"
+                  placeholder="Enter your user ID"
+                  value={formData.user_id}
+                  onChange={handleChange}
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
+                <Input
+                  id="email"
                   name="email"
-                  type="email" 
-                  placeholder="name@example.com" 
-                
+                  type="email"
+                  placeholder="name@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={error && getErrorType(error) === 'email' ? 'border-red-500' : ''}
+                  className={
+                    error && getErrorType(error) === "email"
+                      ? "border-red-500"
+                      : ""
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link 
-                    href="/forgot-password" 
+                  <Link
+                    href="/forgot-password"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?
                   </Link>
                 </div>
-                <Input 
-                  id="password" 
+                <Input
+                  id="password"
                   name="password"
-                  type="password" 
-                  required 
+                  type="password"
+                  required
                   value={formData.password}
                   onChange={handleChange}
-                  className={error && getErrorType(error) === 'password' ? 'border-red-500' : ''}
+                  className={
+                    error && getErrorType(error) === "password"
+                      ? "border-red-500"
+                      : ""
+                  }
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
+                <Checkbox
+                  id="remember"
                   name="remember"
                   checked={formData.remember}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, remember: checked as boolean }))
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      remember: checked as boolean,
+                    }))
                   }
                 />
                 <Label htmlFor="remember" className="text-sm font-normal">
@@ -170,9 +189,25 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Signing in...
                   </span>
@@ -186,15 +221,18 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-3">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-primary hover:underline font-medium">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign up
               </Link>
             </p>
             <div className="border-t pt-3 w-full text-center">
               <p className="text-xs text-muted-foreground">
-                Administrator?{' '}
-                <Link 
+                Administrator?{" "}
+                <Link
                   href="/admin/login"
                   className="text-blue-600 hover:underline font-medium"
                 >
