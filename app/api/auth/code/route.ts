@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kira-api.com';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kira-api.com';
 
+// Handle GET request
+export async function GET(request: NextRequest) {
+  return handleRequest(request, 'GET');
+}
+
+// Handle DELETE request
+export async function DELETE(request: NextRequest) {
+  return handleRequest(request, 'DELETE');
+}
+
+// Shared handler function for both GET and DELETE
+async function handleRequest(request: NextRequest, method: 'GET' | 'DELETE') {
+  try {
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
 
@@ -12,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const backendResponse = await fetch(`${apiUrl}/auth/code?email=${email}`, {
-      method: 'GET',
+      method,
       headers: { 'Content-Type': 'application/json' },
     });
 

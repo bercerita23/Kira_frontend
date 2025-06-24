@@ -82,7 +82,9 @@ export default function SignupPage() {
         const data = await res.json();
         throw new Error(data.detail || 'Failed to complete registration.');
       }
-
+    await fetch(`/api/auth/code?email=${formData.email}`, {
+      method: 'DELETE',
+    });
       toast({ title: "Account created successfully!", description: "Welcome to Kira! Your account has been created successfully." });
     } catch (err: any) {
       setError(err.message || "Error completing registration.");
