@@ -16,11 +16,12 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    remember: false
-  });
+const [formData, setFormData] = useState({
+  email: '',
+  user_id: '',
+  password: '',
+  remember: false
+});
   const [error, setError] = useState('');
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +30,11 @@ export default function LoginPage() {
     setError(''); // Clear previous errors
     
     try {
-      await login(formData.email, formData.password, 'student');
+      await login({
+  email: formData.email || undefined,
+  user_id: formData.user_id || undefined,
+  password: formData.password,
+});
       toast({
         title: "Login successful",
         description: "Welcome back to Kira!",
@@ -57,18 +62,17 @@ export default function LoginPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    
-    // Clear error when user starts typing
-    if (error) {
-      setError('');
-    }
-  };
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value, type, checked } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: type === 'checkbox' ? checked : value
+  }));
+
+  if (error) {
+    setError('');
+  }
+};
 
   const getErrorType = (errorMessage: string) => {
     if (errorMessage.includes('email') || errorMessage.includes('account')) {
@@ -105,7 +109,18 @@ export default function LoginPage() {
                   </AlertDescription>
                 </Alert>
               )}
-              
+              <div className="space-y-2">
+  <Label htmlFor="user_id">User ID (optional)</Label>
+  <Input 
+    id="user_id" 
+    name="user_id"
+    type="text" 
+    placeholder="Enter your user ID" 
+    value={formData.user_id}
+    onChange={handleChange}
+  />
+</div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input 
@@ -113,7 +128,7 @@ export default function LoginPage() {
                   name="email"
                   type="email" 
                   placeholder="name@example.com" 
-                  required 
+                
                   value={formData.email}
                   onChange={handleChange}
                   className={error && getErrorType(error) === 'email' ? 'border-red-500' : ''}

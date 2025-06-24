@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
-import { authApi, User } from "@/lib/api/auth";
-import Link from "next/link";
+import { authApi, DbUser } from "@/lib/api/auth";import Link from "next/link";
 import { Users, UserCheck, Crown, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
-  const [students, setStudents] = useState<User[]>([]);
+  const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
 
   console.log('🔒 Admin page render:', { 
@@ -35,9 +34,11 @@ export default function AdminDashboardPage() {
         console.log('🔄 Admin Dashboard: Fetching all users from API...');
         const allUsers = await authApi.getAllUsers();
         console.log('📊 Admin Dashboard: Received users:', allUsers);
-        console.log('📊 Admin Dashboard: User roles:', allUsers.map(u => ({email: u.email, role: u.role})));
+        console.log('📊 Admin Dashboard: User emails:', allUsers.map(u => u.email));
+
         
-        const studentUsers = allUsers.filter(u => u.role === 'stu');
+        const studentUsers = allUsers.filter(u => !u.is_admin && !u.is_super_admin);
+
         console.log('🎓 Admin Dashboard: Filtered students:', studentUsers);
         console.log('🎓 Admin Dashboard: Student count:', studentUsers.length);
         
@@ -49,7 +50,8 @@ export default function AdminDashboardPage() {
       }
     };
 
-    if (user && (user.role === 'admin' || user.role === 'adm')) {
+    if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+
       fetchStudents();
     }
   }, [user]);
@@ -92,7 +94,7 @@ export default function AdminDashboardPage() {
   }
 
   // Check if user is admin
-  if (user.role !== 'admin' && user.role !== 'adm') {
+  if (user.role !== 'admin' && user.role !== 'super_admin') {
     console.log('🚫 Admin page: User is not admin, denying access', { userRole: user.role });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -115,14 +117,14 @@ export default function AdminDashboardPage() {
   console.log('✅ Admin page: Access granted for admin user');
 
   // Helper function to get user initials
-  const getUserInitials = (user: User) => {
+  const getUserInitials = (user: DbUser) => {
     const firstInitial = user.first_name?.charAt(0)?.toUpperCase() || '';
     const lastInitial = user.last_name?.charAt(0)?.toUpperCase() || '';
     return firstInitial + lastInitial || user.email?.charAt(0)?.toUpperCase() || 'U';
   };
 
   // Helper function to get display name
-  const getDisplayName = (user: User) => {
+  const getDisplayName = (user: DbUser) => {
     const firstName = user.first_name || '';
     const lastName = user.last_name || '';
     if (firstName || lastName) {
@@ -161,7 +163,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.first_name} {user.last_name}
+                  {user.first_name}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Administrator
@@ -275,7 +277,7 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {students.map((student) => (
-                <Card key={student.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+                <Card key={student.user_id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
                   <CardHeader className="pb-3">
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-12 w-12">
@@ -305,7 +307,7 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-600 dark:text-gray-400">ID:</span>
                         <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                          #{student.id}
+                          #{student.user_id}
                         </span>
                       </div>
 

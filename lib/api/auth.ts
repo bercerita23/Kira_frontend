@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
-// Create axios instance with base URL pointing to local API proxy
+// Create axios instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
   headers: {
@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to add auth token
+// Add request interceptor to attach token
 api.interceptors.request.use((config) => {
   const token = Cookies.get('token');
   if (token) {
@@ -18,13 +18,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor to handle errors consistently
+// Global error handler
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Extract error message from response
     let errorMessage = 'An unexpected error occurred';
-    
     if (error.response?.data) {
       const data = error.response.data as any;
       if (data.detail) {
@@ -37,65 +35,70 @@ api.interceptors.response.use(
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
-    // Create a new error with the extracted message
     const customError = new Error(errorMessage);
     customError.name = 'APIError';
     return Promise.reject(customError);
   }
 );
 
+// Request payload for login
 export interface LoginCredentials {
-  email: string;
+  email?: string;
+  user_id?: string;
   password: string;
 }
 
-export interface SignupCredentials {
-  email: string;
-  password: string;
-  first_name: string;
-  last_name?: string;
-}
-
+// Response returned by backend on login
 export interface TokenResponse {
   access_token: string;
   token_type: string;
 }
 
+// Signup payload
+export interface SignupCredentials {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name?: string;
+  school_id?: string;
+  employee_code?: string;
+}
+
+// Response for signup
 export interface SignupResponse {
   message: string;
 }
 
-export interface User {
-  id: string | number;
+
+export interface CurrentUser {
+  id: string;  // from decoded.sub
   email: string;
   first_name: string;
-  last_name: string;
-  role?: string;
-  created_at?: string;
-  updated_at?: string;
-  school_id?: number | null;
+  role: string;  // 'student' | 'admin' | 'super_admin'
+  school_id: string;
 }
 
-export interface AuthResponse {
-  user: User;
-  token: string;
+// This is the raw user fetched from /users endpoint
+export interface DbUser {
+  user_id: string;
+  email: string;
+  first_name: string;
+  last_name?: string;
+  hashed_password?: string;
+  is_admin: boolean;
+  is_super_admin: boolean;
+  school_id?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  last_login_time?: string;
 }
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
     try {
-      const params = new URLSearchParams();
-      params.append('username', credentials.email); // OAuth2 expects 'username'
-      params.append('password', credentials.password);
-      const response = await api.post<TokenResponse>(
-        '/auth/login',
-        params,
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-      );
+      const response = await api.post<TokenResponse>('/auth/login', credentials);
       return response.data;
     } catch (error) {
-      // Re-throw the error with proper message
       throw error;
     }
   },
@@ -105,49 +108,22 @@ export const authApi = {
       const response = await api.post<SignupResponse>('/auth/register', credentials);
       return response.data;
     } catch (error) {
-      // Re-throw the error with proper message
       throw error;
     }
   },
 
   logout: async (): Promise<void> => {
-    // Note: Kira API may not have a logout endpoint, so we just remove the token
     Cookies.remove('token');
   },
+  getAllUsers: async (): Promise<DbUser[]> => {
+  try {
+    const response = await api.get<{ "Hello_Form": DbUser[] }>('/users');
+    return response.data["Hello_Form"];
+  } catch (error) {
+    throw error;
+  }
+},
 
-  getCurrentUser: async (): Promise<User | null> => {
-    try {
-      // Kira API provides /auth/db endpoint that returns a list of users
-      // We'll need to find the current user from this list
-      // Since there's no /auth/me endpoint, this is a limitation
-      // For now, we'll return null and handle this in the auth context
-      return null;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getAllUsers: async (): Promise<User[]> => {
-    try {
-      // Add timestamp to prevent caching
-      const timestamp = Date.now();
-      console.log('🌐 API: Fetching users with timestamp:', timestamp);
-      
-      const response = await api.get(`/auth/db?_t=${timestamp}`);
-      console.log('🌐 API: Raw response data:', response.data);
-      
-      // Handle the Kira API response format which wraps users in "Hello From: " object
-      if (response.data && response.data['Hello From: ']) {
-        const users = response.data['Hello From: '];
-        console.log('🌐 API: Extracted users:', users);
-        return users;
-      }
-      // Fallback for direct array response
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 };
 
-export default authApi; 
+export default authApi;

@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'https://kira-api.com';
     
-    const response = await fetch(`${apiUrl}/auth/register`, {
+    const response = await fetch(`${apiUrl}/auth/request-email-register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Register proxy error:', error);
+    console.error('Request email register proxy error:', error);
     return NextResponse.json({ detail: 'Network error occurred' }, { status: 500 });
   }
 }

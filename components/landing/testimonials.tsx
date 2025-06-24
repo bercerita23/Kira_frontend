@@ -19,7 +19,7 @@ export function LandingTestimonials() {
     },
     {
       content: "The gamification elements keep me motivated and coming back every day. I've maintained a 45-day streak so far!",
-      author: "Sophie Chen",
+      name: "Sophie Chen",
       role: "Marketing Manager, France",
       avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150",
       rating: 4
