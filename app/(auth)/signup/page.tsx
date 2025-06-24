@@ -59,7 +59,7 @@ export default function SignupPage() {
       if (!res.ok) throw new Error("Failed to send verification email.");
       toast({
         title: "Check your email",
-        description: "A reset code has been sent to your email address.",
+        description: "A verification code has been sent to your email address.",
       });
       setStep(2);
     } catch (err: any) {
