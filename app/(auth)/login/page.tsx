@@ -37,11 +37,14 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      await login({
-        email: formData.email || undefined,
-        user_id: formData.user_id || undefined,
-        password: formData.password,
-      });
+      await login(
+        {
+          email: formData.email || undefined,
+          user_id: formData.user_id || undefined,
+          password: formData.password,
+        },
+        "student"
+      );
       toast({
         title: "Login successful",
         description: "Welcome back to Kira!",

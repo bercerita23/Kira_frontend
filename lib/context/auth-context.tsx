@@ -27,7 +27,10 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>; // <-- this change
+  login: (
+    credentials: LoginCredentials,
+    type?: "student" | "admin"
+  ) => Promise<void>;
   signup: (
     firstName: string,
     lastName: string,
@@ -73,12 +76,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (
+    credentials: LoginCredentials,
+    type: "student" | "admin" = "student"
+  ) => {
     try {
-      const response: TokenResponse = await authApi.login(credentials);
-      Cookies.set("token", response.access_token, { expires: 30 });
+      let data;
+      if (type === "admin") {
+        data = await authApi.loginAdmin(credentials);
+      } else {
+        data = await authApi.loginStudent(credentials);
+      }
+      // const response: TokenResponse = await authApi.login(credentials);
+      Cookies.set("token", data.access_token, { expires: 30 });
 
-      const decoded: DecodedToken = jwtDecode(response.access_token);
+      const decoded: DecodedToken = jwtDecode(data.access_token);
       const currentUser: User = {
         id: decoded.sub,
         email: decoded.email,

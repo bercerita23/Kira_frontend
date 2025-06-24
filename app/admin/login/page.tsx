@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
         password: formData.password,
       };
 
-      await login(requestBody); // ✅ Only pass credentials object, no 'admin' here
+      await login(requestBody, "admin"); // ✅ Only pass credentials object, no 'admin' here
 
       toast({
         title: "Admin login successful",

@@ -105,6 +105,32 @@ export const authApi = {
     }
   },
 
+  loginStudent: async (
+    credentials: LoginCredentials
+  ): Promise<TokenResponse> => {
+    try {
+      const response = await api.post<TokenResponse>(
+        "/auth/login_student",
+        credentials
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  loginAdmin: async (credentials: LoginCredentials): Promise<TokenResponse> => {
+    try {
+      const response = await api.post<TokenResponse>(
+        "/auth/login_admin",
+        credentials
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
     try {
       const response = await api.post<SignupResponse>(
