@@ -99,6 +99,7 @@ const handleCodeSubmit = async (e: React.FormEvent) => {
         body: JSON.stringify({ email, code, new_password: newPassword }),
       });
       if (!response.ok) throw new Error('Failed to reset password.');
+      await fetch(`/api/auth/code?email=${email}`, { method: 'DELETE' });
       toast({
         title: "Password reset successful",
         description: "You can now log in with your new password."

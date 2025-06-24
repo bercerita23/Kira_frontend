@@ -10,13 +10,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [verificationCode, setVerificationCode] = useState('');
-
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -86,6 +87,7 @@ export default function SignupPage() {
       method: 'DELETE',
     });
       toast({ title: "Account created successfully!", description: "Welcome to Kira! Your account has been created successfully." });
+      router.push('/login');
     } catch (err: any) {
       setError(err.message || "Error completing registration.");
     } finally {
@@ -137,7 +139,7 @@ export default function SignupPage() {
                 {/* Show Employee Code only if Admin is checked */}
                 <div className="flex items-center space-x-2">
                   <Checkbox id="isAdmin" name="isAdmin" checked={formData.isAdmin} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAdmin: checked as boolean }))} />
-                  <Label htmlFor="isAdmin" className="text-sm">Register as Admin</Label>
+                  <Label htmlFor="isAdmin" className="text-sm">Register as an Adminastrator</Label>
                 </div>
 
                 {formData.isAdmin && (

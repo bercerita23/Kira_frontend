@@ -14,6 +14,7 @@ export async function DELETE(request: NextRequest) {
 
 // Shared handler function for both GET and DELETE
 async function handleRequest(request: NextRequest, method: 'GET' | 'DELETE') {
+  
   try {
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
@@ -26,7 +27,9 @@ async function handleRequest(request: NextRequest, method: 'GET' | 'DELETE') {
       method,
       headers: { 'Content-Type': 'application/json' },
     });
-
+if (backendResponse.status === 204) {
+  return new NextResponse(null, { status: 204 });
+}
     const contentType = backendResponse.headers.get('content-type');
     let data;
 
