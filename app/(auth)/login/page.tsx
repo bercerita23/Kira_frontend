@@ -119,7 +119,7 @@ export default function LoginPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label htmlFor="user_id">User ID (optional)</Label>
+                <Label htmlFor="user_id">User ID</Label>
                 <Input
                   id="user_id"
                   name="user_id"
@@ -130,22 +130,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={
-                    error && getErrorType(error) === "email"
-                      ? "border-red-500"
-                      : ""
-                  }
-                />
-              </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
