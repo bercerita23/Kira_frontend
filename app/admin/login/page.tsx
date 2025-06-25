@@ -1,46 +1,58 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Shield, AlertCircle, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/context/auth-context';
+import { useState } from "react";
+import Link from "next/link";
+import { Shield, AlertCircle, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/context/auth-context";
 
 export default function AdminLoginPage() {
-  const { login } = useAuth();
+  const { loginAdmin } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    identifier: '',
-    password: ''
+    identifier: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       const requestBody = {
-        email: formData.identifier.includes('@') ? formData.identifier : undefined,
-        user_id: !formData.identifier.includes('@') ? formData.identifier : undefined,
-        password: formData.password
+        email: formData.identifier.includes("@")
+          ? formData.identifier
+          : undefined,
+        user_id: !formData.identifier.includes("@")
+          ? formData.identifier
+          : undefined,
+        password: formData.password,
       };
 
-      await login(requestBody);  // ✅ Only pass credentials object, no 'admin' here
-      
+      await loginAdmin(requestBody); // ✅ Only pass credentials object, no 'admin' here
+
       toast({
         title: "Admin login successful",
         description: "Welcome to the admin dashboard!",
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
       toast({
         title: "Login Failed",
@@ -54,8 +66,8 @@ export default function AdminLoginPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError('');
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (error) setError("");
   };
 
   return (
@@ -63,7 +75,9 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">Kira Admin</span>
+            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+              Kira Admin
+            </span>
           </Link>
         </div>
 
@@ -71,7 +85,9 @@ export default function AdminLoginPage() {
           <CardHeader>
             <div className="flex items-center justify-center gap-2 mb-2">
               <Shield className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">Administrator Access</CardTitle>
+              <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">
+                Administrator Access
+              </CardTitle>
             </div>
             <CardDescription className="text-center">
               Admin login - Sign in to access the administration panel
@@ -112,12 +128,32 @@ export default function AdminLoginPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Authenticating...
                   </span>
@@ -137,8 +173,11 @@ export default function AdminLoginPage() {
             </div>
             <div className="border-t pt-3 w-full text-center">
               <p className="text-xs text-muted-foreground">
-                Not an admin?{' '}
-                <Link href="/login" className="text-purple-600 hover:underline font-medium">
+                Not an admin?{" "}
+                <Link
+                  href="/login"
+                  className="text-purple-600 hover:underline font-medium"
+                >
                   Student Login
                 </Link>
               </p>

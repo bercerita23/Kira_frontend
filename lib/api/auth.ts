@@ -1,17 +1,17 @@
-import axios, { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
+import axios, { AxiosError } from "axios";
+import Cookies from "js-cookie";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Add request interceptor to attach token
 api.interceptors.request.use((config) => {
-  const token = Cookies.get('token');
+  const token = Cookies.get("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,21 +22,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    let errorMessage = 'An unexpected error occurred';
+    let errorMessage = "An unexpected error occurred";
     if (error.response?.data) {
       const data = error.response.data as any;
       if (data.detail) {
         errorMessage = data.detail;
       } else if (data.message) {
         errorMessage = data.message;
-      } else if (typeof data === 'string') {
+      } else if (typeof data === "string") {
         errorMessage = data;
       }
     } else if (error.message) {
       errorMessage = error.message;
     }
     const customError = new Error(errorMessage);
-    customError.name = 'APIError';
+    customError.name = "APIError";
     return Promise.reject(customError);
   }
 );
@@ -69,12 +69,11 @@ export interface SignupResponse {
   message: string;
 }
 
-
 export interface CurrentUser {
-  id: string;  // from decoded.sub
+  id: string; // from decoded.sub
   email: string;
   first_name: string;
-  role: string;  // 'student' | 'admin' | 'super_admin'
+  role: string; // 'student' | 'admin' | 'super_admin'
   school_id: string;
 }
 
@@ -94,9 +93,14 @@ export interface DbUser {
 }
 
 export const authApi = {
-  login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
+  login: async (
+    credentials: LoginCredentials,
+    type: "student" | "admin"
+  ): Promise<TokenResponse> => {
     try {
-      const response = await api.post<TokenResponse>('/auth/login', credentials);
+      const endpoint =
+        type === "student" ? "/auth/login-stu" : "/auth/login-ada";
+      const response = await api.post<TokenResponse>(endpoint, credentials);
       return response.data;
     } catch (error) {
       throw error;
@@ -105,7 +109,10 @@ export const authApi = {
 
   signup: async (credentials: SignupCredentials): Promise<SignupResponse> => {
     try {
-      const response = await api.post<SignupResponse>('/auth/register', credentials);
+      const response = await api.post<SignupResponse>(
+        "/auth/register",
+        credentials
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -113,17 +120,16 @@ export const authApi = {
   },
 
   logout: async (): Promise<void> => {
-    Cookies.remove('token');
+    Cookies.remove("token");
   },
   getAllUsers: async (): Promise<DbUser[]> => {
-  try {
-    const response = await api.get<{ "Hello_Form": DbUser[] }>('/users');
-    return response.data["Hello_Form"];
-  } catch (error) {
-    throw error;
-  }
-},
-
+    try {
+      const response = await api.get<{ Hello_Form: DbUser[] }>("/users");
+      return response.data["Hello_Form"];
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default authApi;

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import authApi, { LoginCredentials, TokenResponse } from "@/lib/api/auth";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
-// Type for decoded token payload
+
 interface DecodedToken {
   sub: string;
   email: string;
@@ -27,7 +27,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>; // <-- this change
+  loginStudent: (credentials: LoginCredentials) => Promise<void>;
+  loginAdmin: (credentials: LoginCredentials) => Promise<void>;
   signup: (
     firstName: string,
     lastName: string,
@@ -51,7 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
-  // Load user from token on initial page load
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
@@ -73,33 +73,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
-    try {
-      const response: TokenResponse = await authApi.login(credentials);
-      Cookies.set("token", response.access_token, { expires: 30 });
+  // centralize token handling logic
+  const handleLoginSuccess = (token: string) => {
+    Cookies.set("token", token, { expires: 30 });
 
-      const decoded: DecodedToken = jwtDecode(response.access_token);
-      const currentUser: User = {
-        id: decoded.sub,
-        email: decoded.email,
-        first_name: decoded.first_name,
-        role: decoded.role,
-        school_id: decoded.school_id,
-      };
-      setUser(currentUser);
+    const decoded: DecodedToken = jwtDecode(token);
+    const currentUser: User = {
+      id: decoded.sub,
+      email: decoded.email,
+      first_name: decoded.first_name,
+      role: decoded.role,
+      school_id: decoded.school_id,
+    };
+    setUser(currentUser);
 
-      // Handle role-based redirects
-      const from = searchParams.get("from");
-      let redirectPath = "/dashboard";
-      if (currentUser.role === "admin" || currentUser.role === "super_admin") {
-        redirectPath = "/admin";
-      }
-      const finalRedirect =
-        from && !from.includes("/login") ? from : redirectPath;
-      router.push(finalRedirect);
-    } catch (error) {
-      throw error;
+    // redirect logic
+    const from = searchParams.get("from");
+    let redirectPath = "/dashboard";
+    if (currentUser.role === "admin" || currentUser.role === "super_admin") {
+      redirectPath = "/admin";
     }
+    const finalRedirect =
+      from && !from.includes("/login") ? from : redirectPath;
+    router.push(finalRedirect);
+  };
+
+  const loginStudent = async (credentials: LoginCredentials) => {
+    const response: TokenResponse = await authApi.login(credentials, "student");
+    handleLoginSuccess(response.access_token);
+  };
+
+  const loginAdmin = async (credentials: LoginCredentials) => {
+    const response: TokenResponse = await authApi.login(credentials, "admin");
+    handleLoginSuccess(response.access_token);
   };
 
   const signup = async (
@@ -108,17 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string
   ) => {
-    try {
-      await authApi.signup({
-        email,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-      });
-      await login({ email, password });
-    } catch (error) {
-      throw error;
-    }
+    await authApi.signup({
+      email,
+      password,
+      first_name: firstName,
+      last_name: lastName,
+    });
+    await loginStudent({ email, password }); // default to student signup
   };
 
   const logout = async () => {
@@ -128,7 +130,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, signup, logout, clearAuth }}
+      value={{
+        user,
+        isLoading,
+        loginStudent,
+        loginAdmin,
+        signup,
+        logout,
+        clearAuth,
+      }}
     >
       {children}
     </AuthContext.Provider>

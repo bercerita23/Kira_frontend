@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/context/auth-context";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { loginStudent } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,7 +37,7 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      await login({
+      await loginStudent({
         email: formData.email || undefined,
         user_id: formData.user_id || undefined,
         password: formData.password,
