@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +21,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
-
+const router = useRouter();
   // for step 1
   //~~~~~~~~~~~~
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -27,8 +29,9 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     setError('');
     try {
+      console.log('Fetching verification code from backend...');
        //request a password reset code
-      const response = await fetch('/auth/reset-pw-req', {
+      const response = await fetch('/api/auth/request-email-pw-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -52,10 +55,36 @@ export default function ForgotPasswordPage() {
   // for step 2
   //~~~~~~~~~~~~
   // verify code
-  const handleCodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep(3);
-  };
+const handleCodeSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError('');
+  try {
+    const response = await fetch(`/api/auth/code?email=${email}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!response.ok) throw new Error('Failed to verify code.');
+    const data = await response.json();
+    console.log('Received backend data:', data);
+    console.log('User entered code:', code);
+        console.log('Comparing trimmed values:');
+    console.log('Backend code:', data.code.trim());
+    console.log('User code:', code.trim());
+    if (data.code !== code) {
+      setError("Invalid verification code.");
+    } else {
+      setStep(3);
+    }
+
+  } catch (err) {
+    setError("Failed to verify code. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   // for step 3
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -64,17 +93,18 @@ export default function ForgotPasswordPage() {
     setError('');
     // set new password
     try {
-      const response = await fetch('/auth/reset-pw', {
+      const response = await fetch('/api/auth/reset-pw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code, newPassword }),
+        body: JSON.stringify({ email, code, new_password: newPassword }),
       });
       if (!response.ok) throw new Error('Failed to reset password.');
+      await fetch(`/api/auth/code?email=${email}`, { method: 'DELETE' });
       toast({
         title: "Password reset successful",
         description: "You can now log in with your new password."
       });
-      //redirect to login page
+      router.push('/')
     } catch (err) {
       setError("Failed to reset password. Please try again.");
     } finally {
