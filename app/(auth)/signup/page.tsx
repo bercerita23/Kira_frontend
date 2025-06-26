@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { UserPlus, AlertCircle } from "lucide-react";
+import { UserPlus, AlertCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,7 +102,7 @@ export default function SignupPage() {
         const data = await res.json();
         setSchools(data); // expected: [{ school_id: "...", name: "..." }]
       } catch (err) {
-        console.warn("Using dummy schools due to error:", err);
+        console.warn("Using temporarly stored schools due to error:", err);
         setSchools(dummySchools);
       }
     };
@@ -111,7 +111,9 @@ export default function SignupPage() {
   }, []);
   useEffect(() => {
     const firstName = searchParams.get("first_name");
+
     const lastName = searchParams.get("last_name");
+    const email = searchParams.get("email");
     const userId = searchParams.get("user_id");
     const code = searchParams.get("code");
     const schoolId = searchParams.get("school_id");
@@ -120,6 +122,7 @@ export default function SignupPage() {
       ...prev,
       firstName: firstName || prev.firstName,
       lastName: lastName || prev.lastName,
+      email: email || prev.email,
       userId: userId || prev.userId,
       code: code || prev.code,
       schoolId: schoolId || prev.schoolId,
@@ -158,11 +161,8 @@ export default function SignupPage() {
     setError("");
     try {
       const payload = {
-        school_id: formData.schoolId,
         email: formData.email,
         password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
       };
 
       const res = await fetch("/api/auth/register-admin", {
@@ -186,7 +186,7 @@ export default function SignupPage() {
         description: "Welcome to Kira!",
       });
 
-      router.push("/login");
+      router.push("/admin/");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -198,21 +198,26 @@ export default function SignupPage() {
       ? formData.password === formData.confirmPassword
       : null;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-primary">Kira</span>
+            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+              Kira Admin
+            </span>
           </Link>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Create an account
-            </CardTitle>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Shield className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">
+                Administrator Access
+              </CardTitle>
+            </div>
             <CardDescription className="text-center">
-              Start your English learning journey with Kira
+              Admin login - Sign in to access the administration panel
             </CardDescription>
           </CardHeader>
 
@@ -397,7 +402,7 @@ export default function SignupPage() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
-                href="/login"
+                href="/admin/login"
                 className="text-primary hover:underline font-medium"
               >
                 Sign in

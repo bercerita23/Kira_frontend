@@ -6,6 +6,8 @@ import { Shield, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+
 import {
   Card,
   CardContent,
@@ -27,7 +29,7 @@ export default function AdminLoginPage() {
     password: "",
   });
   const [error, setError] = useState("");
-
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -44,12 +46,13 @@ export default function AdminLoginPage() {
         password: formData.password,
       };
 
-      await loginAdmin(requestBody); // ✅ Only pass credentials object, no 'admin' here
+      await loginAdmin(requestBody);
 
       toast({
         title: "Admin login successful",
         description: "Welcome to the admin dashboard!",
       });
+      router.push("/admin/");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "An unexpected error occurred";
