@@ -369,13 +369,16 @@ export default function SignupPage() {
                 />
                 <Label htmlFor="terms" className="text-sm font-normal">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
+                  <Link
+                    href="/terms"
+                    className="text-purple-600 hover:underline font-medium"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="text-primary hover:underline"
+                    className="text-purple-600 hover:underline font-medium"
                   >
                     Privacy Policy
                   </Link>
@@ -403,7 +406,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/admin/login"
-                className="text-primary hover:underline font-medium"
+                className="text-purple-600 hover:underline font-medium"
               >
                 Sign in
               </Link>
