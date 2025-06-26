@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
@@ -17,25 +25,58 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+
+const dummySchools = [
+  { school_id: "SCH001", name: "Greenwood High" },
+  { school_id: "SCH002", name: "Bright Future Academy" },
+  { school_id: "SCH003", name: "Riverdale School" },
+];
 
 export default function SignupPage() {
+  const [schools, setSchools] = useState<{ school_id: string; name: string }[]>(
+    []
+  );
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [verificationCode, setVerificationCode] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [codeValid, setCodeValid] = useState<null | boolean>(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    employeeCode: "",
     email: "",
     password: "",
+    confirmPassword: "",
     terms: false,
-    isAdmin: false,
+    schoolId: "",
+    userId: "",
+    code: "",
   });
 
-  const [error, setError] = useState("");
+  useEffect(() => {
+    const checkCode = async () => {
+      if (formData.code.length === 8 && formData.email) {
+        try {
+          const res = await fetch(`/api/auth/code?email=${formData.email}`);
+          if (res.status === 200) {
+            setCodeValid(true);
+          } else {
+            setCodeValid(false);
+          }
+        } catch (err) {
+          console.error("Code check failed:", err);
+          setCodeValid(false);
+        }
+      } else {
+        setCodeValid(null);
+      }
+    };
+
+    checkCode();
+  }, [formData.code, formData.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -46,69 +87,114 @@ export default function SignupPage() {
     if (error) setError("");
   };
 
-  const handleRequestEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/request-email-register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email }),
-      });
-      if (!res.ok) throw new Error("Failed to send verification email.");
-      toast({
-        title: "Check your email",
-        description: "A reset code has been sent to your email address.",
-      });
-      setStep(2);
-    } catch (err: any) {
-      setError(err.message || "Error requesting verification.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSchoolChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      schoolId: value,
+    }));
   };
+  useEffect(() => {
+    const loadSchools = async () => {
+      try {
+        const res = await fetch("/api/school");
+        if (!res.ok) throw new Error("Failed to load schools");
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
+        const data = await res.json();
+        setSchools(data); // expected: [{ school_id: "...", name: "..." }]
+      } catch (err) {
+        console.warn("Using dummy schools due to error:", err);
+        setSchools(dummySchools);
+      }
+    };
+
+    loadSchools();
+  }, []);
+  useEffect(() => {
+    const firstName = searchParams.get("first_name");
+    const userId = searchParams.get("user_id");
+    const code = searchParams.get("code");
+    const schoolId = searchParams.get("school_id");
+
+    setFormData((prev) => ({
+      ...prev,
+      firstName: firstName || prev.firstName,
+      userId: userId || prev.userId,
+      code: code || prev.code,
+      schoolId: schoolId || prev.schoolId,
+    }));
+  }, [searchParams]);
+  useEffect(() => {
+    const email = searchParams.get("email");
+    if (!email) return;
+
+    const fetchTempUser = async () => {
+      try {
+        const res = await fetch(`/api/auth/user-temp?email=${email}`);
+        if (!res.ok) throw new Error("Failed to load temp user");
+
+        const data = await res.json();
+        setFormData((prev) => ({
+          ...prev,
+          email: data.email,
+          firstName: data.first_name || prev.firstName,
+          lastName: data.last_name || "",
+          schoolId: data.school_id || prev.schoolId,
+          userId: data.user_id || prev.userId,
+        }));
+      } catch (error) {
+        console.error("Could not load temp user:", error);
+        setError("Could not find invitation info.");
+      }
+    };
+
+    fetchTempUser();
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     try {
       const payload = {
+        school_id: formData.schoolId,
         email: formData.email,
         password: formData.password,
         first_name: formData.firstName,
         last_name: formData.lastName,
-        employee_code: formData.isAdmin ? formData.employeeCode : undefined,
-        code: verificationCode,
       };
 
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
+      const res = await fetch("/api/auth/register-admin", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.detail || "Failed to complete registration.");
+        throw new Error(data.detail || "Registration failed.");
       }
+
+      // successful registration --> delete the code
       await fetch(`/api/auth/code?email=${formData.email}`, {
         method: "DELETE",
       });
+
       toast({
-        title: "Account created successfully!",
-        description:
-          "Welcome to Kira! Your account has been created successfully.",
+        title: "Registration Successful",
+        description: "Welcome to Kira!",
       });
+
       router.push("/login");
     } catch (err: any) {
-      setError(err.message || "Error completing registration.");
+      setError(err.message || "Something went wrong.");
     } finally {
       setIsLoading(false);
     }
   };
-
+  const passwordsMatch =
+    formData.password && formData.confirmPassword
+      ? formData.password === formData.confirmPassword
+      : null;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
@@ -121,12 +207,10 @@ export default function SignupPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl text-center">
-              {step === 1 ? "Create an account" : "Enter Code"}
+              Create an account
             </CardTitle>
             <CardDescription className="text-center">
-              {step === 1
-                ? "Start your English learning journey with Kira"
-                : "Enter the code sent to your email"}
+              Start your English learning journey with Kira
             </CardDescription>
           </CardHeader>
 
@@ -138,176 +222,173 @@ export default function SignupPage() {
               </Alert>
             )}
 
-            {step === 1 && (
-              <form onSubmit={handleRequestEmail} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      required
-                      value={formData.firstName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      required
-                      value={formData.lastName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                {/* Show Employee Code only if Admin is checked */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="isAdmin"
-                    name="isAdmin"
-                    checked={formData.isAdmin}
-                    onCheckedChange={(checked) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        isAdmin: checked as boolean,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="isAdmin" className="text-sm">
-                    Register as an Adminastrator
-                  </Label>
-                </div>
-
-                {formData.isAdmin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="employeeCode">Employee Code</Label>
-                    <Input
-                      id="employeeCode"
-                      name="employeeCode"
-                      value={formData.employeeCode}
-                      onChange={handleChange}
-                      required={formData.isAdmin}
-                    />
-                  </div>
-                )}
-
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
+                    id="firstName"
+                    name="firstName"
                     required
-                    value={formData.email}
+                    value={formData.firstName}
                     onChange={handleChange}
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="lastName">Last Name</Label>
                   <Input
-                    id="password"
-                    name="password"
-                    type="password"
+                    id="lastName"
+                    name="lastName"
                     required
-                    value={formData.password}
+                    value={formData.lastName}
                     onChange={handleChange}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters long
-                  </p>
                 </div>
+              </div>
 
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="terms"
-                    name="terms"
-                    required
-                    checked={formData.terms}
-                    onCheckedChange={(checked) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        terms: checked as boolean,
-                      }))
-                    }
-                  />
-                  <Label htmlFor="terms" className="text-sm font-normal">
-                    I agree to the{" "}
-                    <Link
-                      href="/terms"
-                      className="text-primary hover:underline"
-                    >
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link
-                      href="/privacy"
-                      className="text-primary hover:underline"
-                    >
-                      Privacy Policy
-                    </Link>
-                  </Label>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading || !formData.terms}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={
+                    passwordsMatch === null
+                      ? ""
+                      : passwordsMatch
+                      ? "border-green-500 focus-visible:ring-green-500"
+                      : "border-red-500 focus-visible:ring-red-500"
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={
+                    passwordsMatch === null
+                      ? ""
+                      : passwordsMatch
+                      ? "border-green-500 focus-visible:ring-green-500"
+                      : "border-red-500 focus-visible:ring-red-500"
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="schoolId">Select School</Label>
+                <Select
+                  value={formData.schoolId}
+                  onValueChange={handleSchoolChange}
                 >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a school" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {schools.map((school) => (
+                      <SelectItem
+                        className="!bg-white !text-black hover:!bg-gray-100"
+                        key={school.school_id}
+                        value={school.school_id}
                       >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Creating account...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <UserPlus className="mr-2 h-4 w-4" /> Create account
-                    </span>
-                  )}
-                </Button>
-              </form>
-            )}
+                        {school.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {step === 2 && (
-              <form onSubmit={handleFinalSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="userId">User ID</Label>
+                  <Input
+                    id="userId"
+                    name="userId"
+                    required
+                    value={formData.userId}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="code">Verification Code</Label>
                   <Input
                     id="code"
                     name="code"
                     required
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
+                    value={formData.code}
+                    onChange={handleChange}
+                    className={
+                      codeValid === null
+                        ? ""
+                        : codeValid
+                        ? "border-green-500 focus-visible:ring-green-500"
+                        : "border-red-500 focus-visible:ring-red-500"
+                    }
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Verifying..." : "Complete Registration"}
-                </Button>
-              </form>
-            )}
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="terms"
+                  name="terms"
+                  required
+                  checked={formData.terms}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      terms: checked as boolean,
+                    }))
+                  }
+                />
+                <Label htmlFor="terms" className="text-sm font-normal">
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline"
+                  >
+                    Privacy Policy
+                  </Link>
+                </Label>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || !formData.terms}
+              >
+                {isLoading ? (
+                  "Registering..."
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" /> Create Account
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
 
           <CardFooter className="flex justify-center">

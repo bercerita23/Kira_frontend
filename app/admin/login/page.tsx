@@ -117,7 +117,15 @@ export default function AdminLoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-primary text-purple-600 hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>{" "}
                 <Input
                   id="password"
                   name="password"
@@ -167,6 +175,15 @@ export default function AdminLoginPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-primary hover:underline font-medium"
+              >
+                Sign up
+              </Link>
+            </p>
             <div className="flex items-center justify-center text-xs text-muted-foreground">
               <Shield className="inline h-3 w-3 mr-1" />
               Authorized Personnel Only
