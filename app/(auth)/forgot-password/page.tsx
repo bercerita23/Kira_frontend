@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/auth/code?email=${email}`, {
+      const response = await fetch(`/api/code?email=${email}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email, code, new_password: newPassword }),
       });
       if (!response.ok) throw new Error("Failed to reset password.");
-      await fetch(`/api/auth/code?email=${email}`, { method: "DELETE" });
+      await fetch(`/api/code?email=${email}`, { method: "DELETE" });
       toast({
         title: "Password reset successful",
         description: "You can now log in with your new password.",

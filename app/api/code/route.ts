@@ -25,7 +25,7 @@ async function handleRequest(request: NextRequest, method: "GET" | "DELETE") {
       );
     }
 
-    const backendResponse = await fetch(`${apiUrl}/auth/code?email=${email}`, {
+    const backendResponse = await fetch(`${apiUrl}/code?email=${email}`, {
       method,
       headers: { "Content-Type": "application/json" },
     });

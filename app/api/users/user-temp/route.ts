@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://kira-api.com/auth/user-temp?email=${encodeURIComponent(email)}`,
+      `https://kira-api.com/users/user-temp?email=${encodeURIComponent(email)}`,
       {
         headers: {
           accept: "application/json",

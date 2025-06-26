@@ -60,7 +60,7 @@ export default function SignupPage() {
     const checkCode = async () => {
       if (formData.code.length === 8 && formData.email) {
         try {
-          const res = await fetch(`/api/auth/code?email=${formData.email}`);
+          const res = await fetch(`/api/code?email=${formData.email}`);
           if (res.status === 200) {
             setCodeValid(true);
           } else {
@@ -111,6 +111,7 @@ export default function SignupPage() {
   }, []);
   useEffect(() => {
     const firstName = searchParams.get("first_name");
+    const lastName = searchParams.get("last_name");
     const userId = searchParams.get("user_id");
     const code = searchParams.get("code");
     const schoolId = searchParams.get("school_id");
@@ -118,6 +119,7 @@ export default function SignupPage() {
     setFormData((prev) => ({
       ...prev,
       firstName: firstName || prev.firstName,
+      lastName: lastName || prev.lastName,
       userId: userId || prev.userId,
       code: code || prev.code,
       schoolId: schoolId || prev.schoolId,
@@ -129,7 +131,7 @@ export default function SignupPage() {
 
     const fetchTempUser = async () => {
       try {
-        const res = await fetch(`/api/auth/user-temp?email=${email}`);
+        const res = await fetch(`/api/users/user-temp?email=${email}`);
         if (!res.ok) throw new Error("Failed to load temp user");
 
         const data = await res.json();
@@ -175,7 +177,7 @@ export default function SignupPage() {
       }
 
       // successful registration --> delete the code
-      await fetch(`/api/auth/code?email=${formData.email}`, {
+      await fetch(`/api/code?email=${formData.email}`, {
         method: "DELETE",
       });
 
