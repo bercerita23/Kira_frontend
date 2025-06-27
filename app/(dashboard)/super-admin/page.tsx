@@ -16,7 +16,11 @@ import {
   Key,
   School,
   UserPlus,
-  AlertTriangle
+  AlertTriangle,
+  Send,
+  Mail,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +33,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SuperAdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
@@ -344,8 +352,9 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="invite">Invite Admins</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -590,6 +599,10 @@ export default function SuperAdminDashboardPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="invite" className="space-y-6">
+            <InviteAdminsTab />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-6">
             <Card>
               <CardHeader>
@@ -656,4 +669,315 @@ export default function SuperAdminDashboardPage() {
       </div>
     </div>
   );
-} 
+}
+
+// Invite Admins Tab Component
+function InviteAdminsTab() {
+  const { toast } = useToast();
+  const [invitationForm, setInvitationForm] = useState({
+    email: "",
+    first_name: "",
+    last_name: "",
+    school_id: ""
+  });
+  const [invitationList, setInvitationList] = useState<Array<{
+    email: string;
+    first_name: string;
+    last_name: string;
+    school_id: string;
+  }>>([]);
+  const [isSending, setIsSending] = useState(false);
+
+  // Add invitation to the list
+  const addInvitation = () => {
+    const { email, first_name, last_name, school_id } = invitationForm;
+    
+    // Validation
+    if (!email.trim() || !first_name.trim() || !last_name.trim() || !school_id.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidEmail(email.trim())) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (invitationList.some(inv => inv.email === email.trim())) {
+      toast({
+        title: "Duplicate Email",
+        description: "This email is already in the list.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setInvitationList([...invitationList, {
+      email: email.trim(),
+      first_name: first_name.trim(),
+      last_name: last_name.trim(),
+      school_id: school_id.trim()
+    }]);
+    
+    // Reset form
+    setInvitationForm({
+      email: "",
+      first_name: "",
+      last_name: "",
+      school_id: ""
+    });
+  };
+
+  // Remove invitation from list
+  const removeInvitation = (emailToRemove: string) => {
+    setInvitationList(invitationList.filter(inv => inv.email !== emailToRemove));
+  };
+
+  // Simple email validation
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Handle key press in form inputs
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addInvitation();
+    }
+  };
+
+  // Send invitations
+  const sendInvitations = async () => {
+    if (invitationList.length === 0) {
+      toast({
+        title: "No Invitations",
+        description: "Please add at least one invitation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    
+    try {
+      console.log("📧 Sending invitations:", invitationList);
+      
+      const response = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ''}`
+        },
+        body: JSON.stringify({ invitations: invitationList })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to send invitations');
+      }
+      
+      // Handle partial success/failure
+      if (data.failed_count > 0) {
+        toast({
+          title: "Invitations Partially Sent",
+          description: `${data.sent} sent successfully, ${data.failed_count} failed. Check console for details.`,
+          variant: "destructive",
+        });
+        console.error("Failed invitations:", data.failed);
+      } else {
+        toast({
+          title: "Invitations Sent!",
+          description: `Successfully sent ${data.sent} admin invitation(s).`,
+        });
+      }
+      
+      setInvitationList([]);
+      
+    } catch (error) {
+      console.error("Failed to send invitations:", error);
+      toast({
+        title: "Failed to Send Invitations",
+        description: error.message || "An error occurred while sending invitations. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-blue-600" />
+            Invite New Administrators
+          </CardTitle>
+          <CardDescription>
+            Send registration invitations to new administrators. They will receive an email with a link to create their admin account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Invitation Form */}
+          <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
+            <Label className="text-base font-medium">Add New Invitation</Label>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first-name">First Name *</Label>
+                <Input
+                  id="first-name"
+                  placeholder="John"
+                  value={invitationForm.first_name}
+                  onChange={(e) => setInvitationForm({...invitationForm, first_name: e.target.value})}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="last-name">Last Name *</Label>
+                <Input
+                  id="last-name"
+                  placeholder="Doe"
+                  value={invitationForm.last_name}
+                  onChange={(e) => setInvitationForm({...invitationForm, last_name: e.target.value})}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email-input">Email Address *</Label>
+              <Input
+                id="email-input"
+                type="email"
+                placeholder="admin@example.com"
+                value={invitationForm.email}
+                onChange={(e) => setInvitationForm({...invitationForm, email: e.target.value})}
+                onKeyPress={handleKeyPress}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school-id">School ID *</Label>
+              <Input
+                id="school-id"
+                placeholder="SCH001"
+                value={invitationForm.school_id}
+                onChange={(e) => setInvitationForm({...invitationForm, school_id: e.target.value})}
+                onKeyPress={handleKeyPress}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                The school ID that this admin will manage
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={addInvitation}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add to List
+              </Button>
+            </div>
+          </div>
+
+          {/* Invitation List */}
+          {invitationList.length > 0 && (
+            <div className="space-y-2">
+              <Label>Invitation List ({invitationList.length})</Label>
+              <div className="max-h-60 overflow-y-auto border rounded-lg p-3 space-y-3">
+                {invitationList.map((invitation, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-md border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <UserPlus className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <p className="text-sm font-medium">{invitation.first_name} {invitation.last_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{invitation.email}</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">School: {invitation.school_id}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeInvitation(invitation.email)}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Send Button */}
+          <div className="flex justify-end">
+            <Button
+              onClick={sendInvitations}
+              disabled={invitationList.length === 0 || isSending}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              {isSending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Sending Invitations...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send {invitationList.length > 0 ? `${invitationList.length} ` : ''}Invitation{invitationList.length !== 1 ? 's' : ''}
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Information Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-green-600" />
+            How Invitations Work
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <p>Invited users will receive an email with a unique registration link</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <p>They can use this link to create their admin account with a secure password</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <p>Once registered, they will have administrative access to their designated school</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+              <p>You can track invitation status and manage admin permissions from this dashboard</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
