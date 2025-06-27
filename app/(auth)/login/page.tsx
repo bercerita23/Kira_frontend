@@ -93,7 +93,18 @@ export default function LoginPage() {
     }
     return "general";
   };
-
+  //incase signup is needed for student
+  /*
+      <p className="text-sm text-muted-foreground">
+        Don't have an account?{" "}
+        <Link
+          href="/signup"
+          className="text-primary hover:underline font-medium"
+        >
+          Sign up
+        </Link>
+      </p>
+*/
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
@@ -133,12 +144,12 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/forgot-password"
+                  <a
+                    href="mailto:khakho.morad@gmail.com?subject=Password Reset Request"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?
-                  </Link>
+                  </a>
                 </div>
                 <Input
                   id="password"
@@ -204,15 +215,6 @@ export default function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link
-                href="/signup"
-                className="text-primary hover:underline font-medium"
-              >
-                Sign up
-              </Link>
-            </p>
             <div className="border-t pt-3 w-full text-center">
               <p className="text-xs text-muted-foreground">
                 Administrator?{" "}
