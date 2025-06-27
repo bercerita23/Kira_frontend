@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi, DbUser } from "@/lib/api/auth";
 import Link from "next/link";
-import { Users, UserCheck, Crown, Shield, LogOut } from "lucide-react";
+import { Users, UserCheck, Crown, Shield, LogOut, UserPlus, Plus, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,11 +15,25 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
+  const { toast } = useToast();
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
+  
+  // Add Student form state
+  const [addStudentForm, setAddStudentForm] = useState({
+    email: "",
+    password: "",
+    first_name: "",
+    last_name: ""
+  });
+  const [isAddingStudent, setIsAddingStudent] = useState(false);
 
   console.log("🔒 Admin page render:", {
     isLoading,
@@ -156,6 +170,124 @@ export default function AdminDashboardPage() {
     });
   };
 
+  // Add Student functionality
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const addStudent = async () => {
+    const { email, password, first_name, last_name } = addStudentForm;
+    
+    // Validation
+    if (!email.trim() || !password.trim() || !first_name.trim() || !last_name.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidEmail(email.trim())) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Weak Password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingStudent(true);
+    
+    try {
+      console.log("🎓 Adding new student:", addStudentForm);
+      
+      const response = await fetch('/api/admin/student', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ''}`
+        },
+        body: JSON.stringify(addStudentForm)
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error("❌ Failed to parse response JSON:", jsonError);
+        throw new Error(`Invalid response from server (Status: ${response.status})`);
+      }
+
+      if (!response.ok) {
+        console.error("❌ Backend returned error:", {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error("Authentication failed. Please log in again.");
+        } else if (response.status === 403) {
+          throw new Error("Access denied. You don't have permission to add students.");
+                 } else if (response.status === 422) {
+           // Validation error
+           const errorDetails = data.detail || data.message || 'Validation failed';
+           throw new Error(`Validation error: ${Array.isArray(errorDetails) ? errorDetails.map(e => e.msg).join(', ') : errorDetails}`);
+         } else if (response.status === 503) {
+           // Service unavailable - show cleaner message
+           throw new Error("Add Student feature is temporarily unavailable due to backend issues. Please contact your system administrator.");
+         } else {
+           throw new Error(data.detail || data.message || `Server error (${response.status})`);
+         }
+      }
+      
+      toast({
+        title: "Student Added Successfully!",
+        description: `${first_name} ${last_name} has been added to the system.`,
+      });
+      
+      // Reset form
+      setAddStudentForm({
+        email: "",
+        password: "",
+        first_name: "",
+        last_name: ""
+      });
+      
+      // Refresh student list
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Failed to add student:", error);
+      toast({
+        title: "Failed to Add Student",
+        description: error.message || "An error occurred while adding the student. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingStudent(false);
+    }
+  };
+
+  // Handle key press for form inputs
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addStudent();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Admin Header - Fixed at top */}
@@ -254,112 +386,234 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
 
-        {/* Students Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        {/* Tabbed Content */}
+        <Tabs defaultValue="students" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
               All Students ({students.length})
-            </h2>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-              size="sm"
-            >
-              Refresh Data
-            </Button>
-          </div>
+            </TabsTrigger>
+            <TabsTrigger value="add-student" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add Student
+            </TabsTrigger>
+          </TabsList>
 
-          {loadingStudents ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-gray-600 dark:text-gray-400">
-                Loading students...
-              </span>
+          {/* Students Tab */}
+          <TabsContent value="students" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                All Students ({students.length})
+              </h2>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                size="sm"
+              >
+                Refresh Data
+              </Button>
             </div>
-          ) : students.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                  No Students Found
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  There are currently no students registered in the system.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {students.map((student) => (
-                <Card
-                  key={student.user_id}
-                  className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold text-lg">
-                          {getUserInitials(student)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">
-                          {getDisplayName(student)}
-                        </CardTitle>
-                        <CardDescription className="text-sm truncate">
-                          {student.email}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                          Role:
-                        </span>
-                        <Badge variant="secondary" className="text-xs">
-                          Student
-                        </Badge>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                          ID:
-                        </span>
-                        <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                          #{student.user_id}
-                        </span>
+            {loadingStudents ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-gray-600 dark:text-gray-400">
+                  Loading students...
+                </span>
+              </div>
+            ) : students.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    No Students Found
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    There are currently no students registered in the system.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {students.map((student) => (
+                  <Card
+                    key={student.user_id}
+                    className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold text-lg">
+                            {getUserInitials(student)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {getDisplayName(student)}
+                          </CardTitle>
+                          <CardDescription className="text-sm truncate">
+                            {student.email}
+                          </CardDescription>
+                        </div>
                       </div>
-
-                      {student.school_id && (
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            School ID:
+                            Role:
+                          </span>
+                          <Badge variant="secondary" className="text-xs">
+                            Student
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            ID:
                           </span>
                           <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                            #{student.school_id}
+                            #{student.user_id}
                           </span>
                         </div>
-                      )}
 
-                      {student.created_at && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Joined:
-                          </span>
-                          <span className="text-sm text-gray-900 dark:text-gray-100">
-                            {formatDate(student.created_at)}
-                          </span>
-                        </div>
-                      )}
+                        {student.school_id && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              School ID:
+                            </span>
+                            <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                              #{student.school_id}
+                            </span>
+                          </div>
+                        )}
+
+                        {student.created_at && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                              Joined:
+                            </span>
+                            <span className="text-sm text-gray-900 dark:text-gray-100">
+                              {formatDate(student.created_at)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Add Student Tab */}
+          <TabsContent value="add-student" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-green-600" />
+                  Add New Student
+                </CardTitle>
+                <CardDescription>
+                  Create a new student account with login credentials. The student will be able to use these credentials to access their learning dashboard.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Student Form */}
+                <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                  <Label className="text-base font-medium">Student Information</Label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="student-first-name">First Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="student-first-name"
+                          placeholder="John"
+                          value={addStudentForm.first_name}
+                          onChange={(e) => setAddStudentForm({...addStudentForm, first_name: e.target.value})}
+                          onKeyPress={handleKeyPress}
+                          className="pl-10"
+                        />
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="student-last-name">Last Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="student-last-name"
+                          placeholder="Doe"
+                          value={addStudentForm.last_name}
+                          onChange={(e) => setAddStudentForm({...addStudentForm, last_name: e.target.value})}
+                          onKeyPress={handleKeyPress}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="student-email">Email Address *</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="student-email"
+                        type="email"
+                        placeholder="student@example.com"
+                        value={addStudentForm.email}
+                        onChange={(e) => setAddStudentForm({...addStudentForm, email: e.target.value})}
+                        onKeyPress={handleKeyPress}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="student-password">Password *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="student-password"
+                        type="password"
+                        placeholder="Minimum 6 characters"
+                        value={addStudentForm.password}
+                        onChange={(e) => setAddStudentForm({...addStudentForm, password: e.target.value})}
+                        onKeyPress={handleKeyPress}
+                        className="pl-10"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Password must be at least 6 characters long
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button 
+                      onClick={addStudent}
+                      disabled={isAddingStudent}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      {isAddingStudent ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Adding Student...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4" />
+                          Add Student
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
