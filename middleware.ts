@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 const protectedPaths = [
   "/dashboard",
   "/admin",
+  "/super-admin",
   "/lessons",
   "/speaking",
   "/progress",
@@ -13,7 +14,7 @@ const protectedPaths = [
 // Add paths that should be accessible only to non-authenticated users
 const authPaths = ["/login", "/signup"];
 // Admin-only paths (excluding admin login)
-const adminPaths = ["/admin"];
+const adminPaths = ["/admin", "/super-admin"];
 // Admin auth paths that should be accessible to non-authenticated users
 const adminAuthPaths = ["/admin/login"];
 

@@ -90,7 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // redirect logic
     const from = searchParams.get("from");
     let redirectPath = "/dashboard";
-    if (currentUser.role === "admin" || currentUser.role === "super_admin") {
+    if (currentUser.role === "super_admin") {
+      redirectPath = "/super-admin";
+    } else if (currentUser.role === "admin") {
       redirectPath = "/admin";
     }
     const finalRedirect =

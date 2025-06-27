@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
         title: "Admin login successful",
         description: "Welcome to the admin dashboard!",
       });
-      router.push("/admin/");
+      // Don't manually redirect - let the auth context handle role-based routing
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "An unexpected error occurred";
