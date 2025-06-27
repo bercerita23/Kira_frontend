@@ -687,6 +687,29 @@ function InviteAdminsTab() {
     school_id: string;
   }>>([]);
   const [isSending, setIsSending] = useState(false);
+  const [schools, setSchools] = useState<Array<{school_id: string, name: string}>>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
+
+  // Fetch schools for validation
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const response = await fetch('/api/school');
+        if (response.ok) {
+          const schoolData = await response.json();
+          setSchools(schoolData || []);
+        } else {
+          console.error("Failed to fetch schools");
+        }
+      } catch (error) {
+        console.error("Error fetching schools:", error);
+      } finally {
+        setLoadingSchools(false);
+      }
+    };
+    
+    fetchSchools();
+  }, []);
 
   // Add invitation to the list
   const addInvitation = () => {
@@ -715,6 +738,17 @@ function InviteAdminsTab() {
       toast({
         title: "Duplicate Email",
         description: "This email is already in the list.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate school ID exists
+    const schoolExists = schools.some(school => school.school_id === school_id.trim());
+    if (!schoolExists && schools.length > 0) {
+      toast({
+        title: "Invalid School ID",
+        description: `School ID "${school_id.trim()}" does not exist. Please select a valid school ID.`,
         variant: "destructive",
       });
       return;
@@ -787,11 +821,27 @@ function InviteAdminsTab() {
       
       // Handle partial success/failure
       if (data.failed_count > 0) {
-        toast({
-          title: "Invitations Partially Sent",
-          description: `${data.sent} sent successfully, ${data.failed_count} failed. Check console for details.`,
-          variant: "destructive",
-        });
+        // Show detailed error messages for each failed invitation
+        if (data.failed_count === 1) {
+          // Show detailed error for single failure
+          const error = data.failed[0];
+          toast({
+            title: "Invitation Failed",
+            description: `${error.email}: ${error.error}`,
+            variant: "destructive",
+          });
+        } else {
+          // Show summary for multiple failures
+          const errorList = data.failed.map(failed => 
+            `• ${failed.email}: ${failed.error}`
+          ).join('\n');
+          
+          toast({
+            title: `${data.failed_count} Invitations Failed`,
+            description: `${data.sent} sent successfully.\n\nFailed invitations:\n${errorList}`,
+            variant: "destructive",
+          });
+        }
         console.error("Failed invitations:", data.failed);
       } else {
         toast({
@@ -871,14 +921,21 @@ function InviteAdminsTab() {
               <Label htmlFor="school-id">School ID *</Label>
               <Input
                 id="school-id"
-                placeholder="SCH001"
+                placeholder={loadingSchools ? "Loading schools..." : "Enter school ID (e.g., SCH001)"}
                 value={invitationForm.school_id}
                 onChange={(e) => setInvitationForm({...invitationForm, school_id: e.target.value})}
                 onKeyPress={handleKeyPress}
+                disabled={loadingSchools}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                The school ID that this admin will manage
-              </p>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                <p>The school ID that this admin will manage.</p>
+                {schools.length > 0 && (
+                  <p className="mt-1">
+                    <strong>Available schools:</strong> {schools.map(s => s.school_id).join(', ')}
+                  </p>
+                )}
+                {loadingSchools && <p className="text-blue-500">Loading schools...</p>}
+              </div>
             </div>
 
             <div className="flex justify-end">
