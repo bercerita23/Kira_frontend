@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Shield, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import {
   Card,
@@ -30,6 +31,21 @@ export default function AdminLoginPage() {
   });
   const [error, setError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const identifier =
+      searchParams.get("identifier") || searchParams.get("email");
+    const password = searchParams.get("password");
+
+    if (identifier || password) {
+      setFormData((prev) => ({
+        ...prev,
+        identifier: identifier || prev.identifier,
+        password: password || prev.password,
+      }));
+    }
+  }, [searchParams]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -72,7 +88,12 @@ export default function AdminLoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
-
+  /*
+     <div className="flex items-center justify-center text-xs text-muted-foreground">
+       <Shield className="inline h-3 w-3 mr-1" />
+       Authorized Personnel Only
+     </div>
+*/
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
       <div className="w-full max-w-md">
@@ -182,15 +203,12 @@ export default function AdminLoginPage() {
               Don't have an account?{" "}
               <Link
                 href="/signup"
-                className="text-primary hover:underline font-medium"
+                className="text-purple-600 hover:underline font-medium"
               >
                 Sign up
               </Link>
             </p>
-            <div className="flex items-center justify-center text-xs text-muted-foreground">
-              <Shield className="inline h-3 w-3 mr-1" />
-              Authorized Personnel Only
-            </div>
+
             <div className="border-t pt-3 w-full text-center">
               <p className="text-xs text-muted-foreground">
                 Not an admin?{" "}

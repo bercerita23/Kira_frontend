@@ -145,7 +145,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <a
-                    href="mailto:khakho.morad@gmail.com?subject=Password Reset Request"
+                    href="/forgot-password-student/"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?

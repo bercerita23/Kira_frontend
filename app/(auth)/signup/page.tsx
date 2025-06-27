@@ -213,11 +213,11 @@ export default function SignupPage() {
             <div className="flex items-center justify-center gap-2 mb-2">
               <Shield className="h-5 w-5 text-purple-600" />
               <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">
-                Administrator Access
+                Create Admin Account
               </CardTitle>
             </div>
             <CardDescription className="text-center">
-              Admin login - Sign in to access the administration panel
+              Register to access the Kira admin dashboard.
             </CardDescription>
           </CardHeader>
 
@@ -387,7 +387,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 disabled={isLoading || !formData.terms}
               >
                 {isLoading ? (

@@ -18,7 +18,10 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
+
+  //in case email can be used to reset password in the future
+  //const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -33,23 +36,19 @@ export default function ForgotPasswordPage() {
       const response = await fetch("/api/auth/request-reset-pw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ user_id: userId }),
       });
 
       if (!response.ok) throw new Error("Failed to send reset code.");
 
       // Store email before redirecting
-      localStorage.setItem("resetEmail", email);
+      localStorage.setItem("resetId", userId);
 
       toast({
-        title: "Check your email",
-        description: "A reset code has been sent to your email address.",
+        title: "Reset Code Sent",
+        description:
+          "A reset code has been sent to the admin for your User ID.",
       });
-
-      // Slight delay to ensure localStorage write finishes (optional but safer)
-      setTimeout(() => {
-        router.push("/forgot-password/reset");
-      }, 100);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to send reset code. Please try again.");
@@ -59,13 +58,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              Kira Admin
-            </span>
+            <span className="text-2xl font-bold text-primary">Kira</span>
           </Link>
         </div>
         <Card>
@@ -85,20 +82,16 @@ export default function ForgotPasswordPage() {
             )}
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="userId">User ID</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="userId"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
                 />
               </div>
-              <Button
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                disabled={isLoading}
-                type="submit"
-              >
+              <Button className="w-full" disabled={isLoading} type="submit">
                 {isLoading ? "Sending..." : "Send Code"}
               </Button>
             </form>
