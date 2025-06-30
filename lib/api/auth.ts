@@ -45,6 +45,7 @@ api.interceptors.response.use(
 export interface LoginCredentials {
   email?: string;
   user_id?: string;
+  username?: string;
   password: string;
 }
 
@@ -137,7 +138,7 @@ export const authApi = {
       console.log("📡 API: Direct access test:", response.data.Hello_Form);
       console.log("📡 API: All property names:", Object.getOwnPropertyNames(response.data));
       
-      const users = response.data["Hello_Form:"];  // Note the colon!
+      const users = response.data["Hello_Form"]  // Note the colon!
       if (!users) {
         console.error("❌ API: Hello_Form: is null/undefined");
         return [];
