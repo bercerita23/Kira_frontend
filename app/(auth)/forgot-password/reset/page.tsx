@@ -143,13 +143,6 @@ export default function ResetPasswordPage() {
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className={
-                    codeValid === null
-                      ? ""
-                      : codeValid
-                      ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-red-500 focus-visible:ring-red-500"
-                  }
                 />
               </div>
               <div className="space-y-2">

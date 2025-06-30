@@ -343,13 +343,6 @@ export default function SignupPage() {
                     required
                     value={formData.code}
                     onChange={handleChange}
-                    className={
-                      codeValid === null
-                        ? ""
-                        : codeValid
-                        ? "border-green-500 focus-visible:ring-green-500"
-                        : "border-red-500 focus-visible:ring-red-500"
-                    }
                   />
                 </div>
               </div>
