@@ -128,12 +128,12 @@ export default function AdminLoginPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="identifier">Email or User ID</Label>
+                <Label htmlFor="identifier">Email</Label>
                 <Input
                   id="identifier"
                   name="identifier"
                   type="text"
-                  placeholder="admin@example.com or UserID"
+                  placeholder="admin@example.com"
                   required
                   value={formData.identifier}
                   onChange={handleChange}

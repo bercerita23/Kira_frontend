@@ -4,13 +4,20 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi, DbUser } from "@/lib/api/auth";
 import Link from "next/link";
-import { 
-  Users, 
-  UserCheck, 
-  Crown, 
-  Shield, 
-  LogOut, 
-  Settings, 
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Users,
+  UserCheck,
+  Crown,
+  Shield,
+  LogOut,
+  Settings,
   Database,
   BarChart3,
   Key,
@@ -20,7 +27,7 @@ import {
   Send,
   Mail,
   Plus,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +54,7 @@ export default function SuperAdminDashboardPage() {
     students: 0,
     admins: 0,
     superAdmins: 0,
-    schools: 0
+    schools: 0,
   });
 
   console.log("🔒 Super Admin page render:", {
@@ -62,29 +69,41 @@ export default function SuperAdminDashboardPage() {
     const fetchAllUsers = async () => {
       try {
         console.log("🔄 Super Admin Dashboard: Fetching all users from API...");
-        console.log("🌐 API Base URL:", process.env.NEXT_PUBLIC_API_URL || "/api");
+        console.log(
+          "🌐 API Base URL:",
+          process.env.NEXT_PUBLIC_API_URL || "/api"
+        );
         const users = await authApi.getAllUsers();
         console.log("📊 Super Admin Dashboard: Raw API response:", users);
         console.log("📊 Super Admin Dashboard: Type of users:", typeof users);
-        console.log("📊 Super Admin Dashboard: Is Array:", Array.isArray(users));
-        
+        console.log(
+          "📊 Super Admin Dashboard: Is Array:",
+          Array.isArray(users)
+        );
+
         // Check if users is valid before accessing
         if (!users) {
           console.error("❌ Users is null/undefined");
           setAllUsers([]);
           return;
         }
-        
+
         if (!Array.isArray(users)) {
           console.error("❌ Users is not an array, got:", users);
           setAllUsers([]);
           return;
         }
-        
-        console.log("📊 Super Admin Dashboard: Users array length:", users.length);
+
+        console.log(
+          "📊 Super Admin Dashboard: Users array length:",
+          users.length
+        );
         if (users.length > 0) {
-          console.log("📊 Super Admin Dashboard: First user example:", users[0]);
-          
+          console.log(
+            "📊 Super Admin Dashboard: First user example:",
+            users[0]
+          );
+
           // Debug: Check each user's properties
           users.forEach((user, index) => {
             console.log(`👤 User ${index + 1}:`, {
@@ -93,50 +112,51 @@ export default function SuperAdminDashboardPage() {
               first_name: user.first_name,
               is_admin: user.is_admin,
               is_super_admin: user.is_super_admin,
-              school_id: user.school_id
+              school_id: user.school_id,
             });
           });
         } else {
           console.log("⚠️ Users array is empty");
         }
-        
+
         setAllUsers(users);
-        
+
         // Calculate stats with detailed logging
-        const students = users.filter(u => !u.is_admin && !u.is_super_admin);
-        const admins = users.filter(u => u.is_admin && !u.is_super_admin);
-        const superAdmins = users.filter(u => u.is_super_admin);
-        const uniqueSchools = new Set(users.map(u => u.school_id).filter(Boolean));
-        
+        const students = users.filter((u) => !u.is_admin && !u.is_super_admin);
+        const admins = users.filter((u) => u.is_admin && !u.is_super_admin);
+        const superAdmins = users.filter((u) => u.is_super_admin);
+        const uniqueSchools = new Set(
+          users.map((u) => u.school_id).filter(Boolean)
+        );
+
         console.log("🎓 Filtered students:", students);
         console.log("🛡️ Filtered admins:", admins);
         console.log("👑 Filtered super admins:", superAdmins);
-        
+
         setStats({
           totalUsers: users.length,
           students: students.length,
           admins: admins.length,
           superAdmins: superAdmins.length,
-          schools: uniqueSchools.size
+          schools: uniqueSchools.size,
         });
-        
+
         console.log("📊 Super Admin Dashboard: Final stats:", {
           totalUsers: users.length,
           students: students.length,
           admins: admins.length,
           superAdmins: superAdmins.length,
-          schools: uniqueSchools.size
+          schools: uniqueSchools.size,
         });
-        
       } catch (error) {
-  console.error("❌ Failed to fetch users:", error);
+        console.error("❌ Failed to fetch users:", error);
 
-  if (error instanceof Error) {
-    console.error("❌ Error details:", error.message);
-  } else {
-    console.error("❌ Unknown error occurred while fetching users.");
-  }
-} finally {
+        if (error instanceof Error) {
+          console.error("❌ Error details:", error.message);
+        } else {
+          console.error("❌ Unknown error occurred while fetching users.");
+        }
+      } finally {
         setLoadingUsers(false);
       }
     };
@@ -191,9 +211,12 @@ export default function SuperAdminDashboardPage() {
 
   // Check if user is super admin
   if (user.role !== "super_admin") {
-    console.log("🚫 Super Admin page: User is not super admin, denying access", {
-      userRole: user.role,
-    });
+    console.log(
+      "🚫 Super Admin page: User is not super admin, denying access",
+      {
+        userRole: user.role,
+      }
+    );
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -208,7 +231,7 @@ export default function SuperAdminDashboardPage() {
             <Button asChild>
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
-            {(user.role === "admin") && (
+            {user.role === "admin" && (
               <Button asChild variant="outline">
                 <Link href="/admin">Go to Admin Dashboard</Link>
               </Button>
@@ -252,10 +275,18 @@ export default function SuperAdminDashboardPage() {
   // Helper function to get user role badge
   const getUserRoleBadge = (user: DbUser) => {
     if (user.is_super_admin) {
-      return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">Super Admin</Badge>;
+      return (
+        <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+          Super Admin
+        </Badge>
+      );
     }
     if (user.is_admin) {
-      return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">Admin</Badge>;
+      return (
+        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+          Admin
+        </Badge>
+      );
     }
     return <Badge variant="secondary">Student</Badge>;
   };
@@ -283,9 +314,7 @@ export default function SuperAdminDashboardPage() {
                 <p className="text-sm font-medium text-white">
                   {user.first_name}
                 </p>
-                <p className="text-xs text-purple-200">
-                  Super Administrator
-                </p>
+                <p className="text-xs text-purple-200">Super Administrator</p>
               </div>
               <Button
                 variant="outline"
@@ -314,7 +343,7 @@ export default function SuperAdminDashboardPage() {
               <div className="text-2xl font-bold">{stats.totalUsers}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Students</CardTitle>
@@ -337,7 +366,9 @@ export default function SuperAdminDashboardPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Super Admins
+              </CardTitle>
               <Crown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -381,12 +412,14 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading students...</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Loading students...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
-                      .filter(user => !user.is_admin && !user.is_super_admin)
+                      .filter((user) => !user.is_admin && !user.is_super_admin)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -413,7 +446,10 @@ export default function SuperAdminDashboardPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                            >
                               Student
                             </Badge>
                             <div className="text-right">
@@ -431,21 +467,27 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
-                                         {allUsers.filter(user => !user.is_admin && !user.is_super_admin).length === 0 && (
-                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                         <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                         <p>No students found</p>
-                         <p className="text-xs mt-2">Total users loaded: {allUsers.length}</p>
-                         {allUsers.length > 0 && (
-                           <details className="mt-4 text-left">
-                             <summary className="cursor-pointer text-sm">Debug: Show raw user data</summary>
-                             <pre className="text-xs mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded overflow-auto max-h-40">
-                               {JSON.stringify(allUsers, null, 2)}
-                             </pre>
-                           </details>
-                         )}
-                       </div>
-                     )}
+                    {allUsers.filter(
+                      (user) => !user.is_admin && !user.is_super_admin
+                    ).length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No students found</p>
+                        <p className="text-xs mt-2">
+                          Total users loaded: {allUsers.length}
+                        </p>
+                        {allUsers.length > 0 && (
+                          <details className="mt-4 text-left">
+                            <summary className="cursor-pointer text-sm">
+                              Debug: Show raw user data
+                            </summary>
+                            <pre className="text-xs mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded overflow-auto max-h-40">
+                              {JSON.stringify(allUsers, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -466,12 +508,14 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading admins...</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Loading admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
-                      .filter(user => user.is_admin && !user.is_super_admin)
+                      .filter((user) => user.is_admin && !user.is_super_admin)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -516,7 +560,9 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
-                    {allUsers.filter(user => user.is_admin && !user.is_super_admin).length === 0 && (
+                    {allUsers.filter(
+                      (user) => user.is_admin && !user.is_super_admin
+                    ).length === 0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No admins found</p>
@@ -542,12 +588,14 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading super admins...</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Loading super admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
-                      .filter(user => user.is_super_admin)
+                      .filter((user) => user.is_super_admin)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -592,7 +640,8 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
-                    {allUsers.filter(user => user.is_super_admin).length === 0 && (
+                    {allUsers.filter((user) => user.is_super_admin).length ===
+                      0 && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No super admins found</p>
@@ -627,7 +676,9 @@ export default function SuperAdminDashboardPage() {
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Advanced analytics dashboard coming soon...</p>
-                  <p className="text-sm">User activity, engagement metrics, and system performance</p>
+                  <p className="text-sm">
+                    User activity, engagement metrics, and system performance
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -648,7 +699,9 @@ export default function SuperAdminDashboardPage() {
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>System management tools coming soon...</p>
-                  <p className="text-sm">Database backups, system health, and maintenance tools</p>
+                  <p className="text-sm">
+                    Database backups, system health, and maintenance tools
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -666,23 +719,27 @@ function InviteAdminsTab() {
     email: "",
     first_name: "",
     last_name: "",
-    school_id: ""
+    school_id: "",
   });
-  const [invitationList, setInvitationList] = useState<Array<{
-    email: string;
-    first_name: string;
-    last_name: string;
-    school_id: string;
-  }>>([]);
+  const [invitationList, setInvitationList] = useState<
+    Array<{
+      email: string;
+      first_name: string;
+      last_name: string;
+      school_id: string;
+    }>
+  >([]);
   const [isSending, setIsSending] = useState(false);
-  const [schools, setSchools] = useState<Array<{school_id: string, name: string}>>([]);
+  const [schools, setSchools] = useState<
+    Array<{ school_id: string; name: string }>
+  >([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
 
   // Fetch schools for validation
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch('/api/school');
+        const response = await fetch("/api/school");
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
@@ -695,16 +752,21 @@ function InviteAdminsTab() {
         setLoadingSchools(false);
       }
     };
-    
+
     fetchSchools();
   }, []);
 
   // Add invitation to the list
   const addInvitation = () => {
     const { email, first_name, last_name, school_id } = invitationForm;
-    
+
     // Validation
-    if (!email.trim() || !first_name.trim() || !last_name.trim() || !school_id.trim()) {
+    if (
+      !email.trim() ||
+      !first_name.trim() ||
+      !last_name.trim() ||
+      !school_id.trim()
+    ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -712,7 +774,7 @@ function InviteAdminsTab() {
       });
       return;
     }
-    
+
     if (!isValidEmail(email.trim())) {
       toast({
         title: "Invalid Email",
@@ -721,8 +783,8 @@ function InviteAdminsTab() {
       });
       return;
     }
-    
-    if (invitationList.some(inv => inv.email === email.trim())) {
+
+    if (invitationList.some((inv) => inv.email === email.trim())) {
       toast({
         title: "Duplicate Email",
         description: "This email is already in the list.",
@@ -732,7 +794,9 @@ function InviteAdminsTab() {
     }
 
     // Validate school ID exists
-    const schoolExists = schools.some(school => school.school_id === school_id.trim());
+    const schoolExists = schools.some(
+      (school) => school.school_id === school_id.trim()
+    );
     if (!schoolExists && schools.length > 0) {
       toast({
         title: "Invalid School ID",
@@ -742,25 +806,30 @@ function InviteAdminsTab() {
       return;
     }
 
-    setInvitationList([...invitationList, {
-      email: email.trim(),
-      first_name: first_name.trim(),
-      last_name: last_name.trim(),
-      school_id: school_id.trim()
-    }]);
-    
+    setInvitationList([
+      ...invitationList,
+      {
+        email: email.trim(),
+        first_name: first_name.trim(),
+        last_name: last_name.trim(),
+        school_id: school_id.trim(),
+      },
+    ]);
+
     // Reset form
     setInvitationForm({
       email: "",
       first_name: "",
       last_name: "",
-      school_id: ""
+      school_id: "",
     });
   };
 
   // Remove invitation from list
   const removeInvitation = (emailToRemove: string) => {
-    setInvitationList(invitationList.filter(inv => inv.email !== emailToRemove));
+    setInvitationList(
+      invitationList.filter((inv) => inv.email !== emailToRemove)
+    );
   };
 
   // Simple email validation
@@ -770,7 +839,7 @@ function InviteAdminsTab() {
 
   // Handle key press in form inputs
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addInvitation();
     }
@@ -778,35 +847,49 @@ function InviteAdminsTab() {
 
   // Send invitations
   const sendInvitations = async () => {
-    if (invitationList.length === 0) {
+    const fullList =
+      invitationList.length > 0
+        ? invitationList
+        : [invitationForm].filter(
+            (inv) =>
+              inv.email.trim() &&
+              inv.first_name.trim() &&
+              inv.last_name.trim() &&
+              inv.school_id.trim()
+          );
+
+    if (fullList.length === 0) {
       toast({
-        title: "No Invitations",
-        description: "Please add at least one invitation.",
+        title: "Missing Information",
+        description:
+          "Please add to the list or fill all fields to send a single invite.",
         variant: "destructive",
       });
       return;
     }
 
     setIsSending(true);
-    
+
     try {
       console.log("📧 Sending invitations:", invitationList);
-      
-      const response = await fetch('/api/invite', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ''}`
+
+      const response = await fetch("/api/invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
-        body: JSON.stringify({ invitations: invitationList })
+        body: JSON.stringify({ invitations: fullList }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to send invitations');
+        throw new Error(data.detail || "Failed to send invitations");
       }
-      
+
       // Handle partial success/failure
       if (data.failed_count > 0) {
         // Show detailed error messages for each failed invitation
@@ -820,10 +903,13 @@ function InviteAdminsTab() {
           });
         } else {
           // Show summary for multiple failures
-  const errorList = data.failed.map((failed: { email: string; error: string }) =>
-  `• ${failed.email}: ${failed.error}`
-).join('\n');
-          
+          const errorList = data.failed
+            .map(
+              (failed: { email: string; error: string }) =>
+                `• ${failed.email}: ${failed.error}`
+            )
+            .join("\n");
+
           toast({
             title: `${data.failed_count} Invitations Failed`,
             description: `${data.sent} sent successfully.\n\nFailed invitations:\n${errorList}`,
@@ -837,23 +923,22 @@ function InviteAdminsTab() {
           description: `Successfully sent ${data.sent} admin invitation(s).`,
         });
       }
-      
+
       setInvitationList([]);
-      
     } catch (error) {
-  console.error("Failed to send invitations:", error);
+      console.error("Failed to send invitations:", error);
 
-  const message =
-    error instanceof Error
-      ? error.message
-      : "An error occurred while sending invitations. Please try again.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while sending invitations. Please try again.";
 
-  toast({
-    title: "Failed to Send Invitations",
-    description: message,
-    variant: "destructive",
-  });
-} finally {
+      toast({
+        title: "Failed to Send Invitations",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
       setIsSending(false);
     }
   };
@@ -867,14 +952,15 @@ function InviteAdminsTab() {
             Invite New Administrators
           </CardTitle>
           <CardDescription>
-            Send registration invitations to new administrators. They will receive an email with a link to create their admin account.
+            Send registration invitations to new administrators. They will
+            receive an email with a link to create their admin account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Invitation Form */}
           <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
             <Label className="text-base font-medium">Add New Invitation</Label>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first-name">First Name *</Label>
@@ -882,18 +968,28 @@ function InviteAdminsTab() {
                   id="first-name"
                   placeholder="John"
                   value={invitationForm.first_name}
-                  onChange={(e) => setInvitationForm({...invitationForm, first_name: e.target.value})}
+                  onChange={(e) =>
+                    setInvitationForm({
+                      ...invitationForm,
+                      first_name: e.target.value,
+                    })
+                  }
                   onKeyPress={handleKeyPress}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="last-name">Last Name *</Label>
                 <Input
                   id="last-name"
                   placeholder="Doe"
                   value={invitationForm.last_name}
-                  onChange={(e) => setInvitationForm({...invitationForm, last_name: e.target.value})}
+                  onChange={(e) =>
+                    setInvitationForm({
+                      ...invitationForm,
+                      last_name: e.target.value,
+                    })
+                  }
                   onKeyPress={handleKeyPress}
                 />
               </div>
@@ -906,34 +1002,52 @@ function InviteAdminsTab() {
                 type="email"
                 placeholder="admin@example.com"
                 value={invitationForm.email}
-                onChange={(e) => setInvitationForm({...invitationForm, email: e.target.value})}
+                onChange={(e) =>
+                  setInvitationForm({
+                    ...invitationForm,
+                    email: e.target.value,
+                  })
+                }
                 onKeyPress={handleKeyPress}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-id">School ID *</Label>
-              <Input
-                id="school-id"
-                placeholder={loadingSchools ? "Loading schools..." : "Enter school ID (e.g., SCH001)"}
+              <Label htmlFor="school-id">School *</Label>
+              <Select
                 value={invitationForm.school_id}
-                onChange={(e) => setInvitationForm({...invitationForm, school_id: e.target.value})}
-                onKeyPress={handleKeyPress}
+                onValueChange={(value) =>
+                  setInvitationForm({ ...invitationForm, school_id: value })
+                }
                 disabled={loadingSchools}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a school" />
+                </SelectTrigger>
+                <SelectContent>
+                  {schools.map((school) => (
+                    <SelectItem
+                      key={school.school_id}
+                      value={school.school_id}
+                      className="!bg-white !text-black hover:!bg-gray-100"
+                    >
+                      {school.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                <p>The school ID that this admin will manage.</p>
                 {schools.length > 0 && (
                   <p className="mt-1">
-                    <strong>Available schools:</strong> {schools.map(s => s.school_id).join(', ')}
+                    <strong>Available schools:</strong>{" "}
+                    {schools.map((s) => s.name).join(", ")}
                   </p>
                 )}
-                {loadingSchools && <p className="text-blue-500">Loading schools...</p>}
               </div>
             </div>
 
             <div className="flex justify-end">
-              <Button 
+              <Button
                 onClick={addInvitation}
                 variant="outline"
                 size="sm"
@@ -958,9 +1072,15 @@ function InviteAdminsTab() {
                     <div className="flex items-center gap-3">
                       <UserPlus className="h-4 w-4 text-blue-500" />
                       <div>
-                        <p className="text-sm font-medium">{invitation.first_name} {invitation.last_name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{invitation.email}</p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400">School: {invitation.school_id}</p>
+                        <p className="text-sm font-medium">
+                          {invitation.first_name} {invitation.last_name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {invitation.email}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                          School: {invitation.school_id}
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -981,8 +1101,14 @@ function InviteAdminsTab() {
           <div className="flex justify-end">
             <Button
               onClick={sendInvitations}
-              disabled={invitationList.length === 0 || isSending}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              disabled={
+                isSending ||
+                (invitationList.length === 0 &&
+                  !invitationForm.email.trim() &&
+                  !invitationForm.first_name.trim() &&
+                  !invitationForm.last_name.trim() &&
+                  !invitationForm.school_id.trim())
+              }
             >
               {isSending ? (
                 <>
@@ -992,7 +1118,9 @@ function InviteAdminsTab() {
               ) : (
                 <>
                   <Send className="h-4 w-4" />
-                  Send {invitationList.length > 0 ? `${invitationList.length} ` : ''}Invitation{invitationList.length !== 1 ? 's' : ''}
+                  Send{" "}
+                  {invitationList.length > 0 ? `${invitationList.length} ` : ""}
+                  Invitation{invitationList.length !== 1 ? "s" : ""}
                 </>
               )}
             </Button>
@@ -1012,19 +1140,31 @@ function InviteAdminsTab() {
           <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>Invited users will receive an email with a unique registration link</p>
+              <p>
+                Invited users will receive an email with a unique registration
+                link
+              </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>They can use this link to create their admin account with a secure password</p>
+              <p>
+                They can use this link to create their admin account with a
+                secure password
+              </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>Once registered, they will have administrative access to their designated school</p>
+              <p>
+                Once registered, they will have administrative access to their
+                designated school
+              </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>You can track invitation status and manage admin permissions from this dashboard</p>
+              <p>
+                You can track invitation status and manage admin permissions
+                from this dashboard
+              </p>
             </div>
           </div>
         </CardContent>
@@ -1033,16 +1173,24 @@ function InviteAdminsTab() {
   );
 }
 
-function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; loadingUsers: boolean }) {
+function ManageSchoolsTab({
+  allUsers,
+  loadingUsers,
+}: {
+  allUsers: DbUser[];
+  loadingUsers: boolean;
+}) {
   const { toast } = useToast();
-  const [schools, setSchools] = useState<Array<{school_id: string, name: string, email: string}>>([]);
+  const [schools, setSchools] = useState<
+    Array<{ school_id: string; name: string; email: string }>
+  >([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [approvalForm, setApprovalForm] = useState({
     school_id: "",
     admin_email: "",
     admin_first_name: "",
-    admin_last_name: ""
+    admin_last_name: "",
   });
   const [isApproving, setIsApproving] = useState(false);
 
@@ -1050,7 +1198,7 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch('/api/school');
+        const response = await fetch("/api/school");
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
@@ -1065,7 +1213,7 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
       } catch (error) {
         console.error("Error fetching schools:", error);
         toast({
-          title: "Error", 
+          title: "Error",
           description: "Failed to load schools data",
           variant: "destructive",
         });
@@ -1073,49 +1221,51 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
         setLoadingSchools(false);
       }
     };
-    
+
     fetchSchools();
   }, [toast]);
 
   // Create school-admin mapping
   const schoolAdminMap = React.useMemo(() => {
     if (loadingUsers || loadingSchools) return new Map();
-    
+
     const map = new Map();
-    
+
     // First add all schools
-    schools.forEach(school => {
+    schools.forEach((school) => {
       map.set(school.school_id, {
         school: school,
-        admins: []
+        admins: [],
       });
     });
-    
+
     // Then add admins to their respective schools
     allUsers
-      .filter(user => user.is_admin && !user.is_super_admin && user.school_id)
-      .forEach(admin => {
+      .filter((user) => user.is_admin && !user.is_super_admin && user.school_id)
+      .forEach((admin) => {
         if (map.has(admin.school_id)) {
           map.get(admin.school_id).admins.push(admin);
         }
       });
-    
+
     return map;
   }, [schools, allUsers, loadingUsers, loadingSchools]);
 
   // Filter schools based on search term
   const filteredSchools = React.useMemo(() => {
     if (!searchTerm.trim()) return Array.from(schoolAdminMap.values());
-    
+
     const term = searchTerm.toLowerCase();
-    return Array.from(schoolAdminMap.values()).filter(item => 
-      item.school.name.toLowerCase().includes(term) ||
-      item.school.school_id.toLowerCase().includes(term) ||
-      item.admins.some((admin: DbUser) => 
-        admin.email.toLowerCase().includes(term) ||
-        admin.first_name.toLowerCase().includes(term) ||
-        admin.last_name?.toLowerCase().includes(term)
-      )
+    return Array.from(schoolAdminMap.values()).filter(
+      (item) =>
+        item.school.name.toLowerCase().includes(term) ||
+        item.school.school_id.toLowerCase().includes(term) ||
+        item.admins.some(
+          (admin: DbUser) =>
+            admin.email.toLowerCase().includes(term) ||
+            admin.first_name.toLowerCase().includes(term) ||
+            admin.last_name?.toLowerCase().includes(term)
+        )
     );
   }, [schoolAdminMap, searchTerm]);
 
@@ -1126,10 +1276,16 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
 
   // Handle school approval (send invite to admin)
   const handleApproveSchool = async () => {
-    const { school_id, admin_email, admin_first_name, admin_last_name } = approvalForm;
-    
+    const { school_id, admin_email, admin_first_name, admin_last_name } =
+      approvalForm;
+
     // Validation
-    if (!school_id.trim() || !admin_email.trim() || !admin_first_name.trim() || !admin_last_name.trim()) {
+    if (
+      !school_id.trim() ||
+      !admin_email.trim() ||
+      !admin_first_name.trim() ||
+      !admin_last_name.trim()
+    ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -1137,7 +1293,7 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
       });
       return;
     }
-    
+
     if (!isValidEmail(admin_email.trim())) {
       toast({
         title: "Invalid Email",
@@ -1148,7 +1304,9 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
     }
 
     // Check if school exists
-    const schoolExists = schools.some(school => school.school_id === school_id.trim());
+    const schoolExists = schools.some(
+      (school) => school.school_id === school_id.trim()
+    );
     if (!schoolExists) {
       toast({
         title: "Invalid School",
@@ -1159,8 +1317,8 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
     }
 
     // Check if email already exists as admin
-    const existingAdmin = allUsers.find(user => 
-      user.email === admin_email.trim() && user.is_admin
+    const existingAdmin = allUsers.find(
+      (user) => user.email === admin_email.trim() && user.is_admin
     );
     if (existingAdmin) {
       toast({
@@ -1172,19 +1330,21 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
     }
 
     setIsApproving(true);
-    
-    try {
-      const invitations = [{
-        school_id: school_id.trim(),
-        email: admin_email.trim(),
-        first_name: admin_first_name.trim(),
-        last_name: admin_last_name.trim()
-      }];
 
-      const response = await fetch('/api/invite', {
-        method: 'POST',
+    try {
+      const invitations = [
+        {
+          school_id: school_id.trim(),
+          email: admin_email.trim(),
+          first_name: admin_first_name.trim(),
+          last_name: admin_last_name.trim(),
+        },
+      ];
+
+      const response = await fetch("/api/invite", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ invitations }),
       });
@@ -1194,24 +1354,29 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
       if (response.ok) {
         toast({
           title: "School Approved",
-          description: `Invitation sent to ${admin_email.trim()} for ${schools.find(s => s.school_id === school_id.trim())?.name}`,
+          description: `Invitation sent to ${admin_email.trim()} for ${
+            schools.find((s) => s.school_id === school_id.trim())?.name
+          }`,
         });
-        
+
         // Reset form
         setApprovalForm({
           school_id: "",
           admin_email: "",
           admin_first_name: "",
-          admin_last_name: ""
+          admin_last_name: "",
         });
       } else {
-        throw new Error(data.error || 'Failed to send invitation');
+        throw new Error(data.error || "Failed to send invitation");
       }
     } catch (error) {
       console.error("Failed to approve school:", error);
       toast({
         title: "Failed to Approve School",
-        description: error instanceof Error ? error.message : "An error occurred while sending the invitation.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while sending the invitation.",
         variant: "destructive",
       });
     } finally {
@@ -1222,10 +1387,10 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
   // Handle admin removal
   const handleRemoveAdmin = async (adminEmail: string, schoolName: string) => {
     try {
-      const response = await fetch('/api/admin/deactivate', {
-        method: 'POST',
+      const response = await fetch("/api/admin/deactivate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ admin_email: adminEmail }),
       });
@@ -1236,7 +1401,9 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
         // Backend endpoint not implemented yet
         toast({
           title: "Feature Not Available",
-          description: data.detail || "Backend endpoint for deactivating admins needs to be implemented",
+          description:
+            data.detail ||
+            "Backend endpoint for deactivating admins needs to be implemented",
           variant: "destructive",
         });
       } else if (response.ok) {
@@ -1247,13 +1414,16 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
         // Note: In a real implementation, we would refetch users data here
         // to update the UI with the deactivated admin
       } else {
-        throw new Error(data.detail || 'Failed to remove admin');
+        throw new Error(data.detail || "Failed to remove admin");
       }
     } catch (error) {
       console.error("Failed to remove admin:", error);
       toast({
         title: "Failed to Remove Admin",
-        description: error instanceof Error ? error.message : "An error occurred while removing the admin.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while removing the admin.",
         variant: "destructive",
       });
     }
@@ -1263,7 +1433,9 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Loading schools and administrators...</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Loading schools and administrators...
+        </p>
       </div>
     );
   }
@@ -1289,18 +1461,25 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
                 id="school-select"
                 className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
                 value={approvalForm.school_id}
-                onChange={(e) => setApprovalForm({...approvalForm, school_id: e.target.value})}
+                onChange={(e) =>
+                  setApprovalForm({
+                    ...approvalForm,
+                    school_id: e.target.value,
+                  })
+                }
               >
                 <option value="">Select a school...</option>
-                {schools.map(school => {
-                  const hasAdmin = schoolAdminMap.get(school.school_id)?.admins.length > 0;
+                {schools.map((school) => {
+                  const hasAdmin =
+                    schoolAdminMap.get(school.school_id)?.admins.length > 0;
                   return (
-                    <option 
-                      key={school.school_id} 
+                    <option
+                      key={school.school_id}
                       value={school.school_id}
                       disabled={hasAdmin}
                     >
-                      {school.name} ({school.school_id}) {hasAdmin ? '- Already has admin' : ''}
+                      {school.name} ({school.school_id}){" "}
+                      {hasAdmin ? "- Already has admin" : ""}
                     </option>
                   );
                 })}
@@ -1314,7 +1493,12 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
                 type="email"
                 placeholder="admin@school.edu"
                 value={approvalForm.admin_email}
-                onChange={(e) => setApprovalForm({...approvalForm, admin_email: e.target.value})}
+                onChange={(e) =>
+                  setApprovalForm({
+                    ...approvalForm,
+                    admin_email: e.target.value,
+                  })
+                }
               />
             </div>
 
@@ -1324,7 +1508,12 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
                 id="admin-first-name"
                 placeholder="John"
                 value={approvalForm.admin_first_name}
-                onChange={(e) => setApprovalForm({...approvalForm, admin_first_name: e.target.value})}
+                onChange={(e) =>
+                  setApprovalForm({
+                    ...approvalForm,
+                    admin_first_name: e.target.value,
+                  })
+                }
               />
             </div>
 
@@ -1334,13 +1523,18 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
                 id="admin-last-name"
                 placeholder="Doe"
                 value={approvalForm.admin_last_name}
-                onChange={(e) => setApprovalForm({...approvalForm, admin_last_name: e.target.value})}
+                onChange={(e) =>
+                  setApprovalForm({
+                    ...approvalForm,
+                    admin_last_name: e.target.value,
+                  })
+                }
               />
             </div>
           </div>
 
           <div className="flex justify-end mt-4">
-            <Button 
+            <Button
               onClick={handleApproveSchool}
               disabled={isApproving}
               className="flex items-center gap-2"
@@ -1396,46 +1590,64 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No approved schools found</p>
-              <p className="text-sm">Use the form above to approve new schools</p>
+              <p className="text-sm">
+                Use the form above to approve new schools
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredSchools.map(({ school, admins }) => (
-                <div key={school.school_id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div
+                  key={school.school_id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-medium text-lg">{school.name}</h3>
                         <Badge variant="outline">{school.school_id}</Badge>
                       </div>
-                      
+
                       {admins.length > 0 ? (
                         <div className="space-y-2">
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             Administrators ({admins.length}):
                           </p>
-                                                     {admins.map((admin: DbUser) => (
-                             <div key={admin.user_id} className="flex items-center justify-between bg-white dark:bg-gray-900 rounded p-3 border">
-                               <div className="flex items-center gap-3">
-                                 <Avatar className="h-8 w-8">
-                                   <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
-                                     {admin.first_name?.[0]}{admin.last_name?.[0]}
-                                   </AvatarFallback>
-                                 </Avatar>
-                                 <div>
-                                   <p className="font-medium text-sm">{admin.first_name} {admin.last_name}</p>
-                                   <p className="text-xs text-gray-500 dark:text-gray-400">{admin.email}</p>
-                                   {admin.last_login_time && (
-                                     <p className="text-xs text-gray-400 dark:text-gray-500">
-                                       Last login: {new Date(admin.last_login_time).toLocaleDateString()}
-                                     </p>
-                                   )}
-                                 </div>
-                               </div>
+                          {admins.map((admin: DbUser) => (
+                            <div
+                              key={admin.user_id}
+                              className="flex items-center justify-between bg-white dark:bg-gray-900 rounded p-3 border"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                                    {admin.first_name?.[0]}
+                                    {admin.last_name?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {admin.first_name} {admin.last_name}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {admin.email}
+                                  </p>
+                                  {admin.last_login_time && (
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                                      Last login:{" "}
+                                      {new Date(
+                                        admin.last_login_time
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleRemoveAdmin(admin.email, school.name)}
+                                onClick={() =>
+                                  handleRemoveAdmin(admin.email, school.name)
+                                }
                                 className="text-red-500 hover:text-red-700"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -1447,7 +1659,9 @@ function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; load
                         <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
                           <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
                           <p className="text-sm">No administrator assigned</p>
-                          <p className="text-xs">School is registered but has no admin access</p>
+                          <p className="text-xs">
+                            School is registered but has no admin access
+                          </p>
                         </div>
                       )}
                     </div>
