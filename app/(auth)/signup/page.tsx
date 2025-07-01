@@ -42,18 +42,16 @@ export default function SignupPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-const [formData, setFormData] = useState({
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  terms: false,
-  schoolId: "",
-  code: "",
-});
-
-
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    terms: false,
+    schoolId: "",
+    code: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -105,48 +103,44 @@ const [formData, setFormData] = useState({
     }));
   }, [searchParams]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError("");
+    try {
+      const payload = {
+        email: formData.email,
+        school_id: formData.schoolId,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        code: formData.code,
+        password: formData.password,
+      };
 
-  try {
-    const payload = {
-      email: formData.email,
-      school_id: formData.schoolId,
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      code: formData.code,
-      password: formData.password,
-    };
+      const res = await fetch("/api/auth/register-admin", {
+        method: "POST", // ✅ MUST be POST now
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const res = await fetch("/api/auth/register-admin", {
-      method: "POST", // ✅ MUST be POST now
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || "Registration failed.");
+      }
 
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.detail || "Registration failed.");
+      toast({
+        title: "Registration Successful",
+        description: "Welcome to Kira!",
+      });
+
+      router.push("/admin/");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setIsLoading(false);
     }
-
-    toast({
-      title: "Registration Successful",
-      description: "Welcome to Kira!",
-    });
-
-    router.push("/admin/");
-  } catch (err: any) {
-    setError(err.message || "Something went wrong.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
+  };
 
   const passwordsMatch =
     formData.password && formData.confirmPassword
@@ -280,7 +274,6 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-
                 <div className="space-y-2">
                   <Label htmlFor="code">Verification Code</Label>
                   <Input

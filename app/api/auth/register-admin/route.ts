@@ -26,9 +26,6 @@ export async function POST(req: NextRequest) {
         ? error.message
         : "Unexpected error during registration.";
     console.error("Register Admin Proxy Error:", error);
-    return NextResponse.json(
-      { detail: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ detail: message }, { status: 500 });
   }
 }

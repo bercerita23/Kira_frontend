@@ -132,24 +132,13 @@ export default function LoginPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-  <Label htmlFor="username">Username</Label>
-  <Input
-    id="username"
-    name="username"
-    type="text"
-    placeholder="Enter your username"
-    value={formData.username}
-    onChange={handleChange}
-  />
-</div>
-              <div className="space-y-2">
-                <Label htmlFor="user_id">User ID</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="user_id"
-                  name="user_id"
+                  id="username"
+                  name="username"
                   type="text"
-                  placeholder="Enter your user ID"
-                  value={formData.user_id}
+                  placeholder="Enter your username"
+                  value={formData.username}
                   onChange={handleChange}
                 />
               </div>
