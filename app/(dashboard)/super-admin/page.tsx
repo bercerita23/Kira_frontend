@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi, DbUser } from "@/lib/api/auth";
 import Link from "next/link";
@@ -360,9 +360,9 @@ export default function SuperAdminDashboardPage() {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="invite">Invite Admins</TabsTrigger>
+            <TabsTrigger value="schools">Manage Schools</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="system">System</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
@@ -608,6 +608,10 @@ export default function SuperAdminDashboardPage() {
             <InviteAdminsTab />
           </TabsContent>
 
+          <TabsContent value="schools" className="space-y-6">
+            <ManageSchoolsTab allUsers={allUsers} loadingUsers={loadingUsers} />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-6">
             <Card>
               <CardHeader>
@@ -645,27 +649,6 @@ export default function SuperAdminDashboardPage() {
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>System management tools coming soon...</p>
                   <p className="text-sm">Database backups, system health, and maintenance tools</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Platform Settings
-                </CardTitle>
-                <CardDescription>
-                  Global platform configuration and security settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Platform settings coming soon...</p>
-                  <p className="text-sm">Security policies, feature flags, and system configuration</p>
                 </div>
               </CardContent>
             </Card>
@@ -1044,6 +1027,435 @@ function InviteAdminsTab() {
               <p>You can track invitation status and manage admin permissions from this dashboard</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ManageSchoolsTab({ allUsers, loadingUsers }: { allUsers: DbUser[]; loadingUsers: boolean }) {
+  const { toast } = useToast();
+  const [schools, setSchools] = useState<Array<{school_id: string, name: string, email: string}>>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [approvalForm, setApprovalForm] = useState({
+    school_id: "",
+    admin_email: "",
+    admin_first_name: "",
+    admin_last_name: ""
+  });
+  const [isApproving, setIsApproving] = useState(false);
+
+  // Fetch schools data
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const response = await fetch('/api/school');
+        if (response.ok) {
+          const schoolData = await response.json();
+          setSchools(schoolData || []);
+        } else {
+          console.error("Failed to fetch schools");
+          toast({
+            title: "Error",
+            description: "Failed to load schools data",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching schools:", error);
+        toast({
+          title: "Error", 
+          description: "Failed to load schools data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingSchools(false);
+      }
+    };
+    
+    fetchSchools();
+  }, [toast]);
+
+  // Create school-admin mapping
+  const schoolAdminMap = React.useMemo(() => {
+    if (loadingUsers || loadingSchools) return new Map();
+    
+    const map = new Map();
+    
+    // First add all schools
+    schools.forEach(school => {
+      map.set(school.school_id, {
+        school: school,
+        admins: []
+      });
+    });
+    
+    // Then add admins to their respective schools
+    allUsers
+      .filter(user => user.is_admin && !user.is_super_admin && user.school_id)
+      .forEach(admin => {
+        if (map.has(admin.school_id)) {
+          map.get(admin.school_id).admins.push(admin);
+        }
+      });
+    
+    return map;
+  }, [schools, allUsers, loadingUsers, loadingSchools]);
+
+  // Filter schools based on search term
+  const filteredSchools = React.useMemo(() => {
+    if (!searchTerm.trim()) return Array.from(schoolAdminMap.values());
+    
+    const term = searchTerm.toLowerCase();
+    return Array.from(schoolAdminMap.values()).filter(item => 
+      item.school.name.toLowerCase().includes(term) ||
+      item.school.school_id.toLowerCase().includes(term) ||
+      item.admins.some((admin: DbUser) => 
+        admin.email.toLowerCase().includes(term) ||
+        admin.first_name.toLowerCase().includes(term) ||
+        admin.last_name?.toLowerCase().includes(term)
+      )
+    );
+  }, [schoolAdminMap, searchTerm]);
+
+  // Validate email format
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Handle school approval (send invite to admin)
+  const handleApproveSchool = async () => {
+    const { school_id, admin_email, admin_first_name, admin_last_name } = approvalForm;
+    
+    // Validation
+    if (!school_id.trim() || !admin_email.trim() || !admin_first_name.trim() || !admin_last_name.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidEmail(admin_email.trim())) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if school exists
+    const schoolExists = schools.some(school => school.school_id === school_id.trim());
+    if (!schoolExists) {
+      toast({
+        title: "Invalid School",
+        description: `School ID "${school_id.trim()}" does not exist.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if email already exists as admin
+    const existingAdmin = allUsers.find(user => 
+      user.email === admin_email.trim() && user.is_admin
+    );
+    if (existingAdmin) {
+      toast({
+        title: "Email Already Registered",
+        description: "This email is already registered as an admin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsApproving(true);
+    
+    try {
+      const invitations = [{
+        school_id: school_id.trim(),
+        email: admin_email.trim(),
+        first_name: admin_first_name.trim(),
+        last_name: admin_last_name.trim()
+      }];
+
+      const response = await fetch('/api/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invitations }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "School Approved",
+          description: `Invitation sent to ${admin_email.trim()} for ${schools.find(s => s.school_id === school_id.trim())?.name}`,
+        });
+        
+        // Reset form
+        setApprovalForm({
+          school_id: "",
+          admin_email: "",
+          admin_first_name: "",
+          admin_last_name: ""
+        });
+      } else {
+        throw new Error(data.error || 'Failed to send invitation');
+      }
+    } catch (error) {
+      console.error("Failed to approve school:", error);
+      toast({
+        title: "Failed to Approve School",
+        description: error instanceof Error ? error.message : "An error occurred while sending the invitation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  // Handle admin removal
+  const handleRemoveAdmin = async (adminEmail: string, schoolName: string) => {
+    try {
+      const response = await fetch('/api/admin/deactivate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ admin_email: adminEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 501) {
+        // Backend endpoint not implemented yet
+        toast({
+          title: "Feature Not Available",
+          description: data.detail || "Backend endpoint for deactivating admins needs to be implemented",
+          variant: "destructive",
+        });
+      } else if (response.ok) {
+        toast({
+          title: "Admin Removed",
+          description: `${adminEmail} has been deactivated and removed from ${schoolName}`,
+        });
+        // Note: In a real implementation, we would refetch users data here
+        // to update the UI with the deactivated admin
+      } else {
+        throw new Error(data.detail || 'Failed to remove admin');
+      }
+    } catch (error) {
+      console.error("Failed to remove admin:", error);
+      toast({
+        title: "Failed to Remove Admin",
+        description: error instanceof Error ? error.message : "An error occurred while removing the admin.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loadingUsers || loadingSchools) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">Loading schools and administrators...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Approve New School Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <School className="h-5 w-5 text-green-600" />
+            Approve New School
+          </CardTitle>
+          <CardDescription>
+            Select a school and assign an administrator to approve access
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school-select">School *</Label>
+              <select
+                id="school-select"
+                className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
+                value={approvalForm.school_id}
+                onChange={(e) => setApprovalForm({...approvalForm, school_id: e.target.value})}
+              >
+                <option value="">Select a school...</option>
+                {schools.map(school => {
+                  const hasAdmin = schoolAdminMap.get(school.school_id)?.admins.length > 0;
+                  return (
+                    <option 
+                      key={school.school_id} 
+                      value={school.school_id}
+                      disabled={hasAdmin}
+                    >
+                      {school.name} ({school.school_id}) {hasAdmin ? '- Already has admin' : ''}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-email">Admin Email *</Label>
+              <Input
+                id="admin-email"
+                type="email"
+                placeholder="admin@school.edu"
+                value={approvalForm.admin_email}
+                onChange={(e) => setApprovalForm({...approvalForm, admin_email: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-first-name">Admin First Name *</Label>
+              <Input
+                id="admin-first-name"
+                placeholder="John"
+                value={approvalForm.admin_first_name}
+                onChange={(e) => setApprovalForm({...approvalForm, admin_first_name: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="admin-last-name">Admin Last Name *</Label>
+              <Input
+                id="admin-last-name"
+                placeholder="Doe"
+                value={approvalForm.admin_last_name}
+                onChange={(e) => setApprovalForm({...approvalForm, admin_last_name: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              onClick={handleApproveSchool}
+              disabled={isApproving}
+              className="flex items-center gap-2"
+            >
+              {isApproving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Sending Invite...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send Invite
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Approved Schools List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <School className="h-5 w-5 text-blue-600" />
+            Approved Schools ({filteredSchools.length})
+          </CardTitle>
+          <CardDescription>
+            Manage currently approved schools and their administrators
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Search Bar */}
+          <div className="flex items-center gap-2 mb-4">
+            <Input
+              placeholder="Search schools, admins, or emails..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchTerm("")}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {filteredSchools.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No approved schools found</p>
+              <p className="text-sm">Use the form above to approve new schools</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredSchools.map(({ school, admins }) => (
+                <div key={school.school_id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium text-lg">{school.name}</h3>
+                        <Badge variant="outline">{school.school_id}</Badge>
+                      </div>
+                      
+                      {admins.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Administrators ({admins.length}):
+                          </p>
+                                                     {admins.map((admin: DbUser) => (
+                             <div key={admin.user_id} className="flex items-center justify-between bg-white dark:bg-gray-900 rounded p-3 border">
+                               <div className="flex items-center gap-3">
+                                 <Avatar className="h-8 w-8">
+                                   <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                                     {admin.first_name?.[0]}{admin.last_name?.[0]}
+                                   </AvatarFallback>
+                                 </Avatar>
+                                 <div>
+                                   <p className="font-medium text-sm">{admin.first_name} {admin.last_name}</p>
+                                   <p className="text-xs text-gray-500 dark:text-gray-400">{admin.email}</p>
+                                   {admin.last_login_time && (
+                                     <p className="text-xs text-gray-400 dark:text-gray-500">
+                                       Last login: {new Date(admin.last_login_time).toLocaleDateString()}
+                                     </p>
+                                   )}
+                                 </div>
+                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveAdmin(admin.email, school.name)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
+                          <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                          <p className="text-sm">No administrator assigned</p>
+                          <p className="text-xs">School is registered but has no admin access</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
