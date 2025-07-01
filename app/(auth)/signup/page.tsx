@@ -39,44 +39,21 @@ export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [codeValid, setCodeValid] = useState<null | boolean>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+const [formData, setFormData] = useState({
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  terms: false,
+  schoolId: "",
+  code: "",
+});
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    terms: false,
-    schoolId: "",
-    userId: "",
-    code: "",
-  });
 
-  useEffect(() => {
-    const checkCode = async () => {
-      if (formData.code.length === 8 && formData.email) {
-        try {
-          const res = await fetch(`/api/code?email=${formData.email}`);
-          if (res.status === 200) {
-            setCodeValid(true);
-          } else {
-            setCodeValid(false);
-          }
-        } catch (err) {
-          console.error("Code check failed:", err);
-          setCodeValid(false);
-        }
-      } else {
-        setCodeValid(null);
-      }
-    };
-
-    checkCode();
-  }, [formData.code, formData.email]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -123,76 +100,54 @@ export default function SignupPage() {
       firstName: firstName || prev.firstName,
       lastName: lastName || prev.lastName,
       email: email || prev.email,
-      userId: userId || prev.userId,
       code: code || prev.code,
       schoolId: schoolId || prev.schoolId,
     }));
   }, [searchParams]);
-  useEffect(() => {
-    const email = searchParams.get("email");
-    if (!email) return;
 
-    const fetchTempUser = async () => {
-      try {
-        const res = await fetch(`/api/users/user-temp?email=${email}`);
-        if (!res.ok) throw new Error("Failed to load temp user");
 
-        const data = await res.json();
-        setFormData((prev) => ({
-          ...prev,
-          email: data.email,
-          firstName: data.first_name || prev.firstName,
-          lastName: data.last_name || "",
-          schoolId: data.school_id || prev.schoolId,
-          userId: data.user_id || prev.userId,
-        }));
-      } catch (error) {
-        console.error("Could not load temp user:", error);
-        setError("Could not find invitation info.");
-      }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError("");
+
+  try {
+    const payload = {
+      email: formData.email,
+      school_id: formData.schoolId,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      code: formData.code,
+      password: formData.password,
     };
 
-    fetchTempUser();
-  }, [searchParams]);
+    const res = await fetch("/api/auth/register-admin", {
+      method: "POST", // ✅ MUST be POST now
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-    try {
-      const payload = {
-        email: formData.email,
-        password: formData.password,
-      };
-
-      const res = await fetch("/api/auth/register-admin", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Registration failed.");
-      }
-
-      // successful registration --> delete the code
-      await fetch(`/api/code?email=${formData.email}`, {
-        method: "DELETE",
-      });
-
-      toast({
-        title: "Registration Successful",
-        description: "Welcome to Kira!",
-      });
-
-      router.push("/admin/");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || "Registration failed.");
     }
-  };
+
+    toast({
+      title: "Registration Successful",
+      description: "Welcome to Kira!",
+    });
+
+    router.push("/admin/");
+  } catch (err: any) {
+    setError(err.message || "Something went wrong.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+
   const passwordsMatch =
     formData.password && formData.confirmPassword
       ? formData.password === formData.confirmPassword
@@ -325,16 +280,7 @@ export default function SignupPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="userId">User ID</Label>
-                  <Input
-                    id="userId"
-                    name="userId"
-                    required
-                    value={formData.userId}
-                    onChange={handleChange}
-                  />
-                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="code">Verification Code</Label>
                   <Input
