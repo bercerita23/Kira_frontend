@@ -1,5 +1,5 @@
 "use client";
-
+import { useAuth } from "@/lib/context/auth-context";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -36,6 +36,8 @@ export default function SignupPage() {
   const [schools, setSchools] = useState<{ school_id: string; name: string }[]>(
     []
   );
+  const { loginAdmin } = useAuth();
+
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,7 +121,7 @@ export default function SignupPage() {
       };
 
       const res = await fetch("/api/auth/register-admin", {
-        method: "POST", // ✅ MUST be POST now
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -133,6 +135,8 @@ export default function SignupPage() {
         title: "Registration Successful",
         description: "Welcome to Kira!",
       });
+
+      await loginAdmin({ email: formData.email, password: formData.password });
 
       router.push("/admin/");
     } catch (err: any) {
