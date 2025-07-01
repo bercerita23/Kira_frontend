@@ -1,15 +1,14 @@
 // app/api/auth/register-admin/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
     const response = await fetch("https://kira-api.com/auth/register-admin", {
-      method: "PATCH",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        accept: "application/json",
       },
       body: JSON.stringify(body),
     });
@@ -20,12 +19,13 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(data, { status: response.status });
     }
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Failed to register admin:", error);
-    return NextResponse.json(
-      { detail: "Internal server error" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unexpected error during registration.";
+    console.error("Register Admin Proxy Error:", error);
+    return NextResponse.json({ detail: message }, { status: 500 });
   }
 }

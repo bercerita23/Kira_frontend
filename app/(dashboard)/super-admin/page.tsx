@@ -129,9 +129,14 @@ export default function SuperAdminDashboardPage() {
         });
         
       } catch (error) {
-        console.error("❌ Failed to fetch users:", error);
-        console.error("❌ Error details:", error.message);
-      } finally {
+  console.error("❌ Failed to fetch users:", error);
+
+  if (error instanceof Error) {
+    console.error("❌ Error details:", error.message);
+  } else {
+    console.error("❌ Unknown error occurred while fetching users.");
+  }
+} finally {
         setLoadingUsers(false);
       }
     };
@@ -832,9 +837,9 @@ function InviteAdminsTab() {
           });
         } else {
           // Show summary for multiple failures
-          const errorList = data.failed.map(failed => 
-            `• ${failed.email}: ${failed.error}`
-          ).join('\n');
+  const errorList = data.failed.map((failed: { email: string; error: string }) =>
+  `• ${failed.email}: ${failed.error}`
+).join('\n');
           
           toast({
             title: `${data.failed_count} Invitations Failed`,
@@ -853,13 +858,19 @@ function InviteAdminsTab() {
       setInvitationList([]);
       
     } catch (error) {
-      console.error("Failed to send invitations:", error);
-      toast({
-        title: "Failed to Send Invitations",
-        description: error.message || "An error occurred while sending invitations. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+  console.error("Failed to send invitations:", error);
+
+  const message =
+    error instanceof Error
+      ? error.message
+      : "An error occurred while sending invitations. Please try again.";
+
+  toast({
+    title: "Failed to Send Invitations",
+    description: message,
+    variant: "destructive",
+  });
+} finally {
       setIsSending(false);
     }
   };

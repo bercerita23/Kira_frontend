@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSearchParams } from "next/navigation";
+
 import {
   Card,
   CardContent,
@@ -25,9 +27,20 @@ export default function ResetPasswordPage() {
   const [codeValid, setCodeValid] = useState<null | boolean>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const searchParams = useSearchParams();
   const router = useRouter();
+  useEffect(() => {
+    const urlCode = searchParams.get("code");
+    const firstName = searchParams.get("first_name");
 
+    if (urlCode) setCode(urlCode);
+    if (firstName) {
+      toast({
+        title: `Hi ${firstName}!`,
+        description: "Please enter your new password to complete the reset.",
+      });
+    }
+  }, [searchParams]);
   useEffect(() => {
     const storedEmail = localStorage.getItem("resetEmail");
     if (storedEmail) {
@@ -36,7 +49,30 @@ export default function ResetPasswordPage() {
       router.replace("/forgot-password");
     }
   }, [router]);
+  useEffect(() => {
+    const verifyCode = async () => {
+      if (!email || code.trim().length !== 8) {
+        setCodeValid(null); // neutral state
+        return;
+      }
 
+      try {
+        const res = await fetch(`/api/code?email=${email}`);
+        if (!res.ok) {
+          setCodeValid(null);
+          return;
+        }
+
+        const data = await res.json();
+        const isMatch = data.code.trim() === code.trim();
+        setCodeValid(isMatch);
+      } catch {
+        setCodeValid(null);
+      }
+    };
+
+    verifyCode();
+  }, [code, email]);
   const handleSubmitNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -107,13 +143,6 @@ export default function ResetPasswordPage() {
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className={
-                    codeValid === null
-                      ? ""
-                      : codeValid
-                      ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-red-500 focus-visible:ring-red-500"
-                  }
                 />
               </div>
               <div className="space-y-2">

@@ -65,14 +65,20 @@ export async function POST(req: NextRequest) {
       }
     }
     
-  } catch (error) {
-    console.error("❌ Failed to process student creation request:", error);
-    return NextResponse.json(
-      { 
-        detail: "Internal server error while processing student creation request",
-        error: error.message 
-      },
-      { status: 500 }
-    );
-  }
+} catch (error) {
+  console.error("❌ Failed to process student creation request:", error);
+  
+  const errorMessage = error instanceof Error
+    ? error.message
+    : "An unexpected error occurred.";
+
+  return NextResponse.json(
+    { 
+      detail: "Internal server error while processing student creation request",
+      error: errorMessage
+    },
+    { status: 500 }
+  );
+}
+
 } 

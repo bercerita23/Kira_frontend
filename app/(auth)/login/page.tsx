@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     user_id: "",
+    username: "",
     password: "",
     remember: false,
   });
@@ -40,6 +41,7 @@ export default function LoginPage() {
       await loginStudent({
         email: formData.email || undefined,
         user_id: formData.user_id || undefined,
+        username: formData.username || undefined,
         password: formData.password,
       });
       toast({
@@ -130,13 +132,13 @@ export default function LoginPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label htmlFor="user_id">User ID</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="user_id"
-                  name="user_id"
+                  id="username"
+                  name="username"
                   type="text"
-                  placeholder="Enter your user ID"
-                  value={formData.user_id}
+                  placeholder="Enter your username"
+                  value={formData.username}
                   onChange={handleChange}
                 />
               </div>
@@ -145,7 +147,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <a
-                    href="mailto:khakho.morad@gmail.com?subject=Password Reset Request"
+                    href="/forgot-password-student/"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?

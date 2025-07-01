@@ -269,13 +269,18 @@ export default function AdminDashboardPage() {
       window.location.reload();
       
     } catch (error) {
-      console.error("Failed to add student:", error);
-      toast({
-        title: "Failed to Add Student",
-        description: error.message || "An error occurred while adding the student. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+  console.error("Failed to add student:", error);
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : "An error occurred while adding the student. Please try again.";
+  toast({
+    title: "Failed to Add Student",
+    description: errorMessage,
+    variant: "destructive",
+  });
+}
+ finally {
       setIsAddingStudent(false);
     }
   };

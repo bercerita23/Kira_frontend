@@ -69,17 +69,17 @@ export async function POST(req: NextRequest) {
             status: "sent"
           });
         }
-      } catch (error) {
-        console.error("❌ Network error for", invitation.email, ":", error);
-        console.error("❌ Error type:", error.constructor.name);
-        console.error("❌ Error message:", error.message);
-        console.error("❌ Full error object:", error);
-        
-        errors.push({
-          email: invitation.email,
-          error: `Network error: ${error.message}`
-        });
-      }
+} catch (error) {
+  const message = error instanceof Error ? error.message : "Unknown network error";
+
+  console.error("❌ Network error for", invitation.email, ":", message);
+
+  errors.push({
+    email: invitation.email,
+    error: `Network error: ${message}`
+  });
+}
+
     }
 
     // Return combined results
@@ -93,12 +93,17 @@ export async function POST(req: NextRequest) {
     
   } catch (error) {
     console.error("❌ Failed to send invitations:", error);
-    return NextResponse.json(
-      { 
-        detail: "Please check the Kira API documentation for the correct invite endpoint",
-        error: error.message 
-      },
-      { status: 500 }
-    );
+const message = error instanceof Error
+  ? error.message
+  : "Unexpected server error";
+
+return NextResponse.json(
+  { 
+    detail: "Please check the Kira API documentation for the correct invite endpoint",
+    error: message
+  },
+  { status: 500 }
+);
+
   }
 } 
