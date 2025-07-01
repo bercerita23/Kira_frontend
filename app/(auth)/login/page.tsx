@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     user_id: "",
+    username: "",
     password: "",
     remember: false,
   });
@@ -40,6 +41,7 @@ export default function LoginPage() {
       await loginStudent({
         email: formData.email || undefined,
         user_id: formData.user_id || undefined,
+        username: formData.username || undefined,
         password: formData.password,
       });
       toast({
@@ -129,6 +131,17 @@ export default function LoginPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+              <div className="space-y-2">
+  <Label htmlFor="username">Username</Label>
+  <Input
+    id="username"
+    name="username"
+    type="text"
+    placeholder="Enter your username"
+    value={formData.username}
+    onChange={handleChange}
+  />
+</div>
               <div className="space-y-2">
                 <Label htmlFor="user_id">User ID</Label>
                 <Input
