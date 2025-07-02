@@ -58,21 +58,21 @@ export default function AdminDashboardPage() {
     const fetchStudents = async () => {
       try {
         console.log("🔄 Admin Dashboard: Fetching all users from API...");
-        const allUsers = await authApi.getAllUsers();
-        console.log("📊 Admin Dashboard: Received users:", allUsers);
-        console.log(
-          "📊 Admin Dashboard: User emails:",
-          allUsers.map((u) => u.email)
-        );
+        const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
 
-        const studentUsers = allUsers.filter(
-          (u) => !u.is_admin && !u.is_super_admin
-        );
+        const response = await fetch("/api/admin/students", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        console.log("🎓 Admin Dashboard: Filtered students:", studentUsers);
-        console.log("🎓 Admin Dashboard: Student count:", studentUsers.length);
+        if (!response.ok) {
+          throw new Error("Failed to fetch students");
+        }
 
-        setStudents(studentUsers);
+        const data = await response.json();
+        console.log("🎓 Admin Dashboard: Received students:", data);
+        setStudents(data);
       } catch (error) {
         console.error("Failed to fetch students:", error);
       } finally {
@@ -496,15 +496,6 @@ export default function AdminDashboardPage() {
                           <Badge variant="secondary" className="text-xs">
                             Student
                           </Badge>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            ID:
-                          </span>
-                          <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                            #{student.user_id}
-                          </span>
                         </div>
 
                         {student.school_id && (
