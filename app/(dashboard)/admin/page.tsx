@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi, DbUser } from "@/lib/api/auth";
+
 import Link from "next/link";
 import {
   Users,
@@ -34,8 +35,10 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
+  const [schoolName, setSchoolName] = useState<string | null>(null);
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
+  console.log("Admin's school:", user?.school_id);
 
   // Add Student form state
   const [addStudentForm, setAddStudentForm] = useState({
@@ -52,7 +55,28 @@ export default function AdminDashboardPage() {
     userRole: user?.role,
     userEmail: user?.email,
   });
+  useEffect(() => {
+    const fetchSchoolName = async () => {
+      if (!user?.school_id) return;
 
+      try {
+        const response = await fetch("/api/auth/school");
+        const schools = await response.json();
+
+        const school = schools.find(
+          (s: { school_id: string }) => s.school_id === user.school_id
+        );
+
+        if (school) {
+          setSchoolName(school.name); // or whatever field represents the name
+        }
+      } catch (error) {
+        console.error("Failed to fetch school data:", error);
+      }
+    };
+
+    fetchSchoolName();
+  }, [user?.school_id]);
   // Fetch all users and filter students
   useEffect(() => {
     const fetchStudents = async () => {
@@ -433,7 +457,7 @@ export default function AdminDashboardPage() {
           <TabsContent value="students" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                All Students ({students.length})
+                {schoolName} students
               </h2>
               <Button
                 onClick={() => window.location.reload()}

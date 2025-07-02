@@ -739,7 +739,7 @@ function InviteAdminsTab() {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/school");
+        const response = await fetch("/api/auth/school");
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
@@ -1198,7 +1198,7 @@ function ManageSchoolsTab({
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/school");
+        const response = await fetch("/api/auth/school");
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
