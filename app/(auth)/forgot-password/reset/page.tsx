@@ -49,53 +49,23 @@ export default function ResetPasswordPage() {
       router.replace("/forgot-password");
     }
   }, [router]);
-  useEffect(() => {
-    const verifyCode = async () => {
-      if (!email || code.trim().length !== 8) {
-        setCodeValid(null); // neutral state
-        return;
-      }
 
-      try {
-        const res = await fetch(`/api/code?email=${email}`);
-        if (!res.ok) {
-          setCodeValid(null);
-          return;
-        }
-
-        const data = await res.json();
-        const isMatch = data.code.trim() === code.trim();
-        setCodeValid(isMatch);
-      } catch {
-        setCodeValid(null);
-      }
-    };
-
-    verifyCode();
-  }, [code, email]);
   const handleSubmitNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const verifyRes = await fetch(`/api/code?email=${email}`);
-      if (!verifyRes.ok) throw new Error("Code verification failed.");
-      const data = await verifyRes.json();
-      const isMatch = data.code.trim() === code.trim();
-      setCodeValid(isMatch);
-      if (!isMatch) {
-        setError("Invalid verification code.");
-        return;
-      }
-
-      const resetRes = await fetch("/api/admin/reset-pw", {
+      const resetRes = await fetch("/api/auth/reset-pw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code, new_password: newPassword }),
       });
-      if (!resetRes.ok) throw new Error("Failed to reset password.");
-      await fetch(`/api/code?email=${email}`, { method: "DELETE" });
+
+      if (!resetRes.ok) {
+        const errData = await resetRes.json();
+        throw new Error(errData.detail || "Failed to reset password.");
+      }
 
       toast({ title: "Success", description: "Password has been reset." });
       localStorage.removeItem("resetEmail");
@@ -106,6 +76,7 @@ export default function ResetPasswordPage() {
       setIsLoading(false);
     }
   };
+
   const passwordsMatch = newPassword === confirmPassword;
   const canSubmit =
     newPassword && confirmPassword && passwordsMatch && newPassword.length >= 8;

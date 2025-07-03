@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -18,16 +18,13 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
-  const [userId, setUserId] = useState("");
-
-  //in case email can be used to reset password in the future
-  //const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const router = useRouter();
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -36,18 +33,17 @@ export default function ForgotPasswordPage() {
       const response = await fetch("/api/auth/request-reset-pw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ username }),
       });
 
       if (!response.ok) throw new Error("Failed to send reset code.");
 
-      // Store email before redirecting
-      localStorage.setItem("resetId", userId);
+      localStorage.setItem("resetUsername", username);
 
       toast({
         title: "Reset Code Sent",
         description:
-          "A reset code has been sent to the admin for your User ID.",
+          "A reset code has been sent to the admin for your username.",
       });
     } catch (err: any) {
       console.error(err);
@@ -71,7 +67,7 @@ export default function ForgotPasswordPage() {
               Forgot Password
             </CardTitle>
             <CardDescription className="text-center">
-              Enter your email to receive a reset code
+              Enter your username to receive a reset code
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -80,15 +76,15 @@ export default function ForgotPasswordPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userId">User ID</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="userId"
+                  id="username"
                   type="text"
                   required
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <Button className="w-full" disabled={isLoading} type="submit">

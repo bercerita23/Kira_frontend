@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const res = await fetch("https://kira-api.com/school/");
+    const res = await fetch("https://kira-api.com/auth/school/");
     const data = await res.json();
 
     // ✅ Extract and return only the schools array

@@ -126,35 +126,24 @@ export const authApi = {
   getAllUsers: async (): Promise<DbUser[]> => {
     try {
       console.log("🔄 API: Making request to /users endpoint...");
-      const response = await api.get<{ Hello_Form: DbUser[] }>("/users");
+      const response = await api.get<Record<string, unknown>>("/users");
+
       console.log("📡 API: Raw response status:", response.status);
       console.log("📡 API: Raw response data:", response.data);
-      console.log("📡 API: Object keys:", Object.keys(response.data));
-      console.log("📡 API: Hello_Form property:", response.data["Hello_Form"]);
-      console.log(
-        "📡 API: Type of Hello_Form:",
-        typeof response.data["Hello_Form"]
-      );
-      console.log(
-        "📡 API: Is Hello_Form array:",
-        Array.isArray(response.data["Hello_Form"])
+
+      const key = Object.keys(response.data).find((k) =>
+        k.startsWith("Hello_Form")
       );
 
-      // Try different property access methods
-      console.log("📡 API: Direct access test:", response.data.Hello_Form);
-      console.log(
-        "📡 API: All property names:",
-        Object.getOwnPropertyNames(response.data)
-      );
-
-      const users = response.data["Hello_Form"]; // Note the colon!
-      if (!users) {
-        console.error("❌ API: Hello_Form: is null/undefined");
+      if (!key) {
+        console.error("❌ No Hello_Form key found in response");
         return [];
       }
 
+      const users = response.data[key] as DbUser[];
+
       if (!Array.isArray(users)) {
-        console.error("❌ API: Hello_Form is not an array, got:", users);
+        console.error("❌ Hello_Form is not an array");
         return [];
       }
 

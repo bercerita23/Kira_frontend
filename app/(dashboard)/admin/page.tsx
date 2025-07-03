@@ -3,8 +3,20 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi, DbUser } from "@/lib/api/auth";
+
 import Link from "next/link";
-import { Users, UserCheck, Crown, Shield, LogOut, UserPlus, Plus, Mail, Lock, User } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  Crown,
+  Shield,
+  LogOut,
+  UserPlus,
+  Plus,
+  Mail,
+  Lock,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,15 +35,17 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
+  const [schoolName, setSchoolName] = useState<string | null>(null);
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
-  
+  console.log("Admin's school:", user?.school_id);
+
   // Add Student form state
   const [addStudentForm, setAddStudentForm] = useState({
-    email: "",
+    username: "",
     password: "",
     first_name: "",
-    last_name: ""
+    last_name: "",
   });
   const [isAddingStudent, setIsAddingStudent] = useState(false);
 
@@ -41,27 +55,48 @@ export default function AdminDashboardPage() {
     userRole: user?.role,
     userEmail: user?.email,
   });
+  useEffect(() => {
+    const fetchSchoolName = async () => {
+      if (!user?.school_id) return;
 
+      try {
+        const response = await fetch("/api/auth/school");
+        const schools = await response.json();
+
+        const school = schools.find(
+          (s: { school_id: string }) => s.school_id === user.school_id
+        );
+
+        if (school) {
+          setSchoolName(school.name); // or whatever field represents the name
+        }
+      } catch (error) {
+        console.error("Failed to fetch school data:", error);
+      }
+    };
+
+    fetchSchoolName();
+  }, [user?.school_id]);
   // Fetch all users and filter students
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         console.log("🔄 Admin Dashboard: Fetching all users from API...");
-        const allUsers = await authApi.getAllUsers();
-        console.log("📊 Admin Dashboard: Received users:", allUsers);
-        console.log(
-          "📊 Admin Dashboard: User emails:",
-          allUsers.map((u) => u.email)
-        );
+        const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
 
-        const studentUsers = allUsers.filter(
-          (u) => !u.is_admin && !u.is_super_admin
-        );
+        const response = await fetch("/api/admin/students", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        console.log("🎓 Admin Dashboard: Filtered students:", studentUsers);
-        console.log("🎓 Admin Dashboard: Student count:", studentUsers.length);
+        if (!response.ok) {
+          throw new Error("Failed to fetch students");
+        }
 
-        setStudents(studentUsers);
+        const data = await response.json();
+        console.log("🎓 Admin Dashboard: Received students:", data);
+        setStudents(data);
       } catch (error) {
         console.error("Failed to fetch students:", error);
       } finally {
@@ -176,22 +211,18 @@ export default function AdminDashboardPage() {
   };
 
   const addStudent = async () => {
-    const { email, password, first_name, last_name } = addStudentForm;
-    
+    const { username, password, first_name, last_name } = addStudentForm;
+
     // Validation
-    if (!email.trim() || !password.trim() || !first_name.trim() || !last_name.trim()) {
+    if (
+      !username.trim() ||
+      !password.trim() ||
+      !first_name.trim() ||
+      !last_name.trim()
+    ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!isValidEmail(email.trim())) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
         variant: "destructive",
       });
       return;
@@ -207,17 +238,19 @@ export default function AdminDashboardPage() {
     }
 
     setIsAddingStudent(true);
-    
+
     try {
       console.log("🎓 Adding new student:", addStudentForm);
-      
-      const response = await fetch('/api/admin/student', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ''}`
+
+      const response = await fetch("/api/admin/student", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
-        body: JSON.stringify(addStudentForm)
+        body: JSON.stringify(addStudentForm),
       });
 
       let data;
@@ -225,69 +258,82 @@ export default function AdminDashboardPage() {
         data = await response.json();
       } catch (jsonError) {
         console.error("❌ Failed to parse response JSON:", jsonError);
-        throw new Error(`Invalid response from server (Status: ${response.status})`);
+        throw new Error(
+          `Invalid response from server (Status: ${response.status})`
+        );
       }
 
       if (!response.ok) {
         console.error("❌ Backend returned error:", {
           status: response.status,
           statusText: response.statusText,
-          data: data
+          data: data,
         });
-        
+
         // Handle specific error cases
         if (response.status === 401) {
           throw new Error("Authentication failed. Please log in again.");
         } else if (response.status === 403) {
-          throw new Error("Access denied. You don't have permission to add students.");
-                 } else if (response.status === 422) {
-           // Validation error
-           const errorDetails = data.detail || data.message || 'Validation failed';
-           throw new Error(`Validation error: ${Array.isArray(errorDetails) ? errorDetails.map(e => e.msg).join(', ') : errorDetails}`);
-         } else if (response.status === 503) {
-           // Service unavailable - show cleaner message
-           throw new Error("Add Student feature is temporarily unavailable due to backend issues. Please contact your system administrator.");
-         } else {
-           throw new Error(data.detail || data.message || `Server error (${response.status})`);
-         }
+          throw new Error(
+            "Access denied. You don't have permission to add students."
+          );
+        } else if (response.status === 422) {
+          // Validation error
+          const errorDetails =
+            data.detail || data.message || "Validation failed";
+          throw new Error(
+            `Validation error: ${
+              Array.isArray(errorDetails)
+                ? errorDetails.map((e) => e.msg).join(", ")
+                : errorDetails
+            }`
+          );
+        } else if (response.status === 503) {
+          // Service unavailable - show cleaner message
+          throw new Error(
+            "Add Student feature is temporarily unavailable due to backend issues. Please contact your system administrator."
+          );
+        } else {
+          throw new Error(
+            data.detail || data.message || `Server error (${response.status})`
+          );
+        }
       }
-      
+
       toast({
         title: "Student Added Successfully!",
         description: `${first_name} ${last_name} has been added to the system.`,
       });
-      
+
       // Reset form
       setAddStudentForm({
-        email: "",
+        username: "",
         password: "",
         first_name: "",
-        last_name: ""
+        last_name: "",
       });
-      
+
       // Refresh student list
       window.location.reload();
-      
     } catch (error) {
-  console.error("Failed to add student:", error);
-  const errorMessage =
-    error instanceof Error
-      ? error.message
-      : "An error occurred while adding the student. Please try again.";
-  toast({
-    title: "Failed to Add Student",
-    description: errorMessage,
-    variant: "destructive",
-  });
-}
- finally {
+      console.error("Failed to add student:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while adding the student. Please try again.";
+      toast({
+        title: "Failed to Add Student",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
       setIsAddingStudent(false);
     }
   };
 
   // Handle key press for form inputs
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addStudent();
     }
@@ -398,7 +444,10 @@ export default function AdminDashboardPage() {
               <Users className="h-4 w-4" />
               All Students ({students.length})
             </TabsTrigger>
-            <TabsTrigger value="add-student" className="flex items-center gap-2">
+            <TabsTrigger
+              value="add-student"
+              className="flex items-center gap-2"
+            >
               <UserPlus className="h-4 w-4" />
               Add Student
             </TabsTrigger>
@@ -408,7 +457,7 @@ export default function AdminDashboardPage() {
           <TabsContent value="students" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                All Students ({students.length})
+                {schoolName} students
               </h2>
               <Button
                 onClick={() => window.location.reload()}
@@ -473,15 +522,6 @@ export default function AdminDashboardPage() {
                           </Badge>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            ID:
-                          </span>
-                          <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                            #{student.user_id}
-                          </span>
-                        </div>
-
                         {student.school_id && (
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -520,98 +560,85 @@ export default function AdminDashboardPage() {
                   Add New Student
                 </CardTitle>
                 <CardDescription>
-                  Create a new student account with login credentials. The student will be able to use these credentials to access their learning dashboard.
+                  Fill in the student’s credentials below.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Student Form */}
                 <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
-                  <Label className="text-base font-medium">Student Information</Label>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="student-first-name">First Name *</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="student-first-name"
-                          placeholder="John"
-                          value={addStudentForm.first_name}
-                          onChange={(e) => setAddStudentForm({...addStudentForm, first_name: e.target.value})}
-                          onKeyPress={handleKeyPress}
-                          className="pl-10"
-                        />
-                      </div>
+                      <Label htmlFor="first_name">First Name *</Label>
+                      <Input
+                        id="first_name"
+                        placeholder="John"
+                        value={addStudentForm.first_name}
+                        onChange={(e) =>
+                          setAddStudentForm({
+                            ...addStudentForm,
+                            first_name: e.target.value,
+                          })
+                        }
+                        onKeyPress={handleKeyPress}
+                      />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="student-last-name">Last Name *</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="student-last-name"
-                          placeholder="Doe"
-                          value={addStudentForm.last_name}
-                          onChange={(e) => setAddStudentForm({...addStudentForm, last_name: e.target.value})}
-                          onKeyPress={handleKeyPress}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="student-email">Email Address *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Label htmlFor="last_name">Last Name *</Label>
                       <Input
-                        id="student-email"
-                        type="email"
-                        placeholder="student@example.com"
-                        value={addStudentForm.email}
-                        onChange={(e) => setAddStudentForm({...addStudentForm, email: e.target.value})}
+                        id="last_name"
+                        placeholder="Doe"
+                        value={addStudentForm.last_name}
+                        onChange={(e) =>
+                          setAddStudentForm({
+                            ...addStudentForm,
+                            last_name: e.target.value,
+                          })
+                        }
                         onKeyPress={handleKeyPress}
-                        className="pl-10"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="student-password">Password *</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="student-password"
-                        type="password"
-                        placeholder="Minimum 6 characters"
-                        value={addStudentForm.password}
-                        onChange={(e) => setAddStudentForm({...addStudentForm, password: e.target.value})}
-                        onKeyPress={handleKeyPress}
-                        className="pl-10"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Password must be at least 6 characters long
-                    </p>
+                    <Label htmlFor="username">Username *</Label>
+                    <Input
+                      id="username"
+                      placeholder="student123"
+                      value={addStudentForm.username}
+                      onChange={(e) =>
+                        setAddStudentForm({
+                          ...addStudentForm,
+                          username: e.target.value,
+                        })
+                      }
+                      onKeyPress={handleKeyPress}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Minimum 6 characters"
+                      value={addStudentForm.password}
+                      onChange={(e) =>
+                        setAddStudentForm({
+                          ...addStudentForm,
+                          password: e.target.value,
+                        })
+                      }
+                      onKeyPress={handleKeyPress}
+                    />
                   </div>
 
                   <div className="flex justify-end">
-                    <Button 
+                    <Button
                       onClick={addStudent}
                       disabled={isAddingStudent}
-                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700"
                     >
-                      {isAddingStudent ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Adding Student...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-4 w-4" />
-                          Add Student
-                        </>
-                      )}
+                      {isAddingStudent ? "Adding..." : "Add Student"}
                     </Button>
                   </div>
                 </div>
