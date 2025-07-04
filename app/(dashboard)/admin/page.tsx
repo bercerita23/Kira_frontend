@@ -39,7 +39,12 @@ export default function AdminDashboardPage() {
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
   console.log("Admin's school:", user?.school_id);
-
+  //updating studets
+  const [selectedStudent, setSelectedStudent] = useState<DbUser | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  //
   // Add Student form state
   const [addStudentForm, setAddStudentForm] = useState({
     username: "",
@@ -330,6 +335,44 @@ export default function AdminDashboardPage() {
       setIsAddingStudent(false);
     }
   };
+  const resetStudentPassword = async () => {
+    if (!selectedStudent) return;
+    if (!newPassword.trim() || newPassword.length < 6) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsResettingPassword(true);
+    try {
+      const res = await fetch("/api/admin/reset-pw", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedStudent.username,
+          new_password: newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to reset password");
+      toast({
+        title: "Password Reset Successful",
+        description: `Password for ${selectedStudent.username} updated.`,
+      });
+      setShowModal(false);
+      setNewPassword("");
+    } catch (err: any) {
+      toast({
+        title: "Reset Failed",
+        description: err.message || "Could not reset password.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
 
   // Handle key press for form inputs
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -492,6 +535,10 @@ export default function AdminDashboardPage() {
                 {students.map((student) => (
                   <Card
                     key={student.user_id}
+                    onClick={() => {
+                      setSelectedStudent(student);
+                      setShowModal(true);
+                    }}
                     className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
                   >
                     <CardHeader className="pb-3">
@@ -645,6 +692,40 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {showModal && selectedStudent && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                <h2 className="text-lg font-semibold mb-4">
+                  Reset Password for {selectedStudent.username}
+                </h2>
+                <div className="space-y-4">
+                  <Label htmlFor="new_password">New Password</Label>
+                  <Input
+                    id="new_password"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={resetStudentPassword}
+                      disabled={isResettingPassword}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isResettingPassword ? "Resetting..." : "Reset Password"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </Tabs>
       </div>
     </div>
