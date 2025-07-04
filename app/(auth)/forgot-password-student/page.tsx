@@ -42,8 +42,7 @@ export default function ForgotPasswordPage() {
 
       toast({
         title: "Reset Code Sent",
-        description:
-          "A reset code has been sent to the admin for your username.",
+        description: "your request has beem forwarded to the admin.",
       });
     } catch (err: any) {
       console.error(err);
