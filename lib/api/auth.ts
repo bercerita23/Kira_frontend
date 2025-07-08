@@ -82,6 +82,7 @@ export interface CurrentUser {
 export interface DbUser {
   user_id: string;
   email: string;
+  username?: string;
   first_name: string;
   last_name?: string;
   hashed_password?: string;
