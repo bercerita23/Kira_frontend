@@ -60,6 +60,62 @@ export default function AdminDashboardPage() {
     userRole: user?.role,
     userEmail: user?.email,
   });
+
+  // Function to find student by username or email
+  const findStudentByTarget = (targetStudent: {
+    email?: string;
+    username?: string;
+  }) => {
+    return students.find((student) => {
+      if (
+        targetStudent.username &&
+        student.username === targetStudent.username
+      ) {
+        return true;
+      }
+      if (targetStudent.email && student.email === targetStudent.email) {
+        return true;
+      }
+      return false;
+    });
+  };
+
+  // Auto-select target student for password reset
+  useEffect(() => {
+    if (students.length > 0) {
+      const targetStudentData = sessionStorage.getItem("targetStudentReset");
+      if (targetStudentData) {
+        try {
+          const targetStudent = JSON.parse(targetStudentData);
+          const foundStudent = findStudentByTarget(targetStudent);
+
+          if (foundStudent) {
+            setSelectedStudent(foundStudent);
+            setShowModal(true);
+            toast({
+              title: "Password Reset Request",
+              description: `Ready to reset password for ${foundStudent.username}`,
+            });
+          } else {
+            toast({
+              title: "Student Not Found",
+              description: `Could not find student: ${
+                targetStudent.username || targetStudent.email
+              }`,
+              variant: "destructive",
+            });
+          }
+
+          // Clear the session storage after processing
+          sessionStorage.removeItem("targetStudentReset");
+        } catch (error) {
+          console.error("Error parsing target student data:", error);
+          sessionStorage.removeItem("targetStudentReset");
+        }
+      }
+    }
+  }, [students, toast]);
+
   useEffect(() => {
     const fetchSchoolName = async () => {
       if (!user?.school_id) return;
@@ -251,62 +307,23 @@ export default function AdminDashboardPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie.match(/token=([^;]+)/)?.[1] || ""
-          }`,
         },
-        body: JSON.stringify(addStudentForm),
+        body: JSON.stringify({
+          username,
+          password,
+          first_name,
+          last_name,
+        }),
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error("❌ Failed to parse response JSON:", jsonError);
-        throw new Error(
-          `Invalid response from server (Status: ${response.status})`
-        );
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        console.error("❌ Backend returned error:", {
-          status: response.status,
-          statusText: response.statusText,
-          data: data,
-        });
-
-        // Handle specific error cases
-        if (response.status === 401) {
-          throw new Error("Authentication failed. Please log in again.");
-        } else if (response.status === 403) {
-          throw new Error(
-            "Access denied. You don't have permission to add students."
-          );
-        } else if (response.status === 422) {
-          // Validation error
-          const errorDetails =
-            data.detail || data.message || "Validation failed";
-          throw new Error(
-            `Validation error: ${
-              Array.isArray(errorDetails)
-                ? errorDetails.map((e) => e.msg).join(", ")
-                : errorDetails
-            }`
-          );
-        } else if (response.status === 503) {
-          // Service unavailable - show cleaner message
-          throw new Error(
-            "Add Student feature is temporarily unavailable due to backend issues. Please contact your system administrator."
-          );
-        } else {
-          throw new Error(
-            data.detail || data.message || `Server error (${response.status})`
-          );
-        }
+        throw new Error(data.detail || "Failed to add student");
       }
 
       toast({
-        title: "Student Added Successfully!",
+        title: "Student Added Successfully",
         description: `${first_name} ${last_name} has been added to the system.`,
       });
 
@@ -318,14 +335,11 @@ export default function AdminDashboardPage() {
         last_name: "",
       });
 
-      // Refresh student list
+      // Refresh the students list
       window.location.reload();
-    } catch (error) {
-      console.error("Failed to add student:", error);
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while adding the student. Please try again.";
+        error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Failed to Add Student",
         description: errorMessage,
@@ -607,7 +621,7 @@ export default function AdminDashboardPage() {
                   Add New Student
                 </CardTitle>
                 <CardDescription>
-                  Fill in the student’s credentials below.
+                  Fill in the student's credentials below.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
