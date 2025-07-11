@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL ||
       process.env.API_URL ||
-      "https://kira-api.com";
+      "https://kira-api.bercerita.org";
 
     const response = await fetch(`${apiUrl}/auth/login-stu`, {
       method: "POST",
