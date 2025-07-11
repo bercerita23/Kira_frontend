@@ -19,14 +19,28 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/context/auth-context";
 
+// Function to detect if input is an email
+const isEmail = (input: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(input);
+};
+
+// Function to determine the type of identifier and return appropriate credentials
+const getLoginCredentials = (identifier: string, password: string) => {
+  if (isEmail(identifier)) {
+    return { email: identifier, password };
+  } else {
+    // If it's not an email, treat it as username
+    return { username: identifier, password };
+  }
+};
+
 export default function LoginPage() {
   const { loginStudent } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
-    user_id: "",
-    username: "",
+    identifier: "", // Single field for username or email
     password: "",
     remember: false,
   });
@@ -38,12 +52,11 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      await loginStudent({
-        email: formData.email || undefined,
-        user_id: formData.user_id || undefined,
-        username: formData.username || undefined,
-        password: formData.password,
-      });
+      const credentials = getLoginCredentials(
+        formData.identifier,
+        formData.password
+      );
+      await loginStudent(credentials);
       toast({
         title: "Login successful",
         description: "Welcome back to Kira!",
@@ -88,25 +101,18 @@ export default function LoginPage() {
   };
 
   const getErrorType = (errorMessage: string) => {
-    if (errorMessage.includes("email") || errorMessage.includes("account")) {
-      return "email";
+    if (
+      errorMessage.includes("email") ||
+      errorMessage.includes("account") ||
+      errorMessage.includes("username")
+    ) {
+      return "identifier";
     } else if (errorMessage.includes("password")) {
       return "password";
     }
     return "general";
   };
-  //incase signup is needed for student
-  /*
-      <p className="text-sm text-muted-foreground">
-        Don't have an account?{" "}
-        <Link
-          href="/signup"
-          className="text-primary hover:underline font-medium"
-        >
-          Sign up
-        </Link>
-      </p>
-*/
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md">
@@ -132,14 +138,20 @@ export default function LoginPage() {
                 </Alert>
               )}
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="identifier">Username or Email</Label>
                 <Input
-                  id="username"
-                  name="username"
+                  id="identifier"
+                  name="identifier"
                   type="text"
-                  placeholder="Enter your username"
-                  value={formData.username}
+                  placeholder="Enter your username or email"
+                  value={formData.identifier}
                   onChange={handleChange}
+                  required
+                  className={
+                    error && getErrorType(error) === "identifier"
+                      ? "border-red-500"
+                      : ""
+                  }
                 />
               </div>
 

@@ -36,17 +36,17 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) throw new Error("Failed to send reset code.");
+      if (!response.ok) throw new Error("Failed to send request to admin");
 
       localStorage.setItem("resetUsername", username);
 
       toast({
-        title: "Reset Code Sent",
+        title: "Reset Password Request Has Been Sent",
         description: "your request has beem forwarded to the admin.",
       });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to send reset code. Please try again.");
+      setError(err.message || "Failed to send request. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                 />
               </div>
               <Button className="w-full" disabled={isLoading} type="submit">
-                {isLoading ? "Sending..." : "Send Code"}
+                {isLoading ? "Sending..." : "Request"}
               </Button>
             </form>
           </CardContent>

@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://kira-api.com";
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org";
 
     const response = await fetch(`${apiUrl}/auth/reset-pw`, {
       method: "POST",

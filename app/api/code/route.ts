@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://kira-api.com";
+const apiUrl =
+  process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org";
 
 // Handle GET request
 export async function GET(request: NextRequest) {

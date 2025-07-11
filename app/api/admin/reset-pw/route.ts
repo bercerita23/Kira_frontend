@@ -13,14 +13,19 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const response = await fetch("https://kira-api.com/admin/reset-pw", {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/reset-pw`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const data = await response.json();
 

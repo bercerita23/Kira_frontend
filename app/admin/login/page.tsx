@@ -32,10 +32,19 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Store the target student info from URL parameters
+  const [targetStudent, setTargetStudent] = useState<{
+    email?: string;
+    username?: string;
+  } | null>(null);
+
   useEffect(() => {
     const identifier =
       searchParams.get("identifier") || searchParams.get("email");
     const password = searchParams.get("password");
+    const email = searchParams.get("email");
+    const username = searchParams.get("username");
 
     if (identifier || password) {
       setFormData((prev) => ({
@@ -43,6 +52,14 @@ export default function AdminLoginPage() {
         identifier: identifier || prev.identifier,
         password: password || prev.password,
       }));
+    }
+
+    // Store target student info if provided in URL
+    if (email || username) {
+      setTargetStudent({
+        email: email || undefined,
+        username: username || undefined,
+      });
     }
   }, [searchParams]);
 
@@ -63,6 +80,14 @@ export default function AdminLoginPage() {
       };
 
       await loginAdmin(requestBody);
+
+      // If we have target student info, store it in sessionStorage for the admin dashboard
+      if (targetStudent) {
+        sessionStorage.setItem(
+          "targetStudentReset",
+          JSON.stringify(targetStudent)
+        );
+      }
 
       toast({
         title: "Admin login successful",
@@ -88,12 +113,7 @@ export default function AdminLoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
-  /*
-     <div className="flex items-center justify-center text-xs text-muted-foreground">
-       <Shield className="inline h-3 w-3 mr-1" />
-       Authorized Personnel Only
-     </div>
-*/
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
       <div className="w-full max-w-md">
@@ -116,6 +136,14 @@ export default function AdminLoginPage() {
             <CardDescription className="text-center">
               Admin login - Sign in to access the administration panel
             </CardDescription>
+            {targetStudent && (
+              <Alert className="mt-4">
+                <AlertDescription>
+                  Password reset requested for:{" "}
+                  {targetStudent.username || targetStudent.email}
+                </AlertDescription>
+              </Alert>
+            )}
           </CardHeader>
 
           <CardContent>

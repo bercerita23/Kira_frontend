@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org";
+export async function PATCH(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
 
-    const response = await fetch(`${apiUrl}/auth/request-reset-pw`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+  if (!token) {
+    return NextResponse.json(
+      { message: "Missing authentication token" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await req.json();
+
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/update`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const contentType = response.headers.get("content-type");
     let data;

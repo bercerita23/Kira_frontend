@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://kira-api.com/users/user-temp?email=${encodeURIComponent(email)}`,
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/users/user-temp?email=${encodeURIComponent(email)}`,
       {
         headers: {
           accept: "application/json",

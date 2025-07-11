@@ -13,13 +13,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await fetch("https://kira-api.com/admin/students", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/students`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     const data = await response.json();
 

@@ -5,13 +5,18 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const response = await fetch("https://kira-api.com/auth/register-admin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/auth/register-admin`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const data = await response.json();
 

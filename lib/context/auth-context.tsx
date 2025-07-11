@@ -74,7 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // centralize token handling logic
-  const handleLoginSuccess = (token: string) => {
+  const handleLoginSuccess = (
+    token: string,
+    loginType: "student" | "admin"
+  ) => {
     Cookies.set("token", token, { expires: 30 });
 
     const decoded: DecodedToken = jwtDecode(token);
@@ -87,14 +90,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setUser(currentUser);
 
-    // redirect logic
+    // redirect logic - respect the login type used
     const from = searchParams.get("from");
     let redirectPath = "/dashboard";
-    if (currentUser.role === "super_admin") {
-      redirectPath = "/super-admin";
-    } else if (currentUser.role === "admin") {
-      redirectPath = "/admin";
+
+    if (loginType === "student") {
+      // Always go to student dashboard when logging in through student login
+      redirectPath = "/dashboard";
+    } else if (loginType === "admin") {
+      // Use role-based routing for admin login
+      if (currentUser.role === "super_admin") {
+        redirectPath = "/super-admin";
+      } else if (currentUser.role === "admin") {
+        redirectPath = "/admin";
+      } else {
+        // If admin logs in but user is not admin, go to student dashboard
+        redirectPath = "/dashboard";
+      }
     }
+
     const finalRedirect =
       from && !from.includes("/login") ? from : redirectPath;
     router.push(finalRedirect);
@@ -102,12 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginStudent = async (credentials: LoginCredentials) => {
     const response: TokenResponse = await authApi.login(credentials, "student");
-    handleLoginSuccess(response.access_token);
+    handleLoginSuccess(response.access_token, "student");
   };
 
   const loginAdmin = async (credentials: LoginCredentials) => {
     const response: TokenResponse = await authApi.login(credentials, "admin");
-    handleLoginSuccess(response.access_token);
+    handleLoginSuccess(response.access_token, "admin");
   };
 
   const signup = async (

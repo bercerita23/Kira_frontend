@@ -29,14 +29,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Forward request to production backend
-    const response = await fetch("https://kira-api.com/admin/student", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/student`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     console.log(`🔗 Backend response status: ${response.status}`);
 
