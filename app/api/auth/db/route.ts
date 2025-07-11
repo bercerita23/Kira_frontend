@@ -2,20 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    // Use environment variable for API URL with kira-api.com as default
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL ||
-      process.env.API_URL ||
-      "https://kira-api.bercerita.org";
-
-    const response = await fetch(`${apiUrl}/auth/db`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // Add cache-busting to ensure fresh data
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/auth/db`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // Add cache-busting to ensure fresh data
+        cache: "no-store",
+      }
+    );
 
     const data = await response.json();
 

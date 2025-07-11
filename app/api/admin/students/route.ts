@@ -14,7 +14,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      "https://kira-api.bercerita.org/admin/students",
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/students`,
       {
         method: "GET",
         headers: {

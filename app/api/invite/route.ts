@@ -36,7 +36,9 @@ export async function POST(req: NextRequest) {
         console.log("📋 Invitation data:", invitation);
 
         const response = await fetch(
-          "https://kira-api.bercerita.org/super_admin/invite",
+          `${
+            process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+          }/super_admin/invite`,
           {
             method: "POST",
             headers: {

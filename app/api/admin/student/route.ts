@@ -30,7 +30,9 @@ export async function POST(req: NextRequest) {
 
     // Forward request to production backend
     const response = await fetch(
-      "https://kira-api.bercerita.org/admin/student",
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/student`,
       {
         method: "POST",
         headers: {

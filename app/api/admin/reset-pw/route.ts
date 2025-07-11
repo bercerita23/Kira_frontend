@@ -14,7 +14,9 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     const response = await fetch(
-      "https://kira-api.bercerita.org/admin/reset-pw",
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/admin/reset-pw`,
       {
         method: "PATCH",
         headers: {

@@ -4,18 +4,18 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL ||
-      process.env.API_URL ||
-      "https://kira-api.bercerita.org";
-
-    const response = await fetch(`${apiUrl}/auth/login-stu`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/auth/login-stu`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
 
     const data = await response.json();
 

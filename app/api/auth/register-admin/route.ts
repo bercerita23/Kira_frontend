@@ -6,7 +6,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const response = await fetch(
-      "https://kira-api.bercerita.org/auth/register-admin",
+      `${
+        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+      }/auth/register-admin`,
       {
         method: "POST",
         headers: {
