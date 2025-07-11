@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
       localStorage.setItem("resetUsername", username);
 
       toast({
-        title: "Reset Code Sent",
+        title: "Reset Password Request Sent",
         description: "your request has beem forwarded to the admin.",
       });
     } catch (err: any) {

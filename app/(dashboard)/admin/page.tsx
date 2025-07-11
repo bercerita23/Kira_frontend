@@ -44,6 +44,15 @@ export default function AdminDashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  // Add new state for edit modal
+  const [editStudent, setEditStudent] = useState<DbUser | null>(null);
+  const [editForm, setEditForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    notes: "",
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
   //
   // Add Student form state
   const [addStudentForm, setAddStudentForm] = useState({
@@ -80,7 +89,7 @@ export default function AdminDashboardPage() {
     });
   };
 
-  // Auto-select target student for password reset
+  // Auto-select target student for password reset (special link flow only)
   useEffect(() => {
     if (students.length > 0) {
       const targetStudentData = sessionStorage.getItem("targetStudentReset");
@@ -88,33 +97,61 @@ export default function AdminDashboardPage() {
         try {
           const targetStudent = JSON.parse(targetStudentData);
           const foundStudent = findStudentByTarget(targetStudent);
-
           if (foundStudent) {
             setSelectedStudent(foundStudent);
             setShowModal(true);
-            toast({
-              title: "Password Reset Request",
-              description: `Ready to reset password for ${foundStudent.username}`,
-            });
-          } else {
-            toast({
-              title: "Student Not Found",
-              description: `Could not find student: ${
-                targetStudent.username || targetStudent.email
-              }`,
-              variant: "destructive",
-            });
           }
-
-          // Clear the session storage after processing
           sessionStorage.removeItem("targetStudentReset");
         } catch (error) {
-          console.error("Error parsing target student data:", error);
           sessionStorage.removeItem("targetStudentReset");
         }
       }
     }
-  }, [students, toast]);
+  }, [students]);
+
+  // When clicking a student, open edit modal (not password reset)
+  const handleStudentClick = (student: DbUser) => {
+    setEditStudent(student);
+    setEditForm({
+      first_name: student.first_name || "",
+      last_name: student.last_name || "",
+      email: student.email || "",
+      notes: student.notes || "",
+    });
+  };
+
+  // Update student info handler
+  const handleUpdateStudent = async () => {
+    if (!editStudent) return;
+    setIsUpdating(true);
+    try {
+      const res = await fetch("/api/admin/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: editStudent.username,
+          ...editForm,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to update student");
+      toast({
+        title: "Student Updated",
+        description: `Information for ${editStudent.username} updated.`,
+      });
+      setEditStudent(null);
+      // Optionally refresh students list
+      window.location.reload();
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err.message || "Could not update student.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSchoolName = async () => {
@@ -549,10 +586,7 @@ export default function AdminDashboardPage() {
                 {students.map((student) => (
                   <Card
                     key={student.user_id}
-                    onClick={() => {
-                      setSelectedStudent(student);
-                      setShowModal(true);
-                    }}
+                    onClick={() => handleStudentClick(student)}
                     className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
                   >
                     <CardHeader className="pb-3">
@@ -736,6 +770,280 @@ export default function AdminDashboardPage() {
                       {isResettingPassword ? "Resetting..." : "Reset Password"}
                     </Button>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {editStudent && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold">
+                    Edit Student: {editStudent.username}
+                  </h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditStudent(null)}
+                  >
+                    ✕
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Left Column - Editable Fields */}
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Student Information
+                      </h3>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="edit_first_name">First Name *</Label>
+                          <Input
+                            id="edit_first_name"
+                            value={editForm.first_name}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                first_name: e.target.value,
+                              }))
+                            }
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit_last_name">Last Name *</Label>
+                          <Input
+                            id="edit_last_name"
+                            value={editForm.last_name}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                last_name: e.target.value,
+                              }))
+                            }
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit_username">Username</Label>
+                          <Input
+                            id="edit_username"
+                            value={editStudent.username}
+                            disabled
+                            className="mt-1 bg-gray-100 dark:bg-gray-700"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Username cannot be changed
+                          </p>
+                        </div>
+                        <div>
+                          <Label htmlFor="edit_school_id">School</Label>
+                          <Input
+                            id="edit_school_id"
+                            value={
+                              schoolName ||
+                              `School ID: ${
+                                user?.school_id || "Not assigned"
+                              } ()`
+                            }
+                            disabled
+                            className="mt-1 bg-gray-100 dark:bg-gray-700"
+                          />
+                          {user?.school_id && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              School ID: {user.school_id}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">Notes</h3>
+                      <textarea
+                        id="edit_notes"
+                        value={editForm.notes}
+                        onChange={(e) =>
+                          setEditForm((f) => ({ ...f, notes: e.target.value }))
+                        }
+                        placeholder="Add notes about this student..."
+                        className="mt-1 w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use this section to add any additional notes or comments
+                        about the student.
+                      </p>
+                    </div>
+                    {/* Learning Streak Activity Section (template with mock data) */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Learning Streak Activity
+                      </h3>
+                      <div className="flex flex-col gap-2">
+                        <div className="text-gray-500">
+                          Consecutive Days Active:{" "}
+                          <span className="font-semibold">14</span>
+                        </div>
+                        <div className="text-gray-500">
+                          Total Time Spent Learning:{" "}
+                          <span className="font-semibold">5h 30m</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Right Column - Info & Templates */}
+                  <div className="space-y-6">
+                    {/* Grade Level Section (template with mock data) */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Grade Level
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                          3rd Grade
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          Elementary School
+                        </span>
+                      </div>
+                      <div className="mt-2 text-gray-500">
+                        Homeroom:{" "}
+                        <span className="font-semibold">Ms. Smith</span>
+                      </div>
+                    </div>
+                    {/* Badges Earned Section (template with mock data) */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Badges Earned
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="flex flex-col items-center bg-yellow-100 dark:bg-yellow-900 rounded p-2">
+                          <span className="text-2xl">🏅</span>
+                          <span className="text-xs mt-1">Math Whiz</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-green-100 dark:bg-green-900 rounded p-2">
+                          <span className="text-2xl">📚</span>
+                          <span className="text-xs mt-1">Bookworm</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-blue-100 dark:bg-blue-900 rounded p-2">
+                          <span className="text-2xl">🧪</span>
+                          <span className="text-xs mt-1">Science Star</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-purple-100 dark:bg-purple-900 rounded p-2">
+                          <span className="text-2xl">🔥</span>
+                          <span className="text-xs mt-1">Streak Master</span>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500">
+                        Total Points:{" "}
+                        <span className="font-semibold">1,250</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Account Details
+                      </h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label>Account Status</Label>
+                          <div className="mt-1">
+                            <Badge
+                              variant={
+                                editStudent.is_admin
+                                  ? "destructive"
+                                  : "secondary"
+                              }
+                            >
+                              {editStudent.is_admin
+                                ? "Admin Account"
+                                : "Student Account"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Created At</Label>
+                          <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            {editStudent.created_at
+                              ? formatDate(editStudent.created_at)
+                              : "Unknown"}
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Last Login</Label>
+                          <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            {editStudent.last_login_time
+                              ? formatDate(editStudent.last_login_time)
+                              : "Never logged in"}
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <div className="mt-1 text-sm text-gray-900 dark:text-white">
+                            {editStudent.email || "-"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quiz History Section (template with mock data) */}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Quiz History
+                      </h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="px-2 py-1 text-left font-medium">
+                                Quiz
+                              </th>
+                              <th className="px-2 py-1 text-left font-medium">
+                                Score
+                              </th>
+                              <th className="px-2 py-1 text-left font-medium">
+                                Date
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td className="px-2 py-1">Math Basics</td>
+                              <td className="px-2 py-1">85%</td>
+                              <td className="px-2 py-1">2024-05-01</td>
+                            </tr>
+                            <tr>
+                              <td className="px-2 py-1">Science Quiz 1</td>
+                              <td className="px-2 py-1">92%</td>
+                              <td className="px-2 py-1">2024-05-03</td>
+                            </tr>
+                            <tr>
+                              <td className="px-2 py-1">
+                                Reading Comprehension
+                              </td>
+                              <td className="px-2 py-1">78%</td>
+                              <td className="px-2 py-1">2024-05-07</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 mt-10 pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditStudent(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateStudent}
+                    disabled={isUpdating}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isUpdating ? "Updating..." : "Update Student"}
+                  </Button>
                 </div>
               </div>
             </div>
