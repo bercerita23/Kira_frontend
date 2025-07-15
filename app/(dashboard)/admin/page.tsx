@@ -340,10 +340,14 @@ export default function AdminDashboardPage() {
     try {
       console.log("🎓 Adding new student:", addStudentForm);
 
+      // Get token from cookies
+      const token = document.cookie.match(/token=([^;]+)/)?.[1];
+
       const response = await fetch("/api/admin/student", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           username,

@@ -4,23 +4,23 @@ export async function GET(req: NextRequest) {
   try {
     // Get the authorization header from the request
     const authHeader = req.headers.get("authorization");
-    
+
     if (!authHeader) {
-      return NextResponse.json({ detail: "Authorization header is required." }, { status: 401 });
+      return NextResponse.json(
+        { detail: "Authorization header is required." },
+        { status: 401 }
+      );
     }
 
     console.log("🔄 Proxying request to backend users endpoint...");
     console.log("🔑 Auth header:", authHeader);
 
-    const response = await fetch(
-      "https://kira-api.com/users",
-      {
-        headers: {
-          accept: "application/json",
-          authorization: authHeader,
-        },
-      }
-    );
+    const response = await fetch("https://kira-api.com/users", {
+      headers: {
+        accept: "application/json",
+        authorization: authHeader,
+      },
+    });
 
     console.log("📡 Backend response status:", response.status);
 
@@ -43,4 +43,4 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

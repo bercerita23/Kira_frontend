@@ -1,5 +1,5 @@
 "use client";
-
+//check the backend to store all data from token
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import authApi, { LoginCredentials, TokenResponse } from "@/lib/api/auth";
@@ -13,6 +13,7 @@ interface DecodedToken {
   role: string;
   school_id: string;
   exp: number;
+  iat: number;
 }
 
 export interface User {
@@ -22,6 +23,8 @@ export interface User {
   last_name?: string;
   role: string;
   school_id: string;
+  exp: number;
+  iat: number;
 }
 
 interface AuthContextType {
@@ -57,12 +60,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);
+        const now = Math.floor(Date.now() / 1000); // current time in seconds
+        if (decoded.exp < now) {
+          // Token expired
+          clearAuth();
+          setIsLoading(false);
+          router.push("/login");
+          return;
+        }
         const currentUser: User = {
           id: decoded.sub,
           email: decoded.email,
           first_name: decoded.first_name,
           role: decoded.role,
           school_id: decoded.school_id,
+          exp: decoded.exp,
+          iat: decoded.iat,
         };
         setUser(currentUser);
       } catch (err) {
@@ -72,6 +85,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLoading(false);
   }, []);
+
+  // Auto-logout timer when token expires
+  useEffect(() => {
+    if (user && user.exp) {
+      const now = Math.floor(Date.now() / 1000);
+      const timeout = (user.exp - now) * 1000;
+      if (timeout > 0) {
+        const timer = setTimeout(() => {
+          clearAuth();
+          router.push("/login");
+        }, timeout);
+        return () => clearTimeout(timer);
+      } else {
+        clearAuth();
+        router.push("/login");
+      }
+    }
+  }, [user]);
 
   // centralize token handling logic
   const handleLoginSuccess = (
@@ -87,6 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       first_name: decoded.first_name,
       role: decoded.role,
       school_id: decoded.school_id,
+      exp: decoded.exp,
+      iat: decoded.iat,
     };
     setUser(currentUser);
 

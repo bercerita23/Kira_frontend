@@ -23,13 +23,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useStreak } from "@/hooks/useStreak";
-import { useLevel } from "@/hooks/useLevel";
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
-  const streak = useStreak();
-  const { level, xp, xpForNextLevel, progressPercentage } = useLevel();
+  const [streaks, setStreaks] = useState<{
+    current_streak: number;
+    longest_streak: number;
+    last_activity: string;
+  } | null>(null);
+  const [points, setPoints] = useState<{
+    premium_points: number;
+    regular_points: number;
+  } | null>(null);
   const { minutes, goalMinutes, percent } = useTodaysGoal();
   const topicId = "greetings";
   const totalQuestions = 5;
@@ -38,6 +43,7 @@ export default function DashboardPage() {
 
   const [correctCount, setCorrectCount] = useState(0);
   const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
+  const [badges, setBadges] = useState([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -52,6 +58,60 @@ export default function DashboardPage() {
       setBasicPhrasesCorrect(Number(storedBasic ?? 0));
     }
   }, [user, topicId, weekKey]);
+
+  useEffect(() => {
+    async function fetchBadges() {
+      try {
+        const res = await fetch("/api/users/badges");
+        if (!res.ok) throw new Error("Failed to fetch badges");
+        const data = await res.json();
+        setBadges(data.badges || []);
+        // Log badges to the terminal
+        // eslint-disable-next-line no-console
+        console.log("User badges:", data.badges || []);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching badges:", err);
+      }
+    }
+    fetchBadges();
+  }, []);
+
+  useEffect(() => {
+    async function fetchPoints() {
+      try {
+        const res = await fetch("/api/users/points");
+        if (!res.ok) throw new Error("Failed to fetch points");
+        const data = await res.json();
+        setPoints(data);
+        // Log points to the console
+        // eslint-disable-next-line no-console
+        console.log("User points:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching points:", err);
+      }
+    }
+    fetchPoints();
+  }, []);
+
+  useEffect(() => {
+    async function fetchStreaks() {
+      try {
+        const res = await fetch("/api/users/streaks");
+        if (!res.ok) throw new Error("Failed to fetch streaks");
+        const data = await res.json();
+        setStreaks(data);
+        // Log streaks to the console
+        // eslint-disable-next-line no-console
+        console.log("User streaks:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching streaks:", err);
+      }
+    }
+    fetchStreaks();
+  }, []);
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -97,6 +157,14 @@ export default function DashboardPage() {
     return user.email || "User";
   };
 
+  // Leveling system: Level = floor(premium_points / 100) + 1, XP = regular_points, progress = (regular_points % 100)
+  const level = points ? Math.floor(points.premium_points / 100) + 1 : "…";
+  const xp = points ? points.regular_points : "…";
+  const xpForNextLevel = 100;
+  const progressPercentage = points
+    ? Math.min(100, Math.max(0, points.regular_points % 100))
+    : 0;
+
   return (
     <MobileMenuContext.Provider
       value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
@@ -129,7 +197,7 @@ export default function DashboardPage() {
                         Daily Streak
                       </p>
                       <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {streak} days
+                        {streaks ? streaks.current_streak : "…"} days
                       </p>
                     </div>
                   </div>
@@ -161,13 +229,7 @@ export default function DashboardPage() {
                   <div className="flex items-center">
                     <div className="relative mr-4">
                       <CircularProgress
-                        value={
-                          Number.isFinite(progressPercentage) &&
-                          progressPercentage >= 0 &&
-                          progressPercentage <= 100
-                            ? progressPercentage
-                            : 0
-                        }
+                        value={progressPercentage}
                         size={48}
                         strokeWidth={4}
                         color="primary"
