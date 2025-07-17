@@ -23,6 +23,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+type Badge = {
+  badge_id: string;
+  earned_at: string;
+  is_viewed: boolean;
+  name: string;
+  description: string;
+  icon_url?: string;
+};
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
@@ -43,7 +51,7 @@ export default function DashboardPage() {
 
   const [correctCount, setCorrectCount] = useState(0);
   const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
-  const [badges, setBadges] = useState([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -250,6 +258,45 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+              {/* Badges Section */}
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Your Badges
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {badges && badges.length > 0 ? (
+                    badges.map((badge) => (
+                      <div
+                        key={badge.badge_id}
+                        className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center"
+                      >
+                        <div className="mb-2">
+                          {/* Optionally add an icon here if available: <img src={badge.icon_url} alt={badge.name} /> */}
+                          <span className="text-2xl">🏅</span>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {badge.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            {badge.description}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Earned:{" "}
+                            {badge.earned_at
+                              ? new Date(badge.earned_at).toLocaleDateString()
+                              : "-"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 col-span-full">
+                      No badges earned yet.
+                    </p>
+                  )}
                 </div>
               </div>
 

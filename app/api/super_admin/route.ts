@@ -31,16 +31,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const backendUrl = `${
-      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-    }/super_admin/`;
     const outgoingHeaders = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await fetch(backendUrl, {
-      method: "GET",
-      headers: outgoingHeaders,
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/super_admin`,
+      {
+        method: "GET",
+        headers: outgoingHeaders,
+      }
+    );
     const rawData = await response.text();
     let data;
     try {

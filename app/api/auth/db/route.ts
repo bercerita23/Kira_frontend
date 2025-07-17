@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-      }/auth/db`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // Add cache-busting to ensure fresh data
-        cache: "no-store",
-      }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/db`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Add cache-busting to ensure fresh data
+      cache: "no-store",
+    });
 
     const data = await response.json();
 

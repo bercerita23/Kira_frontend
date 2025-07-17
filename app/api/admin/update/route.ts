@@ -14,9 +14,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-      }/admin/update`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/update`,
       {
         method: "PATCH",
         headers: {
