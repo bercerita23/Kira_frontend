@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LogIn, AlertCircle } from "lucide-react";
+import { LogIn, AlertCircle, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,158 +123,178 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6]">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-primary">Kira</span>
-          </Link>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col items-center mb-2">
-              <CardTitle className="text-2xl text-center">
-                Welcome back
-              </CardTitle>
-              <div className="flex items-center mt-2">
-                <span
-                  className={`text-sm font-medium mr-2 ${
-                    loginType === "student" ? "text-primary" : "text-gray-400"
-                  }`}
-                >
-                  Student
-                </span>
-                <button
-                  type="button"
-                  className={`relative w-12 h-6 bg-gray-200 rounded-none transition-colors duration-300 focus:outline-none ${
-                    loginType === "admin" ? "bg-blue-500" : ""
-                  }`}
-                  onClick={() =>
-                    setLoginType(loginType === "student" ? "admin" : "student")
+        <div
+          className="bg-white rounded-2xl shadow-lg px-10 py-10 flex flex-col items-center"
+          style={{ minWidth: 400 }}
+        >
+          <span className="text-3xl font-bold text-[#B71C3B] mb-1">KIRA</span>
+          <span className="text-xl font-medium text-[#2D0B18] mb-11">
+            Log in to your account
+          </span>
+          <span className="text-sm text-[#2D0B18] mb-2">
+            Choose your account type
+          </span>
+          <div className="flex w-full justify-center mb-6 ">
+            <div className="flex bg-[#FDECEF] rounded-[4px] p-[2px] overflow-hidden h-10 w-full  border border-[#FDECEF]">
+              <button
+                type="button"
+                className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
+                  ${
+                    loginType === "admin"
+                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#B71C3B] z-10"
+                      : "bg-transparent border-transparent text-[#2D0B18]"
                   }
-                  aria-label="Switch login type"
-                >
-                  <motion.span
-                    layout
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    className={`absolute top-1 left-1 w-4 h-4 rounded-none bg-white shadow-md transition-transform duration-300 ${
-                      loginType === "admin" ? "translate-x-6" : ""
-                    }`}
-                  />
-                </button>
-                <span
-                  className={`text-sm font-medium ml-2 ${
-                    loginType === "admin" ? "text-primary" : "text-gray-400"
-                  }`}
-                >
-                  Admin
-                </span>
-              </div>
-            </div>
-            <CardDescription className="text-center">
-              {loginType === "student"
-                ? "Student login - Sign in to your Kira account"
-                : "Admin login - Sign in to your admin account"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="identifier">Username or Email</Label>
-                <Input
-                  id="identifier"
-                  name="identifier"
-                  type="text"
-                  placeholder="Enter your username or email"
-                  value={formData.identifier}
-                  onChange={handleChange}
-                  required
+                `}
+                style={{
+                  borderRadius: loginType === "admin" ? "8px" : "8px 0 0 8px",
+                }}
+                onClick={() => setLoginType("admin")}
+              >
+                <Shield
+                  size={18}
                   className={
-                    error && getErrorType(error) === "identifier"
-                      ? "border-red-500"
-                      : ""
+                    loginType === "admin" ? "text-[#B71C3B]" : "text-[#A0A0A0]"
                   }
                 />
+                Administrator
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
+                  ${
+                    loginType === "student"
+                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#B71C3B] z-10"
+                      : "bg-transparent border-transparent text-[#2D0B18]"
+                  }
+                `}
+                style={{
+                  borderRadius: loginType === "student" ? "8px" : "0 8px 8px 0",
+                }}
+                onClick={() => setLoginType("student")}
+              >
+                <User
+                  size={18}
+                  className={
+                    loginType === "student"
+                      ? "text-[#B71C3B]"
+                      : "text-[#A0A0A0]"
+                  }
+                />
+                Student
+              </button>
+            </div>
+          </div>
+          <form
+            onSubmit={handleSubmit}
+            className="w-full flex flex-col gap-4 mt-5"
+          >
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="identifier"
+                className="text-sm font-medium text-[#2D0B18]"
+              >
+                Email or User ID
+              </label>
+              <input
+                id="identifier"
+                name="identifier"
+                type="text"
+                placeholder="admin@kira.io"
+                value={formData.identifier}
+                onChange={handleChange}
+                required
+                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#B71C3B] focus:border-[#B71C3B]"
+                style={{ fontSize: "1rem" }}
+              />
+            </div>
+            <div className="flex flex-col gap-2 mt-3 mb-4">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium text-[#2D0B18]"
+                >
+                  Password
+                </label>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="/forgot-password-student/"
-                    className="text-sm text-primary hover:underline"
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#B71C3B] focus:border-[#B71C3B]"
+                style={{ fontSize: "1rem" }}
+              />
+              <a
+                href={
+                  loginType === "admin"
+                    ? "/forgot-password"
+                    : "/forgot-password-student/"
+                }
+                className="text-xs text-[#B71C3B] hover:underline"
+              >
+                Forgot Password?
+              </a>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                className="accent-[#B71C3B]"
+                id="remember"
+              />
+              <label htmlFor="remember" className="text-sm text-[#2D0B18]">
+                Remember me for 30 days
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
                   >
-                    Forgot password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={
-                    error && getErrorType(error) === "password"
-                      ? "border-red-500"
-                      : ""
-                  }
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Signing in...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center">
-                    <LogIn className="mr-2 h-4 w-4" /> Sign in
-                  </span>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-3">
-            <div className="border-t pt-3 w-full text-center">
-              <p className="text-xs text-muted-foreground">
-                Administrator?{" "}
-                <Link
-                  href="/admin/login"
-                  className="text-blue-600 hover:underline font-medium"
-                >
-                  Admin Portal
-                </Link>
-              </p>
-            </div>
-          </CardFooter>
-        </Card>
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                "Log In"
+              )}
+            </button>
+          </form>
+        </div>
+        <div className="text-center mt-6">
+          <span className="text-[#2D0B18] text-sm">
+            Don't have an account?{" "}
+          </span>
+          <a
+            href="/signup"
+            className="text-[#B71C3B] font-medium hover:underline"
+          >
+            Register
+          </a>
+        </div>
       </div>
     </div>
   );
