@@ -50,7 +50,6 @@ export default function DashboardPage() {
 
   const [correctCount, setCorrectCount] = useState(0);
   const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
-  const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -65,24 +64,6 @@ export default function DashboardPage() {
       setBasicPhrasesCorrect(Number(storedBasic ?? 0));
     }
   }, [user, topicId, weekKey]);
-
-  useEffect(() => {
-    async function fetchBadges() {
-      try {
-        const res = await fetch("/api/users/badges");
-        if (!res.ok) throw new Error("Failed to fetch badges");
-        const data = await res.json();
-        setBadges(data.badges || []);
-        // Log badges to the terminal
-        // eslint-disable-next-line no-console
-        console.log("User badges:", data.badges || []);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching badges:", err);
-      }
-    }
-    fetchBadges();
-  }, []);
 
   useEffect(() => {
     async function fetchPoints() {
@@ -257,45 +238,6 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
-              {/* Badges Section */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Your Badges
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {badges && badges.length > 0 ? (
-                    badges.map((badge) => (
-                      <div
-                        key={badge.badge_id}
-                        className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center"
-                      >
-                        <div className="mb-2">
-                          {/* Optionally add an icon here if available: <img src={badge.icon_url} alt={badge.name} /> */}
-                          <span className="text-2xl">🏅</span>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-gray-900 dark:text-white">
-                            {badge.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            {badge.description}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Earned:{" "}
-                            {badge.earned_at
-                              ? new Date(badge.earned_at).toLocaleDateString()
-                              : "-"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 col-span-full">
-                      No badges earned yet.
-                    </p>
-                  )}
                 </div>
               </div>
 
