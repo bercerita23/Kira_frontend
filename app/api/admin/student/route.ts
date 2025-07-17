@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
+  console.log(
+    "[DEBUG] Incoming headers:",
+    Object.fromEntries(req.headers.entries())
+  );
+  console.log("[DEBUG] Token from cookies:", token);
+  if (!token) {
+    console.log("[DEBUG] No token found in cookies");
+    return NextResponse.json(
+      { detail: "Missing authentication token" },
+      { status: 401 }
+    );
+  }
   try {
     const body = await req.json();
-    const authHeader = req.headers.get("authorization");
-
-    if (!authHeader) {
-      return NextResponse.json(
-        { detail: "Authorization header is required." },
-        { status: 401 }
-      );
-    }
+    console.log("[DEBUG] Incoming body:", body);
 
     console.log("📧 Add student request received...");
     console.log("📝 Request body:", body);
@@ -30,14 +36,12 @@ export async function POST(req: NextRequest) {
 
     // Forward request to production backend
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-      }/admin/student`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/student`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: authHeader,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       }

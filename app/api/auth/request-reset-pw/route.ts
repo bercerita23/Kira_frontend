@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org";
-
-    const response = await fetch(`${apiUrl}/auth/request-reset-pw`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/request-reset-pw`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
 
     const contentType = response.headers.get("content-type");
     let data;

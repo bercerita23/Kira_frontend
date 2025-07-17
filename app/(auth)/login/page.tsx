@@ -18,6 +18,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/context/auth-context";
+import { motion } from "framer-motion";
 
 // Function to detect if input is an email
 const isEmail = (input: string): boolean => {
@@ -36,13 +37,13 @@ const getLoginCredentials = (identifier: string, password: string) => {
 };
 
 export default function LoginPage() {
-  const { loginStudent } = useAuth();
+  const { loginStudent, loginAdmin } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginType, setLoginType] = useState<"student" | "admin">("student");
   const [formData, setFormData] = useState({
     identifier: "", // Single field for username or email
     password: "",
-    remember: false,
   });
   const [error, setError] = useState("");
 
@@ -56,11 +57,19 @@ export default function LoginPage() {
         formData.identifier,
         formData.password
       );
-      await loginStudent(credentials);
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Kira!",
-      });
+      if (loginType === "student") {
+        await loginStudent(credentials);
+        toast({
+          title: "Login successful",
+          description: "Welcome back to Kira!",
+        });
+      } else {
+        await loginAdmin(credentials);
+        toast({
+          title: "Admin login successful",
+          description: "Welcome back, Admin!",
+        });
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "An unexpected error occurred";
@@ -89,10 +98,10 @@ export default function LoginPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
 
     if (error) {
@@ -124,9 +133,49 @@ export default function LoginPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+            <div className="flex flex-col items-center mb-2">
+              <CardTitle className="text-2xl text-center">
+                Welcome back
+              </CardTitle>
+              <div className="flex items-center mt-2">
+                <span
+                  className={`text-sm font-medium mr-2 ${
+                    loginType === "student" ? "text-primary" : "text-gray-400"
+                  }`}
+                >
+                  Student
+                </span>
+                <button
+                  type="button"
+                  className={`relative w-12 h-6 bg-gray-200 rounded-none transition-colors duration-300 focus:outline-none ${
+                    loginType === "admin" ? "bg-blue-500" : ""
+                  }`}
+                  onClick={() =>
+                    setLoginType(loginType === "student" ? "admin" : "student")
+                  }
+                  aria-label="Switch login type"
+                >
+                  <motion.span
+                    layout
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className={`absolute top-1 left-1 w-4 h-4 rounded-none bg-white shadow-md transition-transform duration-300 ${
+                      loginType === "admin" ? "translate-x-6" : ""
+                    }`}
+                  />
+                </button>
+                <span
+                  className={`text-sm font-medium ml-2 ${
+                    loginType === "admin" ? "text-primary" : "text-gray-400"
+                  }`}
+                >
+                  Admin
+                </span>
+              </div>
+            </div>
             <CardDescription className="text-center">
-              Student login - Sign in to your Kira account
+              {loginType === "student"
+                ? "Student login - Sign in to your Kira account"
+                : "Admin login - Sign in to your admin account"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -178,22 +227,6 @@ export default function LoginPage() {
                       : ""
                   }
                 />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  name="remember"
-                  checked={formData.remember}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      remember: checked as boolean,
-                    }))
-                  }
-                />
-                <Label htmlFor="remember" className="text-sm font-normal">
-                  Remember me for 30 days
-                </Label>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (

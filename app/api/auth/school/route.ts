@@ -3,12 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const res = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-      }/auth/school/`
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/school`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    const data = await res.json();
+    const data = await response.json();
 
     // ✅ Extract and return only the schools array
     return NextResponse.json(data.schools);

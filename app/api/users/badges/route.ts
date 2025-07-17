@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/students`,
+      `${process.env.NEXT_PUBLIC_API_URL}/users/badges`,
       {
         method: "GET",
         headers: {
@@ -27,17 +27,23 @@ export async function GET(req: NextRequest) {
     const data = await response.json();
 
     if (!response.ok) {
-      return new Response(JSON.stringify(data), {
-        status: response.status,
-      });
+      // Log backend error details for debugging
+      console.error("Backend error:", data);
+      return new Response(
+        JSON.stringify({
+          message: "Backend error",
+          backendStatus: response.status,
+          backendData: data,
+        }),
+        {
+          status: response.status,
+        }
+      );
     }
 
-    return new Response(
-      JSON.stringify(Object.values(data.student_data || {})),
-      {
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify({ badges: data.badges || [] }), {
+      status: 200,
+    });
   } catch (error) {
     console.error("Proxy error:", error);
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {

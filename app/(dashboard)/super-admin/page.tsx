@@ -68,28 +68,24 @@ export default function SuperAdminDashboardPage() {
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
-        console.log("🔄 Super Admin Dashboard: Fetching all users from API...");
         console.log(
-          "🌐 API Base URL:",
-          process.env.NEXT_PUBLIC_API_URL || "/api"
+          "🔄 Super Admin Dashboard: Fetching all users from /api/super_admin..."
         );
-        const users = await authApi.getAllUsers();
-        console.log("📊 Super Admin Dashboard: Raw API response:", users);
-        console.log("📊 Super Admin Dashboard: Type of users:", typeof users);
-        console.log(
-          "📊 Super Admin Dashboard: Is Array:",
-          Array.isArray(users)
-        );
-
-        // Check if users is valid before accessing
-        if (!users) {
-          console.error("❌ Users is null/undefined");
-          setAllUsers([]);
-          return;
-        }
+        const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+        console.log("[SuperAdminDashboard] Outgoing token:", token);
+        const fetchOptions = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        console.log("[SuperAdminDashboard] Fetch options:", fetchOptions);
+        const response = await fetch("/api/super_admin", fetchOptions);
+        console.log("📡 API: Raw response status:", response.status);
+        const users = await response.json();
+        console.log("📡 API: Raw response data:", users);
 
         if (!Array.isArray(users)) {
-          console.error("❌ Users is not an array, got:", users);
+          console.error("❌ API returned non-array data:", users);
           setAllUsers([]);
           return;
         }
@@ -103,17 +99,8 @@ export default function SuperAdminDashboardPage() {
             "📊 Super Admin Dashboard: First user example:",
             users[0]
           );
-
-          // Debug: Check each user's properties
           users.forEach((user, index) => {
-            console.log(`👤 User ${index + 1}:`, {
-              user_id: user.user_id,
-              email: user.email,
-              first_name: user.first_name,
-              is_admin: user.is_admin,
-              is_super_admin: user.is_super_admin,
-              school_id: user.school_id,
-            });
+            console.log(`�� User ${index + 1}:`, user);
           });
         } else {
           console.log("⚠️ Users array is empty");
@@ -150,7 +137,6 @@ export default function SuperAdminDashboardPage() {
         });
       } catch (error) {
         console.error("❌ Failed to fetch users:", error);
-
         if (error instanceof Error) {
           console.error("❌ Error details:", error.message);
         } else {
@@ -161,6 +147,7 @@ export default function SuperAdminDashboardPage() {
       }
     };
 
+    console.log("[SuperAdminDashboard] useAuth user:", user);
     if (user && user.role === "super_admin") {
       fetchAllUsers();
     } else {
@@ -739,7 +726,14 @@ function InviteAdminsTab() {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/auth/school");
+        const response = await fetch("/api/auth/school", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
+          },
+        });
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
@@ -1198,7 +1192,14 @@ function ManageSchoolsTab({
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/auth/school");
+        const response = await fetch("/api/auth/school", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
+          },
+        });
         if (response.ok) {
           const schoolData = await response.json();
           setSchools(schoolData || []);
@@ -1345,6 +1346,9 @@ function ManageSchoolsTab({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
         body: JSON.stringify({ invitations }),
       });
@@ -1391,6 +1395,9 @@ function ManageSchoolsTab({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
         body: JSON.stringify({ admin_email: adminEmail }),
       });

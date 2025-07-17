@@ -58,10 +58,12 @@ export default function AdminDashboardPage() {
   const [addStudentForm, setAddStudentForm] = useState({
     username: "",
     password: "",
+    confirmPassword: "",
     first_name: "",
     last_name: "",
   });
   const [isAddingStudent, setIsAddingStudent] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(true);
 
   console.log("🔒 Admin page render:", {
     isLoading,
@@ -207,6 +209,17 @@ export default function AdminDashboardPage() {
     }
   }, [user]);
 
+  // Check password match whenever passwords change
+  useEffect(() => {
+    if (addStudentForm.password || addStudentForm.confirmPassword) {
+      setPasswordMatch(
+        addStudentForm.password === addStudentForm.confirmPassword
+      );
+    } else {
+      setPasswordMatch(true);
+    }
+  }, [addStudentForm.password, addStudentForm.confirmPassword]);
+
   // Show loading state while checking authentication
   if (isLoading) {
     console.log("⏳ Admin page: Showing loading state");
@@ -309,18 +322,29 @@ export default function AdminDashboardPage() {
   };
 
   const addStudent = async () => {
-    const { username, password, first_name, last_name } = addStudentForm;
+    const { username, password, confirmPassword, first_name, last_name } =
+      addStudentForm;
 
     // Validation
     if (
       !username.trim() ||
       !password.trim() ||
+      !confirmPassword.trim() ||
       !first_name.trim() ||
       !last_name.trim()
     ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Password and confirmation password do not match.",
         variant: "destructive",
       });
       return;
@@ -340,10 +364,14 @@ export default function AdminDashboardPage() {
     try {
       console.log("🎓 Adding new student:", addStudentForm);
 
+      // Get token from cookies
+      const token = document.cookie.match(/token=([^;]+)/)?.[1];
+
       const response = await fetch("/api/admin/student", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           username,
@@ -368,6 +396,7 @@ export default function AdminDashboardPage() {
       setAddStudentForm({
         username: "",
         password: "",
+        confirmPassword: "",
         first_name: "",
         last_name: "",
       });
@@ -724,7 +753,39 @@ export default function AdminDashboardPage() {
                         })
                       }
                       onKeyPress={handleKeyPress}
+                      className={
+                        !passwordMatch
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={addStudentForm.confirmPassword}
+                      onChange={(e) =>
+                        setAddStudentForm({
+                          ...addStudentForm,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                      onKeyPress={handleKeyPress}
+                      className={
+                        !passwordMatch
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    />
+                    {!passwordMatch && (
+                      <p className="text-sm text-red-500">
+                        Passwords do not match
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex justify-end">

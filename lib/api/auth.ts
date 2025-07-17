@@ -124,37 +124,6 @@ export const authApi = {
   logout: async (): Promise<void> => {
     Cookies.remove("token");
   },
-  getAllUsers: async (): Promise<DbUser[]> => {
-    try {
-      console.log("🔄 API: Making request to /users endpoint...");
-      const response = await api.get<Record<string, unknown>>("/users");
-
-      console.log("📡 API: Raw response status:", response.status);
-      console.log("📡 API: Raw response data:", response.data);
-
-      const key = Object.keys(response.data).find((k) =>
-        k.startsWith("Hello_Form")
-      );
-
-      if (!key) {
-        console.error("❌ No Hello_Form key found in response");
-        return [];
-      }
-
-      const users = response.data[key] as DbUser[];
-
-      if (!Array.isArray(users)) {
-        console.error("❌ Hello_Form is not an array");
-        return [];
-      }
-
-      console.log("✅ API: Returning", users.length, "users");
-      return users;
-    } catch (error) {
-      console.error("❌ API: Error in getAllUsers:", error);
-      throw error;
-    }
-  },
 };
 
 export default authApi;
