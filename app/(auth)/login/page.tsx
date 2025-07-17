@@ -282,18 +282,18 @@ export default function LoginPage() {
                 "Log In"
               )}
             </button>
+            <div className="text-center mt-">
+              <span className="text-[#2D0B18] text-sm">
+                Don't have an account?{" "}
+              </span>
+              <a
+                href="/signup"
+                className="text-[#B71C3B] font-medium hover:underline"
+              >
+                Register
+              </a>
+            </div>
           </form>
-        </div>
-        <div className="text-center mt-6">
-          <span className="text-[#2D0B18] text-sm">
-            Don't have an account?{" "}
-          </span>
-          <a
-            href="/signup"
-            className="text-[#B71C3B] font-medium hover:underline"
-          >
-            Register
-          </a>
         </div>
       </div>
     </div>
