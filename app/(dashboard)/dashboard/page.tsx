@@ -40,8 +40,7 @@ export default function DashboardPage() {
     last_activity: string;
   } | null>(null);
   const [points, setPoints] = useState<{
-    premium_points: number;
-    regular_points: number;
+    points: number;
   } | null>(null);
   const { minutes, goalMinutes, percent } = useTodaysGoal();
   const topicId = "greetings";
@@ -165,12 +164,12 @@ export default function DashboardPage() {
     return user.email || "User";
   };
 
-  // Leveling system: Level = floor(premium_points / 100) + 1, XP = regular_points, progress = (regular_points % 100)
-  const level = points ? Math.floor(points.premium_points / 100) + 1 : "…";
-  const xp = points ? points.regular_points : "…";
+  // Leveling system: Level = floor(points / 100) + 1, XP = points, progress = (points % 100)
+  const level = points ? Math.floor(points.points / 100) + 1 : "…";
+  const xp = points ? points.points : "…";
   const xpForNextLevel = 100;
   const progressPercentage = points
-    ? Math.min(100, Math.max(0, points.regular_points % 100))
+    ? Math.min(100, Math.max(0, points.points % 100))
     : 0;
 
   return (
