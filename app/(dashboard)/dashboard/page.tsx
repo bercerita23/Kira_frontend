@@ -42,6 +42,13 @@ type Quiz = {
   expired_at: string;
   is_locked: boolean;
 };
+
+type Attempt = {
+  quiz_id: number;
+  attempt_count: number;
+  score: number;
+};
+
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
@@ -62,6 +69,7 @@ export default function DashboardPage() {
   const [correctCount, setCorrectCount] = useState(0);
   const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -137,6 +145,20 @@ export default function DashboardPage() {
       }
     }
     fetchQuizzes();
+  }, []);
+
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attemps");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        setAttempts(data.attempts || []);
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+      }
+    }
+    fetchAttempts();
   }, []);
   // Show loading state while checking authentication
   if (isLoading) {
@@ -286,15 +308,31 @@ export default function DashboardPage() {
                 </h2>
                 <div className="space-y-3">
                   {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz: Quiz) =>
-                      quiz.is_locked ? (
+                    quizzes.map((quiz: Quiz) => {
+                      const attempt = attempts.find(
+                        (a) => a.quiz_id === quiz.quiz_id
+                      );
+                      const shouldLock =
+                        quiz.is_locked ||
+                        (attempt && attempt.attempt_count === 2);
+                      const progressColor =
+                        (attempt?.score ?? 0) === 5 ? "green" : "primary";
+                      return shouldLock ? (
                         <div
                           key={quiz.quiz_id}
                           className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed mb-2"
                         >
                           <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                              <span className="text-xl opacity-70">📝</span>
+                            <div className="relative mr-4">
+                              <CircularProgress
+                                value={((attempt?.score ?? 0) / 5) * 100}
+                                size={48}
+                                strokeWidth={4}
+                                color={progressColor}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xl">📝</span>
+                              </div>
                             </div>
                             <div className="ml-3 flex-1">
                               <p className="font-medium text-gray-700 dark:text-gray-300">
@@ -302,6 +340,9 @@ export default function DashboardPage() {
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-500">
                                 {quiz.description}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                Score: {attempt?.score ?? 0} / 5
                               </p>
                             </div>
                             <Button
@@ -322,8 +363,16 @@ export default function DashboardPage() {
                           className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors mb-2"
                         >
                           <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                              <span className="text-xl">📝</span>
+                            <div className="relative mr-4">
+                              <CircularProgress
+                                value={((attempt?.score ?? 0) / 5) * 100}
+                                size={48}
+                                strokeWidth={4}
+                                color={progressColor}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xl">📝</span>
+                              </div>
                             </div>
                             <div className="ml-3 flex-1">
                               <p className="font-medium text-gray-900 dark:text-white">
@@ -332,12 +381,15 @@ export default function DashboardPage() {
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {quiz.description}
                               </p>
+                              <p className="text-xs text-gray-400">
+                                Score: {attempt?.score ?? 0} / 5
+                              </p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-gray-400" />
                           </div>
                         </Link>
-                      )
-                    )
+                      );
+                    })
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400">
                       No quizzes available today.
