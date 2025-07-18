@@ -286,28 +286,58 @@ export default function DashboardPage() {
                 </h2>
                 <div className="space-y-3">
                   {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz: Quiz) => (
-                      <Link
-                        key={quiz.quiz_id}
-                        href={`/lesson/${quiz.quiz_id}`}
-                        className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                            <span className="text-xl">📝</span>
+                    quizzes.map((quiz: Quiz) =>
+                      quiz.is_locked ? (
+                        <div
+                          key={quiz.quiz_id}
+                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed mb-2"
+                        >
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                              <span className="text-xl opacity-70">📝</span>
+                            </div>
+                            <div className="ml-3 flex-1">
+                              <p className="font-medium text-gray-700 dark:text-gray-300">
+                                {quiz.name}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-500">
+                                {quiz.description}
+                              </p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-400"
+                              disabled
+                            >
+                              <span>Locked</span>
+                              <ChevronRight className="ml-1 h-4 w-4" />
+                            </Button>
                           </div>
-                          <div className="ml-3 flex-1">
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {quiz.name}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              {quiz.description}
-                            </p>
-                          </div>
-                          <ChevronRight className="h-5 w-5 text-gray-400" />
                         </div>
-                      </Link>
-                    ))
+                      ) : (
+                        <Link
+                          key={quiz.quiz_id}
+                          href={`/lesson/${quiz.quiz_id}`}
+                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors mb-2"
+                        >
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                              <span className="text-xl">📝</span>
+                            </div>
+                            <div className="ml-3 flex-1">
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {quiz.name}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {quiz.description}
+                              </p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </Link>
+                      )
+                    )
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400">
                       No quizzes available today.

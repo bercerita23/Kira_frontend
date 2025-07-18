@@ -338,7 +338,7 @@ export default function LessonPage() {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16"
+      className="min-h-screen w-screen bg-gray-50 dark:bg-gray-900 pt-16"
       style={
         currentLesson.image_url
           ? {
@@ -609,7 +609,7 @@ export default function LessonPage() {
           )}
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/70 dark:bg-gray-900/70 border-t border-gray-200 dark:border-gray-800">
           <div className="container mx-auto max-w-2xl">
             {!isSubmitted ? (
               <Button
