@@ -31,6 +31,17 @@ type Badge = {
   description: string;
   icon_url?: string;
 };
+type Quiz = {
+  quiz_id: number;
+  school_id: string;
+  creator_id: string;
+  name: string;
+  questions: string[];
+  description: string;
+  created_at: string;
+  expired_at: string;
+  is_locked: boolean;
+};
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
@@ -40,8 +51,7 @@ export default function DashboardPage() {
     last_activity: string;
   } | null>(null);
   const [points, setPoints] = useState<{
-    premium_points: number;
-    regular_points: number;
+    points: number;
   } | null>(null);
   const { minutes, goalMinutes, percent } = useTodaysGoal();
   const topicId = "greetings";
@@ -51,7 +61,7 @@ export default function DashboardPage() {
 
   const [correctCount, setCorrectCount] = useState(0);
   const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user) {
@@ -66,24 +76,6 @@ export default function DashboardPage() {
       setBasicPhrasesCorrect(Number(storedBasic ?? 0));
     }
   }, [user, topicId, weekKey]);
-
-  useEffect(() => {
-    async function fetchBadges() {
-      try {
-        const res = await fetch("/api/users/badges");
-        if (!res.ok) throw new Error("Failed to fetch badges");
-        const data = await res.json();
-        setBadges(data.badges || []);
-        // Log badges to the terminal
-        // eslint-disable-next-line no-console
-        console.log("User badges:", data.badges || []);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching badges:", err);
-      }
-    }
-    fetchBadges();
-  }, []);
 
   useEffect(() => {
     async function fetchPoints() {
@@ -119,6 +111,32 @@ export default function DashboardPage() {
       }
     }
     fetchStreaks();
+  }, []);
+
+  useEffect(() => {
+    async function fetchQuizzes() {
+      try {
+        const res = await fetch("/api/users/quizzes");
+        if (!res.ok) throw new Error("Failed to fetch quizzes");
+        const data = await res.json();
+        setQuizzes(data.quizzes || []);
+        // eslint-disable-next-line no-console
+        console.log("User quizzes:", data);
+        // Fetch questions for the first quiz if available
+        if (data.quizzes && data.quizzes.length > 0) {
+          const quizId = data.quizzes[0].quiz_id;
+          const questionsRes = await fetch(`/api/users/questions/${quizId}`);
+          if (!questionsRes.ok) throw new Error("Failed to fetch questions");
+          const questionsData = await questionsRes.json();
+          // eslint-disable-next-line no-console
+          console.log(`Questions for quiz ${quizId}:`, questionsData);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching quizzes or questions:", err);
+      }
+    }
+    fetchQuizzes();
   }, []);
   // Show loading state while checking authentication
   if (isLoading) {
@@ -165,12 +183,12 @@ export default function DashboardPage() {
     return user.email || "User";
   };
 
-  // Leveling system: Level = floor(premium_points / 100) + 1, XP = regular_points, progress = (regular_points % 100)
-  const level = points ? Math.floor(points.premium_points / 100) + 1 : "…";
-  const xp = points ? points.regular_points : "…";
+  // Leveling system: Level = floor(points / 100) + 1, XP = points, progress = (points % 100)
+  const level = points ? Math.floor(points.points / 100) + 1 : "…";
+  const xp = points ? points.points : "…";
   const xpForNextLevel = 100;
   const progressPercentage = points
-    ? Math.min(100, Math.max(0, points.regular_points % 100))
+    ? Math.min(100, Math.max(0, points.points % 100))
     : 0;
 
   return (
@@ -260,106 +278,41 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              {/* Badges Section */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Your Badges
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {badges && badges.length > 0 ? (
-                    badges.map((badge) => (
-                      <div
-                        key={badge.badge_id}
-                        className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center"
-                      >
-                        <div className="mb-2">
-                          {/* Optionally add an icon here if available: <img src={badge.icon_url} alt={badge.name} /> */}
-                          <span className="text-2xl">🏅</span>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-gray-900 dark:text-white">
-                            {badge.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            {badge.description}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Earned:{" "}
-                            {badge.earned_at
-                              ? new Date(badge.earned_at).toLocaleDateString()
-                              : "-"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 col-span-full">
-                      No badges earned yet.
-                    </p>
-                  )}
-                </div>
-              </div>
 
               {/* Today's Activities */}
               <div className="mb-8">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Today's Activities
                 </h2>
-
                 <div className="space-y-3">
-                  <Link
-                    href="/lesson/weekly-quiz"
-                    className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
-                        <Book className="h-5 w-5 text-green-500" />
-                      </div>
-                      <div className="ml-3 flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          Weekly Quiz: Greetings
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          10 questions • 5 minutes
-                        </p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/lesson/speaking-practice"
-                    className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-5 w-5 text-orange-500"
-                        >
-                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                          <line x1="12" y1="19" x2="12" y2="23" />
-                          <line x1="8" y1="23" x2="16" y2="23" />
-                        </svg>
-                      </div>
-                      <div className="ml-3 flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          Speaking Practice
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Pronunciation • 3 minutes
-                        </p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </Link>
+                  {quizzes && quizzes.length > 0 ? (
+                    quizzes.map((quiz: Quiz) => (
+                      <Link
+                        key={quiz.quiz_id}
+                        href={`/lesson/${quiz.quiz_id}`}
+                        className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
+                      >
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                            <span className="text-xl">📝</span>
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {quiz.name}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {quiz.description}
+                            </p>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-gray-400" />
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No quizzes available today.
+                    </p>
+                  )}
                 </div>
               </div>
 
