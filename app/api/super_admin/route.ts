@@ -1,46 +1,25 @@
 import { NextRequest } from "next/server";
 
-function decodeJWTPayload(token: string | undefined) {
-  if (!token) return null;
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map(function (c) {
-          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
-
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   if (!token) {
     return new Response(
       JSON.stringify({ message: "Missing authentication token" }),
-      {
-        status: 401,
-      }
+      { status: 401 }
     );
   }
 
   try {
+    const backendUrl = `${
+      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
+    }/super_admin/`;
     const outgoingHeaders = {
       Authorization: `Bearer ${token}`,
     };
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/super_admin`,
-      {
-        method: "GET",
-        headers: outgoingHeaders,
-      }
-    );
+    const response = await fetch(backendUrl, {
+      method: "GET",
+      headers: outgoingHeaders,
+    });
     const rawData = await response.text();
     let data;
     try {
@@ -60,9 +39,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return new Response(
       JSON.stringify({ message: "Proxy error", error: String(error) }),
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
