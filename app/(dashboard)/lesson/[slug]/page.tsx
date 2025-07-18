@@ -44,64 +44,41 @@ export default function LessonPage() {
   //later on can be dynamically changed based on lesson
   const topicId = "greetings";
   const weekKey = new Date().toISOString().slice(0, 10);
-  // Mock lesson data - in a real app this would come from an API
-  const lessonSteps = [
-    {
-      type: "translation",
-      question: "Translate this sentence",
-      content: "She reads a book every day.",
-      options: [
-        "Dia membaca sebuah buku setiap hari.",
-        "Dia menulis buku setiap hari.",
-        "Dia membaca buku setiap minggu.",
-        "Saya membaca buku setiap hari.",
-      ],
-      correctAnswer: "Dia membaca sebuah buku setiap hari.",
-    },
-    {
-      type: "multiple-choice",
-      question: "Choose the correct word",
-      prompt: 'Which word means "to read" in Bahasa Indonesia?',
-      options: ["Tulis", "Bicara", "Membaca", "Dengar"],
-      correctAnswer: "Membaca",
-    },
-    {
-      type: "word-arrangement",
-      question: "Build the sentence",
-      words: ["Saya", "pergi", "ke", "sekolah", "setiap", "hari"],
-      correctAnswer: "Saya pergi ke sekolah setiap hari",
-    },
-    {
-      type: "match-pairs",
-      question: "Match the words to their meanings",
-      pairs: [
-        { word: "Buku", meaning: "Book" },
-        { word: "Membaca", meaning: "Read" },
-        { word: "Menulis", meaning: "Write" },
-        { word: "Berbicara", meaning: "Speak" },
-      ],
-    },
-    {
-      type: "fill-blank",
-      question: "Fill in the blank",
-      content: "Dia ___ ke toko kemarin.",
-      options: ["pergi", "perginya", "pergian", "akan pergi"],
-      correctAnswer: "pergi",
-    },
-  ];
+  const [lessonSteps, setLessonSteps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchQuestions() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/users/questions/${params.slug}`);
+        if (!res.ok) throw new Error("Failed to fetch questions");
+        const data = await res.json();
+        setLessonSteps(data.questions || []);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching questions:", err);
+        setLessonSteps([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.slug]);
 
   useEffect(() => {
     setProgress(Math.round((currentStep / lessonSteps.length) * 100));
 
     // If we've moved to a word arrangement exercise, initialize the shuffled word array
-    if (lessonSteps[currentStep]?.type === "word-arrangement") {
-      const words = lessonSteps[currentStep]?.words || [];
+    if (lessonSteps[currentStep]?.question_type === "word-arrangement") {
+      const words = lessonSteps[currentStep]?.options || [];
       const shuffledWords = [...words].sort(() => Math.random() - 0.5);
       setArrangedWords([]);
     }
 
     // If we've moved to a matching exercise, initialize the selected pairs object
-    if (lessonSteps[currentStep]?.type === "match-pairs") {
+    if (lessonSteps[currentStep]?.question_type === "match-pairs") {
       setSelectedPairs({});
     }
   }, [currentStep, lessonSteps.length]);
@@ -173,28 +150,34 @@ export default function LessonPage() {
     let correct = false;
     const currentQuestion = lessonSteps[currentStep];
 
-    switch (currentQuestion.type) {
+    switch (currentQuestion.question_type) {
       case "translation":
       case "multiple-choice":
       case "fill-blank":
-        correct = selectedOption === currentQuestion.correctAnswer;
+        correct = selectedOption === currentQuestion.answer;
         break;
 
       case "word-arrangement":
-        correct = arrangedWords.join(" ") === currentQuestion.correctAnswer;
+        correct = arrangedWords.join(" ") === currentQuestion.answer;
         break;
 
       case "match-pairs":
-        if (currentQuestion.pairs) {
-          const allPairsMatched = currentQuestion.pairs.every((pair) => {
+        if (currentQuestion.answer) {
+          const answerPairs = currentQuestion.answer
+            .split(",")
+            .map((pair: any) => {
+              const [word, meaning] = pair.split(":");
+              return { word, meaning };
+            });
+          const allPairsMatched = answerPairs.every((pair: any) => {
             const selectedMeaning = Object.keys(selectedPairs).find(
               (key) => selectedPairs[key] === pair.word
             );
             return selectedMeaning === pair.meaning;
           });
           correct =
-            Object.keys(selectedPairs).length ===
-              currentQuestion.pairs.length && allPairsMatched;
+            Object.keys(selectedPairs).length === answerPairs.length &&
+            allPairsMatched;
         } else {
           correct = false; // or handle as needed
         }
@@ -329,10 +312,45 @@ export default function LessonPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading quiz...</p>
+        </div>
+      </div>
+    );
+  }
+  if (!lessonSteps.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            No questions found for this quiz.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const currentLesson = lessonSteps[currentStep];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
+    <div
+      className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16"
+      style={
+        currentLesson.image_url
+          ? {
+              backgroundImage: `url(${currentLesson.image_url})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundAttachment: "fixed",
+            }
+          : {}
+      }
+    >
       <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <button
@@ -365,9 +383,9 @@ export default function LessonPage() {
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
-          <h1 className="text-xl font-bold mb-6">{currentLesson.question}</h1>
+          <h1 className="text-xl font-bold mb-6">{currentLesson.content}</h1>
 
-          {currentLesson.type === "translation" && (
+          {currentLesson.question_type === "translation" && (
             <>
               <div className="flex items-center mb-6">
                 <p className="text-lg font-medium mr-2">
@@ -379,7 +397,7 @@ export default function LessonPage() {
               </div>
 
               <div className="space-y-3">
-                {currentLesson.options?.map((option, index) => (
+                {currentLesson.options?.map((option: any, index: number) => (
                   <button
                     key={index}
                     className={`w-full p-4 rounded-lg border text-left transition-colors ${
@@ -410,14 +428,14 @@ export default function LessonPage() {
             </>
           )}
 
-          {currentLesson.type === "multiple-choice" && (
+          {currentLesson.question_type === "multiple-choice" && (
             <>
               <div className="mb-6">
-                <p className="text-lg">{currentLesson.prompt}</p>
+                <p className="text-lg">{currentLesson.content}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {currentLesson.options?.map((option, index) => (
+                {currentLesson.options?.map((option: any, index: number) => (
                   <button
                     key={index}
                     className={`p-4 rounded-lg border text-center transition-colors ${
@@ -439,12 +457,12 @@ export default function LessonPage() {
             </>
           )}
 
-          {currentLesson.type === "word-arrangement" && (
+          {currentLesson.question_type === "word-arrangement" && (
             <>
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg min-h-20 flex items-center justify-center">
                 <div className="flex flex-wrap gap-2">
                   {arrangedWords.length > 0 ? (
-                    arrangedWords.map((word, idx) => (
+                    arrangedWords.map((word: any, idx: number) => (
                       <button
                         key={`arranged-${idx}`}
                         onClick={() => handleWordSelect(word)}
@@ -463,7 +481,7 @@ export default function LessonPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 justify-center">
-                {currentLesson.words?.map((word, idx) => {
+                {currentLesson.options?.map((word: any, idx: number) => {
                   const isSelected = arrangedWords.includes(word);
                   return (
                     <button
@@ -484,17 +502,17 @@ export default function LessonPage() {
             </>
           )}
 
-          {currentLesson.type === "match-pairs" && (
+          {currentLesson.question_type === "match-pairs" && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
-                {currentLesson.pairs?.map((pair, idx) => {
-                  const isSelected = Object.values(selectedPairs).includes(
-                    pair.word
-                  );
+                {currentLesson.options?.map((pair: any, idx: number) => {
+                  const [word, meaning] = pair.split(":");
+                  const isSelected =
+                    Object.values(selectedPairs).includes(word);
                   return (
                     <button
                       key={`word-${idx}`}
-                      onClick={() => handlePairSelect("word", pair.word)}
+                      onClick={() => handlePairSelect("word", word)}
                       className={`w-full p-3 rounded-lg border text-left font-medium ${
                         isSelected
                           ? "bg-primary/10 border-primary"
@@ -502,20 +520,25 @@ export default function LessonPage() {
                       }`}
                       disabled={isSubmitted}
                     >
-                      {pair.word}
+                      {word}
                     </button>
                   );
                 })}
               </div>
 
               <div className="space-y-3">
-                {currentLesson.pairs?.map((pair, idx) => {
-                  const isPaired = pair.meaning in selectedPairs;
-                  const isComplete = selectedPairs[pair.meaning] !== "";
+                {currentLesson.options?.map((pair: any, idx: number) => {
+                  const [word, meaning] = pair.split(":");
+                  const isPaired =
+                    pair.split(":").length === 2 &&
+                    pair.split(":")[1] in selectedPairs;
+                  const isComplete = selectedPairs[pair.split(":")[1]] !== "";
                   return (
                     <button
                       key={`meaning-${idx}`}
-                      onClick={() => handlePairSelect("meaning", pair.meaning)}
+                      onClick={() =>
+                        handlePairSelect("meaning", pair.split(":")[1])
+                      }
                       className={`w-full p-3 rounded-lg border text-left font-medium ${
                         isPaired
                           ? isComplete
@@ -525,7 +548,7 @@ export default function LessonPage() {
                       }`}
                       disabled={isSubmitted}
                     >
-                      {pair.meaning}
+                      {meaning}
                     </button>
                   );
                 })}
@@ -533,35 +556,37 @@ export default function LessonPage() {
             </div>
           )}
 
-          {currentLesson.type === "fill-blank" && (
+          {currentLesson.question_type === "fill-blank" && (
             <>
               <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <p className="text-lg text-center">
-                  {currentLesson.content?.split("___").map((part, idx, arr) => (
-                    <React.Fragment key={idx}>
-                      {part}
-                      {idx < arr.length - 1 && (
-                        <span
-                          className={`px-2 py-1 mx-1 rounded-md inline-block min-w-24 text-center ${
-                            selectedOption
-                              ? isSubmitted
-                                ? isCorrect
-                                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                                : "bg-primary/10 text-primary"
-                              : "bg-gray-200 dark:bg-gray-600"
-                          }`}
-                        >
-                          {selectedOption || "___"}
-                        </span>
-                      )}
-                    </React.Fragment>
-                  ))}
+                  {currentLesson.content
+                    ?.split("___")
+                    .map((part: any, idx: number, arr: any[]) => (
+                      <React.Fragment key={idx}>
+                        {part}
+                        {idx < arr.length - 1 && (
+                          <span
+                            className={`px-2 py-1 mx-1 rounded-md inline-block min-w-24 text-center ${
+                              selectedOption
+                                ? isSubmitted
+                                  ? isCorrect
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                    : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                                  : "bg-primary/10 text-primary"
+                                : "bg-gray-200 dark:bg-gray-600"
+                            }`}
+                          >
+                            {selectedOption || "___"}
+                          </span>
+                        )}
+                      </React.Fragment>
+                    ))}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {currentLesson.options?.map((option, index) => (
+                {currentLesson.options?.map((option: any, index: number) => (
                   <button
                     key={index}
                     className={`p-3 rounded-lg border text-center transition-colors ${
@@ -592,16 +617,16 @@ export default function LessonPage() {
                 size="lg"
                 onClick={checkAnswer}
                 disabled={
-                  ((currentLesson.type === "translation" ||
-                    currentLesson.type === "multiple-choice" ||
-                    currentLesson.type === "fill-blank") &&
+                  ((currentLesson.question_type === "translation" ||
+                    currentLesson.question_type === "multiple-choice" ||
+                    currentLesson.question_type === "fill-blank") &&
                     !selectedOption) ||
-                  (currentLesson.type === "word-arrangement" &&
+                  (currentLesson.question_type === "word-arrangement" &&
                     arrangedWords.length !==
-                      (currentLesson.words?.length || 0)) ||
-                  (currentLesson.type === "match-pairs" &&
+                      (currentLesson.options?.length || 0)) ||
+                  (currentLesson.question_type === "match-pairs" &&
                     (Object.keys(selectedPairs).length !==
-                      (currentLesson.pairs?.length || 0) ||
+                      (currentLesson.options?.length || 0) ||
                       Object.values(selectedPairs).includes("")))
                 }
               >
@@ -624,11 +649,14 @@ export default function LessonPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-red-200 dark:border-red-800 p-6 mb-20">
             <h3 className="text-lg font-medium mb-2">Correct Solution:</h3>
             <p className="text-green-600 dark:text-green-400 font-medium">
-              {currentLesson.type === "match-pairs"
-                ? currentLesson.pairs
-                    ?.map((pair) => `${pair.word} → ${pair.meaning}`)
+              {currentLesson.question_type === "match-pairs"
+                ? currentLesson.options
+                    ?.map((pair: any) => {
+                      const [word, meaning] = pair.split(":");
+                      return `${word} → ${meaning}`;
+                    })
                     .join(", ")
-                : currentLesson.correctAnswer}
+                : currentLesson.answer}
             </p>
           </div>
         )}

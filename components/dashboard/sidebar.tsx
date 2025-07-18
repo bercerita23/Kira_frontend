@@ -55,19 +55,9 @@ export function DashboardSidebar() {
       icon: <BookOpen className="h-5 w-5" />,
     },
     {
-      name: "Speaking",
-      href: "/speaking",
-      icon: <Mic className="h-5 w-5" />,
-    },
-    {
       name: "Progress",
       href: "/progress",
       icon: <BarChart2 className="h-5 w-5" />,
-    },
-    {
-      name: "Achievements",
-      href: "/achievements",
-      icon: <Award className="h-5 w-5" />,
     },
   ];
 
@@ -83,7 +73,19 @@ export function DashboardSidebar() {
       icon: <HelpCircle className="h-5 w-5" />,
     },
   ];
+  /*
+{
+      name: "Speaking",
+      href: "/speaking",
+      icon: <Mic className="h-5 w-5" />,
+    },
 
+    {
+      name: "Achievements",
+      href: "/achievements",
+      icon: <Award className="h-5 w-5" />,
+    },
+*/
   return (
     <>
       {/* Desktop Sidebar */}
