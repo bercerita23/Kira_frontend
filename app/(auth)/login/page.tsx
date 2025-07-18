@@ -91,6 +91,17 @@ export default function LoginPage() {
           description: "Please check your internet connection and try again.",
           variant: "destructive",
         });
+      } else if (
+        errorMessage.toLowerCase().includes("invalid") ||
+        errorMessage.toLowerCase().includes("incorrect") ||
+        errorMessage.toLowerCase().includes("credentials")
+      ) {
+        toast({
+          title: "Incorrect credentials",
+          description:
+            "The email/username or password you entered is incorrect.",
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);

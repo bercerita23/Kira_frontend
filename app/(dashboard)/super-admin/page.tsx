@@ -71,18 +71,13 @@ export default function SuperAdminDashboardPage() {
         console.log(
           "🔄 Super Admin Dashboard: Fetching all users from /api/super_admin..."
         );
-        const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
-        console.log("[SuperAdminDashboard] Outgoing token:", token);
-        const fetchOptions = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-        console.log("[SuperAdminDashboard] Fetch options:", fetchOptions);
-        const response = await fetch("/api/super_admin", fetchOptions);
-        console.log("📡 API: Raw response status:", response.status);
+        // Fetch with credentials so cookies are sent
+        const response = await fetch("/api/super_admin", {
+          credentials: "same-origin",
+        });
+        console.log("\uD83D\uDCE1 API: Raw response status:", response.status);
         const users = await response.json();
-        console.log("📡 API: Raw response data:", users);
+        console.log("\uD83D\uDCE1 API: Raw response data:", users);
 
         if (!Array.isArray(users)) {
           console.error("❌ API returned non-array data:", users);

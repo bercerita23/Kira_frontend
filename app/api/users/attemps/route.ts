@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const backendUrl = `${
       process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-    }/super_admin/`;
+    }/users/attemps`;
     const outgoingHeaders = {
       Authorization: `Bearer ${token}`,
     };
@@ -32,8 +32,7 @@ export async function GET(req: NextRequest) {
         status: response.status,
       });
     }
-    const users = data["Hello_Form:"];
-    return new Response(JSON.stringify(Array.isArray(users) ? users : []), {
+    return new Response(JSON.stringify(data), {
       status: 200,
     });
   } catch (error) {
