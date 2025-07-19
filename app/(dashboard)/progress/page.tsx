@@ -127,7 +127,7 @@ export default function ProgressPage() {
                               badges.map((badge) => (
                                 <tr key={badge.badge_id}>
                                   <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
-                                    🏅
+                                    {badge.icon_url || "🏅"}
                                   </td>
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                     {badge.name}
