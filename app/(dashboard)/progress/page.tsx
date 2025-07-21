@@ -8,6 +8,7 @@ import {
   MobileMenuContext,
 } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { cn } from "@/lib/utils";
 
 type Badge = {
   badge_id: string;
@@ -21,8 +22,10 @@ type Badge = {
 export default function ProgressPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tab, setTab] = useState("quiz");
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]); // user badges
+  const [allBadges, setAllBadges] = useState<Badge[]>([]); // all possible badges
 
+  // Fetch user badges
   useEffect(() => {
     async function fetchBadges() {
       try {
@@ -37,6 +40,24 @@ export default function ProgressPage() {
     }
     fetchBadges();
   }, []);
+
+  // Fetch all badges
+  useEffect(() => {
+    async function fetchAllBadges() {
+      try {
+        const res = await fetch("/api/users/badges/all");
+        if (!res.ok) throw new Error("Failed to fetch all badges");
+        const data = await res.json();
+        setAllBadges(data.badges || []);
+      } catch (err) {
+        console.error("Error fetching all badges:", err);
+      }
+    }
+    fetchAllBadges();
+  }, []);
+
+  // Set of earned badge IDs for quick lookup
+  const earnedBadgeIds = new Set(badges.map((b) => b.badge_id));
 
   return (
     <MobileMenuContext.Provider
@@ -123,34 +144,69 @@ export default function ProgressPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {badges && badges.length > 0 ? (
-                              badges.map((badge) => (
-                                <tr key={badge.badge_id}>
-                                  <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
-                                    {badge.icon_url || "🏅"}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                    {badge.name}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                    {badge.description}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                    {badge.earned_at
-                                      ? new Date(
-                                          badge.earned_at
-                                        ).toLocaleDateString()
-                                      : "-"}
-                                  </td>
-                                </tr>
-                              ))
+                            {allBadges.length > 0 ? (
+                              allBadges.map((badge) => {
+                                const unlocked = earnedBadgeIds.has(
+                                  badge.badge_id
+                                );
+                                return (
+                                  <tr
+                                    key={badge.badge_id}
+                                    className={cn(
+                                      unlocked
+                                        ? ""
+                                        : "opacity-60 grayscale bg-gray-50"
+                                    )}
+                                  >
+                                    <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
+                                      {badge.icon_url || "🏅"}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-900 dark:text-white"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {badge.name}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-700 dark:text-gray-200"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {badge.description}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-500 dark:text-gray-400"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {unlocked
+                                        ? badge.earned_at
+                                          ? new Date(
+                                              badge.earned_at
+                                            ).toLocaleDateString()
+                                          : "✓"
+                                        : "Locked"}
+                                    </td>
+                                  </tr>
+                                );
+                              })
                             ) : (
                               <tr>
                                 <td
                                   colSpan={4}
                                   className="px-4 py-2 text-center text-gray-500 dark:text-gray-400"
                                 >
-                                  No badges earned yet.
+                                  No badges available.
                                 </td>
                               </tr>
                             )}
