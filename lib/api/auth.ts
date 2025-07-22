@@ -92,6 +92,8 @@ export interface DbUser {
   notes?: string | null;
   created_at?: string;
   last_login_time?: string;
+  grade?: string;
+  points?: number;
 }
 
 export const authApi = {

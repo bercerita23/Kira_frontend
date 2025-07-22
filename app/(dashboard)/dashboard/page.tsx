@@ -46,7 +46,8 @@ type Quiz = {
 type Attempt = {
   quiz_id: number;
   attempt_count: number;
-  score: number;
+  pass_count: number;
+  fail_count: number;
 };
 
 export default function DashboardPage() {
@@ -150,7 +151,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchAttempts() {
       try {
-        const res = await fetch("/api/users/attemps");
+        const res = await fetch("/api/users/attempts");
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
         setAttempts(data.attempts || []);
@@ -159,6 +160,20 @@ export default function DashboardPage() {
       }
     }
     fetchAttempts();
+  }, []);
+
+  useEffect(() => {
+    async function fetchAllBadges() {
+      try {
+        const res = await fetch("/api/users/badges/all");
+        if (!res.ok) throw new Error("Failed to fetch all badges");
+        const data = await res.json();
+        console.log("All badges:", data);
+      } catch (err) {
+        console.error("Error fetching all badges:", err);
+      }
+    }
+    fetchAllBadges();
   }, []);
   // Show loading state while checking authentication
   if (isLoading) {
@@ -312,11 +327,15 @@ export default function DashboardPage() {
                       const attempt = attempts.find(
                         (a) => a.quiz_id === quiz.quiz_id
                       );
+                      const totalQuestions = attempt
+                        ? attempt.pass_count + attempt.fail_count
+                        : 5;
+                      const score = attempt ? attempt.pass_count : 0;
                       const shouldLock =
                         quiz.is_locked ||
                         (attempt && attempt.attempt_count === 2);
                       const progressColor =
-                        (attempt?.score ?? 0) === 5 ? "green" : "primary";
+                        score === totalQuestions ? "green" : "primary";
                       return shouldLock ? (
                         <div
                           key={quiz.quiz_id}
@@ -325,7 +344,11 @@ export default function DashboardPage() {
                           <div className="flex items-center">
                             <div className="relative mr-4">
                               <CircularProgress
-                                value={((attempt?.score ?? 0) / 5) * 100}
+                                value={
+                                  totalQuestions > 0
+                                    ? (score / totalQuestions) * 100
+                                    : 0
+                                }
                                 size={48}
                                 strokeWidth={4}
                                 color={progressColor}
@@ -342,7 +365,7 @@ export default function DashboardPage() {
                                 {quiz.description}
                               </p>
                               <p className="text-xs text-gray-400">
-                                Score: {attempt?.score ?? 0} / 5
+                                Score: {score} / {totalQuestions}
                               </p>
                             </div>
                             <Button
@@ -365,7 +388,11 @@ export default function DashboardPage() {
                           <div className="flex items-center">
                             <div className="relative mr-4">
                               <CircularProgress
-                                value={((attempt?.score ?? 0) / 5) * 100}
+                                value={
+                                  totalQuestions > 0
+                                    ? (score / totalQuestions) * 100
+                                    : 0
+                                }
                                 size={48}
                                 strokeWidth={4}
                                 color={progressColor}
@@ -382,7 +409,7 @@ export default function DashboardPage() {
                                 {quiz.description}
                               </p>
                               <p className="text-xs text-gray-400">
-                                Score: {attempt?.score ?? 0} / 5
+                                Score: {score} / {totalQuestions}
                               </p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-gray-400" />

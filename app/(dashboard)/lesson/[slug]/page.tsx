@@ -40,6 +40,7 @@ export default function LessonPage() {
   const [showCompletionScreen, setShowCompletionScreen] = useState(false);
   const { startTracking, stopTracking, completeActivity } = useTodaysGoal();
   const [correctCount, setCorrectCount] = useState(0);
+  const [startAt, setStartAt] = useState<string>("");
   const { user } = useAuth();
   //later on can be dynamically changed based on lesson
   const topicId = "greetings";
@@ -208,7 +209,7 @@ export default function LessonPage() {
   };
   useEffect(() => {
     startTracking();
-
+    setStartAt(new Date().toISOString());
     // Cleanup function to stop tracking if user navigates away
     return () => {
       stopTracking();
@@ -227,7 +228,7 @@ export default function LessonPage() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (user) {
       const userId = user.email || user.id;
       const key = `topicScore:${userId}:${topicId}:${weekKey}`;
@@ -238,7 +239,30 @@ export default function LessonPage() {
       }
     }
     completeActivity();
-    router.push("/dashboard");
+    // Submit quiz attempt
+    try {
+      const pass_count = correctCount;
+      const fail_count = lessonSteps.length - correctCount;
+      const end_at = new Date().toISOString();
+      const quiz_id = Number(params.slug);
+      const payload = {
+        quiz_id,
+        pass_count,
+        fail_count,
+        start_at: startAt,
+        end_at,
+      };
+      const res = await fetch("/api/users/submit-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      console.log("Quiz submit response:", data);
+    } catch (err) {
+      console.error("Error submitting quiz:", err);
+    }
+    router.replace("/dashboard");
   };
   const handleExit = () => {
     stopTracking();

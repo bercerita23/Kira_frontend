@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
-import { authApi, DbUser } from "@/lib/api/auth";
+import { authApi } from "@/lib/api/auth";
 
 import Link from "next/link";
 import {
@@ -16,6 +16,12 @@ import {
   Mail,
   Lock,
   User,
+  Search,
+  Filter,
+  List,
+  Grid,
+  User as UserIcon,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,13 +38,27 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
+type DbUser = {
+  user_id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_admin: boolean;
+  created_at: string;
+  last_login_time: string;
+  school_id: string;
+  notes: string;
+  grade?: string;
+  points?: number;
+};
+
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
   const [schoolName, setSchoolName] = useState<string | null>(null);
   const [students, setStudents] = useState<DbUser[]>([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
-  console.log("Admin's school:", user?.school_id);
   //updating studets
   const [selectedStudent, setSelectedStudent] = useState<DbUser | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -64,13 +84,8 @@ export default function AdminDashboardPage() {
   });
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
-
-  console.log("🔒 Admin page render:", {
-    isLoading,
-    hasUser: !!user,
-    userRole: user?.role,
-    userEmail: user?.email,
-  });
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [search, setSearch] = useState("");
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -181,7 +196,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        console.log("🔄 Admin Dashboard: Fetching all users from API...");
         const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
 
         const response = await fetch("/api/admin/students", {
@@ -195,8 +209,12 @@ export default function AdminDashboardPage() {
         }
 
         const data = await response.json();
-        console.log("🎓 Admin Dashboard: Received students:", data);
-        setStudents(data);
+        // If data.student_data exists, convert to array
+        if (data.student_data) {
+          setStudents(Object.values(data.student_data));
+        } else {
+          setStudents(data);
+        }
       } catch (error) {
         console.error("Failed to fetch students:", error);
       } finally {
@@ -222,7 +240,6 @@ export default function AdminDashboardPage() {
 
   // Show loading state while checking authentication
   if (isLoading) {
-    console.log("⏳ Admin page: Showing loading state");
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -237,7 +254,6 @@ export default function AdminDashboardPage() {
 
   // Show login message if not authenticated
   if (!user) {
-    console.log("🚫 Admin page: No user found, showing login prompt");
     // Force redirect to admin login
     if (typeof window !== "undefined") {
       window.location.href = "/admin/login?from=/admin";
@@ -263,9 +279,6 @@ export default function AdminDashboardPage() {
 
   // Check if user is admin
   if (user.role !== "admin" && user.role !== "super_admin") {
-    console.log("🚫 Admin page: User is not admin, denying access", {
-      userRole: user.role,
-    });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -285,8 +298,6 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
-
-  console.log("✅ Admin page: Access granted for admin user");
 
   // Helper function to get user initials
   const getUserInitials = (user: DbUser) => {
@@ -362,8 +373,6 @@ export default function AdminDashboardPage() {
     setIsAddingStudent(true);
 
     try {
-      console.log("🎓 Adding new student:", addStudentForm);
-
       // Get token from cookies
       const token = document.cookie.match(/token=([^;]+)/)?.[1];
 
@@ -461,6 +470,18 @@ export default function AdminDashboardPage() {
       addStudent();
     }
   };
+
+  // Filtered students based on search
+  const filteredStudents = students.filter((student) => {
+    const name = `${student.first_name || ""} ${
+      student.last_name || ""
+    }`.toLowerCase();
+    const username = student.username?.toLowerCase() || "";
+    return (
+      name.includes(search.toLowerCase()) ||
+      username.includes(search.toLowerCase())
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -578,19 +599,56 @@ export default function AdminDashboardPage() {
 
           {/* Students Tab */}
           <TabsContent value="students" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {schoolName} students
               </h2>
-              <Button
-                onClick={() => window.location.reload()}
-                variant="outline"
-                size="sm"
-              >
-                Refresh Data
-              </Button>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Input
+                    type="text"
+                    placeholder="Search Students"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </div>
+                <Button variant="outline" size="icon" className="ml-2">
+                  <Filter className="h-5 w-5" />
+                </Button>
+                <div className="flex items-center ml-2 border rounded overflow-hidden">
+                  <button
+                    className={`px-2 py-1 ${
+                      viewMode === "list" ? "bg-gray-200 dark:bg-gray-700" : ""
+                    }`}
+                    onClick={() => setViewMode("list")}
+                    aria-label="List view"
+                    type="button"
+                  >
+                    <List className="h-5 w-5" />
+                  </button>
+                  <button
+                    className={`px-2 py-1 ${
+                      viewMode === "grid" ? "bg-gray-200 dark:bg-gray-700" : ""
+                    }`}
+                    onClick={() => setViewMode("grid")}
+                    aria-label="Grid view"
+                    type="button"
+                  >
+                    <Grid className="h-5 w-5" />
+                  </button>
+                </div>
+                <Button
+                  className="ml-2 bg-rose-600 hover:bg-rose-700"
+                  onClick={() => {
+                    /* trigger add student tab */
+                  }}
+                >
+                  Add a Student
+                </Button>
+              </div>
             </div>
-
             {loadingStudents ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -598,7 +656,7 @@ export default function AdminDashboardPage() {
                   Loading students...
                 </span>
               </div>
-            ) : students.length === 0 ? (
+            ) : filteredStudents.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -610,18 +668,18 @@ export default function AdminDashboardPage() {
                   </p>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {students.map((student) => (
+            ) : viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredStudents.map((student, idx) => (
                   <Card
-                    key={student.user_id}
+                    key={student.user_id || student.username || idx}
                     onClick={() => handleStudentClick(student)}
-                    className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+                    className="hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer"
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold text-lg">
+                          <AvatarFallback className="bg-gray-200 text-gray-700 font-semibold text-lg">
                             {getUserInitials(student)}
                           </AvatarFallback>
                         </Avatar>
@@ -630,44 +688,75 @@ export default function AdminDashboardPage() {
                             {getDisplayName(student)}
                           </CardTitle>
                           <CardDescription className="text-sm truncate">
-                            {student.email}
+                            {student.username}
                           </CardDescription>
                         </div>
+                        <Button variant="ghost" size="icon" className="ml-auto">
+                          <span className="sr-only">More options</span>
+                          ...
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Role:
-                          </span>
-                          <Badge variant="secondary" className="text-xs">
-                            Student
-                          </Badge>
-                        </div>
-
-                        {student.school_id && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                              School ID:
-                            </span>
-                            <span className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                              #{student.school_id}
-                            </span>
-                          </div>
-                        )}
-
-                        {student.created_at && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                              Joined:
-                            </span>
-                            <span className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatDate(student.created_at)}
-                            </span>
-                          </div>
-                        )}
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <UserIcon className="h-4 w-4 mr-1" />{" "}
+                          {student.grade ? student.grade + " grade" : "-"}
+                        </span>
+                        <span className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <Star className="h-4 w-4 mr-1" />{" "}
+                          {typeof student.points === "number"
+                            ? student.points
+                            : 0}{" "}
+                          points
+                        </span>
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {filteredStudents.map((student, idx) => (
+                  <Card
+                    key={student.user_id || student.username || idx}
+                    onClick={() => handleStudentClick(student)}
+                    className="hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer rounded-2xl bg-white dark:bg-gray-900 px-0"
+                  >
+                    <CardContent className="flex items-center justify-between gap-x-6 py-2 px-6 min-h-[56px]">
+                      {/* Avatar + Name */}
+                      <div className="flex items-center gap-x-3 min-w-[180px]">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-gray-200 text-gray-700 font-semibold text-base">
+                            {getUserInitials(student)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium text-base text-gray-900 dark:text-white whitespace-nowrap">
+                          {getDisplayName(student)}
+                        </span>
+                      </div>
+                      {/* Username */}
+                      <span className="text-gray-500 dark:text-gray-400 text-base whitespace-nowrap min-w-[120px] text-center">
+                        {student.username}
+                      </span>
+                      {/* Grade */}
+                      <span className="flex items-center text-indigo-700 text-base whitespace-nowrap min-w-[110px] justify-center">
+                        <UserIcon className="h-5 w-5 mr-1" />{" "}
+                        {student.grade ? student.grade + " grade" : "-"}
+                      </span>
+                      {/* Points */}
+                      <span className="flex items-center text-indigo-700 text-base whitespace-nowrap min-w-[110px] justify-center">
+                        <Star className="h-5 w-5 mr-1" />{" "}
+                        {typeof student.points === "number"
+                          ? student.points
+                          : 0}{" "}
+                        points
+                      </span>
+                      {/* Menu */}
+                      <Button variant="ghost" size="icon" className="ml-auto">
+                        <span className="sr-only">More options</span>
+                        ...
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}

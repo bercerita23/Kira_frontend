@@ -8,6 +8,7 @@ import {
   MobileMenuContext,
 } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { cn } from "@/lib/utils";
 
 type Badge = {
   badge_id: string;
@@ -21,8 +22,11 @@ type Badge = {
 export default function ProgressPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tab, setTab] = useState("quiz");
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]); // user badges
+  const [allBadges, setAllBadges] = useState<Badge[]>([]); // all possible badges
+  const [attempts, setAttempts] = useState<any[]>([]); // quiz attempts
 
+  // Fetch user badges
   useEffect(() => {
     async function fetchBadges() {
       try {
@@ -37,6 +41,39 @@ export default function ProgressPage() {
     }
     fetchBadges();
   }, []);
+
+  // Fetch all badges
+  useEffect(() => {
+    async function fetchAllBadges() {
+      try {
+        const res = await fetch("/api/users/badges/all");
+        if (!res.ok) throw new Error("Failed to fetch all badges");
+        const data = await res.json();
+        setAllBadges(data.badges || []);
+      } catch (err) {
+        console.error("Error fetching all badges:", err);
+      }
+    }
+    fetchAllBadges();
+  }, []);
+
+  // Fetch quiz attempts
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attempts");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        setAttempts(data.attempts || []);
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+      }
+    }
+    fetchAttempts();
+  }, []);
+
+  // Set of earned badge IDs for quick lookup
+  const earnedBadgeIds = new Set(badges.map((b) => b.badge_id));
 
   return (
     <MobileMenuContext.Provider
@@ -71,29 +108,45 @@ export default function ProgressPage() {
                                 Date
                               </th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                Max Score
+                                Score
                               </th>
                             </tr>
                           </thead>
                           <tbody>
-                            {/* Example row, replace with dynamic data when available */}
-                            <tr>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                Week 1 Quiz
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                2024-06-01
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                8/10
-                              </td>
-                            </tr>
-                            {/* Add more rows as needed */}
+                            {attempts.length > 0 ? (
+                              attempts.map((attempt) => (
+                                <tr
+                                  key={`${attempt.quiz_id}-${attempt.attempt_count}`}
+                                >
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.quiz_name ||
+                                      `Quiz ${attempt.quiz_id}`}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.completed_at
+                                      ? new Date(
+                                          attempt.completed_at
+                                        ).toLocaleDateString()
+                                      : "-"}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.pass_count} /{" "}
+                                    {attempt.pass_count + attempt.fail_count}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td
+                                  colSpan={3}
+                                  className="px-4 py-2 text-center text-gray-400"
+                                >
+                                  No quiz history yet.
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
-                        <div className="text-xs text-gray-400 mt-2">
-                          No quiz history yet. This is a template.
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -123,34 +176,69 @@ export default function ProgressPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {badges && badges.length > 0 ? (
-                              badges.map((badge) => (
-                                <tr key={badge.badge_id}>
-                                  <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
-                                    🏅
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                    {badge.name}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                    {badge.description}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                    {badge.earned_at
-                                      ? new Date(
-                                          badge.earned_at
-                                        ).toLocaleDateString()
-                                      : "-"}
-                                  </td>
-                                </tr>
-                              ))
+                            {allBadges.length > 0 ? (
+                              allBadges.map((badge) => {
+                                const unlocked = earnedBadgeIds.has(
+                                  badge.badge_id
+                                );
+                                return (
+                                  <tr
+                                    key={badge.badge_id}
+                                    className={cn(
+                                      unlocked
+                                        ? ""
+                                        : "opacity-60 grayscale bg-gray-50"
+                                    )}
+                                  >
+                                    <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
+                                      {badge.icon_url || "🏅"}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-900 dark:text-white"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {badge.name}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-700 dark:text-gray-200"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {badge.description}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-500 dark:text-gray-400"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {unlocked
+                                        ? badge.earned_at
+                                          ? new Date(
+                                              badge.earned_at
+                                            ).toLocaleDateString()
+                                          : "✓"
+                                        : "Locked"}
+                                    </td>
+                                  </tr>
+                                );
+                              })
                             ) : (
                               <tr>
                                 <td
                                   colSpan={4}
                                   className="px-4 py-2 text-center text-gray-500 dark:text-gray-400"
                                 >
-                                  No badges earned yet.
+                                  No badges available.
                                 </td>
                               </tr>
                             )}
