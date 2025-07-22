@@ -24,6 +24,7 @@ export default function ProgressPage() {
   const [tab, setTab] = useState("quiz");
   const [badges, setBadges] = useState<Badge[]>([]); // user badges
   const [allBadges, setAllBadges] = useState<Badge[]>([]); // all possible badges
+  const [attempts, setAttempts] = useState<any[]>([]); // quiz attempts
 
   // Fetch user badges
   useEffect(() => {
@@ -54,6 +55,21 @@ export default function ProgressPage() {
       }
     }
     fetchAllBadges();
+  }, []);
+
+  // Fetch quiz attempts
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attempts");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        setAttempts(data.attempts || []);
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+      }
+    }
+    fetchAttempts();
   }, []);
 
   // Set of earned badge IDs for quick lookup
@@ -92,29 +108,45 @@ export default function ProgressPage() {
                                 Date
                               </th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                Max Score
+                                Score
                               </th>
                             </tr>
                           </thead>
                           <tbody>
-                            {/* Example row, replace with dynamic data when available */}
-                            <tr>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                Week 1 Quiz
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                2024-06-01
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                8/10
-                              </td>
-                            </tr>
-                            {/* Add more rows as needed */}
+                            {attempts.length > 0 ? (
+                              attempts.map((attempt) => (
+                                <tr
+                                  key={`${attempt.quiz_id}-${attempt.attempt_count}`}
+                                >
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.quiz_name ||
+                                      `Quiz ${attempt.quiz_id}`}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.completed_at
+                                      ? new Date(
+                                          attempt.completed_at
+                                        ).toLocaleDateString()
+                                      : "-"}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.pass_count} /{" "}
+                                    {attempt.pass_count + attempt.fail_count}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td
+                                  colSpan={3}
+                                  className="px-4 py-2 text-center text-gray-400"
+                                >
+                                  No quiz history yet.
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
-                        <div className="text-xs text-gray-400 mt-2">
-                          No quiz history yet. This is a template.
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
