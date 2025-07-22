@@ -10,9 +10,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const backendUrl = `${
-      process.env.NEXT_PUBLIC_API_URL || "https://kira-api.bercerita.org"
-    }/users/badges/all`;
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/badges/all`;
     const outgoingHeaders = {
       Authorization: `Bearer ${token}`,
     };

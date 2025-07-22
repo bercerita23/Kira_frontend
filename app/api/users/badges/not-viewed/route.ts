@@ -20,22 +20,23 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/attempts`;
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/badges/not-viewed`;
     const outgoingHeaders = {
       Authorization: `Bearer ${token}`,
     };
     const response = await fetch(backendUrl, {
       method: "GET",
       headers: outgoingHeaders,
-      cache: "no-store", // 💥 Also force no-cache on fetch to FastAPI
+      cache: "no-store", // 💥 Force no-cache like attempts
     });
     const rawData = await response.text();
     let data;
     try {
       data = JSON.parse(rawData);
-    } catch (e) {
+    } catch {
       data = {};
     }
+
     if (!response.ok) {
       return new Response(JSON.stringify(data), {
         status: response.status,
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
         },
       });
     }
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: {

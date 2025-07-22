@@ -50,7 +50,7 @@ export function DashboardSidebar() {
         ]
       : []),
     {
-      name: "Lessons",
+      name: "(Coming Soon)",
       href: "/lessons",
       icon: <BookOpen className="h-5 w-5" />,
     },

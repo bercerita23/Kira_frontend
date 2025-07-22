@@ -67,24 +67,22 @@ export default function DashboardPage() {
 
   const weekKey = new Date().toISOString().slice(0, 10);
 
-  const [correctCount, setCorrectCount] = useState(0);
-  const [basicPhrasesCorrect, setBasicPhrasesCorrect] = useState(0);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && user) {
-      const storedCorrect = localStorage.getItem(
-        `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
-      );
-      const storedBasic = localStorage.getItem(
-        `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
-      );
+  // useEffect(() => {
+  //   if (typeof window !== "undefined" && user) {
+  //     const storedCorrect = localStorage.getItem(
+  //       `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
+  //     );
+  //     const storedBasic = localStorage.getItem(
+  //       `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
+  //     );
 
-      setCorrectCount(Number(storedCorrect ?? 0));
-      setBasicPhrasesCorrect(Number(storedBasic ?? 0));
-    }
-  }, [user, topicId, weekKey]);
+  //     setCorrectCount(Number(storedCorrect ?? 0));
+  //     setBasicPhrasesCorrect(Number(storedBasic ?? 0));
+  //   }
+  // }, [user, topicId, weekKey]);
 
   useEffect(() => {
     async function fetchPoints() {
@@ -131,15 +129,6 @@ export default function DashboardPage() {
         setQuizzes(data.quizzes || []);
         // eslint-disable-next-line no-console
         console.log("User quizzes:", data);
-        // Fetch questions for the first quiz if available
-        if (data.quizzes && data.quizzes.length > 0) {
-          const quizId = data.quizzes[0].quiz_id;
-          const questionsRes = await fetch(`/api/users/questions/${quizId}`);
-          if (!questionsRes.ok) throw new Error("Failed to fetch questions");
-          const questionsData = await questionsRes.json();
-          // eslint-disable-next-line no-console
-          console.log(`Questions for quiz ${quizId}:`, questionsData);
-        }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Error fetching quizzes or questions:", err);
@@ -220,13 +209,31 @@ export default function DashboardPage() {
     return user.email || "User";
   };
 
-  // Leveling system: Level = floor(points / 100) + 1, XP = points, progress = (points % 100)
-  const level = points ? Math.floor(points.points / 100) + 1 : "…";
-  const xp = points ? points.points : "…";
-  const xpForNextLevel = 100;
+  const level = points ? Math.floor(points.points / 100) + 1 : 1;
+  const xpForNextLevel = level * 100;
+  const xpForCurrentLevel = (level - 1) * 100;
+
   const progressPercentage = points
-    ? Math.min(100, Math.max(0, points.points % 100))
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          ((points.points - xpForCurrentLevel) /
+            (xpForNextLevel - xpForCurrentLevel)) *
+            100
+        )
+      )
     : 0;
+
+  const xp = points?.points ?? 0;
+  // Helper to get correct count for a topic
+  const getCorrectCount = (topic: string) => {
+    // Find the quiz for the topic
+    const quiz = quizzes.find((q) => q.name.toLowerCase().includes(topic));
+    if (!quiz) return 0;
+    const attempt = attempts.find((a) => a.quiz_id === quiz.quiz_id);
+    return attempt ? attempt.pass_count : 0;
+  };
 
   return (
     <MobileMenuContext.Provider
@@ -323,7 +330,7 @@ export default function DashboardPage() {
                 </h2>
                 <div className="space-y-3">
                   {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz: Quiz) => {
+                    quizzes.map((quiz) => {
                       const attempt = attempts.find(
                         (a) => a.quiz_id === quiz.quiz_id
                       );
@@ -441,14 +448,16 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                    (correctCount / totalQuestions) * 100
+                                    (getCorrectCount("greetings") /
+                                      totalQuestions) *
+                                      100
                                   )
                                 : 0
                             }
                             size={48}
                             strokeWidth={4}
                             color={
-                              correctCount >= totalQuestions
+                              getCorrectCount("greetings") >= totalQuestions
                                 ? "green"
                                 : "primary"
                             }
@@ -462,7 +471,8 @@ export default function DashboardPage() {
                             Greetings
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {correctCount} of {totalQuestions} questions correct
+                            {getCorrectCount("greetings")} of {totalQuestions}{" "}
+                            questions correct
                           </p>
                         </div>
                         <Button
@@ -489,14 +499,16 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                    (basicPhrasesCorrect / totalQuestions) * 100
+                                    (getCorrectCount("basic phrases") /
+                                      totalQuestions) *
+                                      100
                                   )
                                 : 0
                             }
                             size={48}
                             strokeWidth={4}
                             color={
-                              basicPhrasesCorrect >= totalQuestions
+                              getCorrectCount("basic phrases") >= totalQuestions
                                 ? "green"
                                 : "primary"
                             }
@@ -510,8 +522,8 @@ export default function DashboardPage() {
                             Basic Phrases
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {basicPhrasesCorrect} of {totalQuestions} questions
-                            correct
+                            {getCorrectCount("basic phrases")} of{" "}
+                            {totalQuestions} questions correct
                           </p>
                         </div>
                         <Button
@@ -524,36 +536,6 @@ export default function DashboardPage() {
                             <span>Continue</span>
                             <ChevronRight className="ml-1 h-4 w-4" />
                           </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                            <span className="text-xl opacity-70">👪</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-700 dark:text-gray-300">
-                            Family
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-500">
-                            Complete Basic Phrases to unlock
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-gray-400"
-                          disabled
-                        >
-                          <span>Locked</span>
-                          <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </div>
                     </div>

@@ -691,7 +691,11 @@ export default function AdminDashboardPage() {
                             {student.username}
                           </CardDescription>
                         </div>
-                        <Button variant="ghost" size="icon" className="ml-auto">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="ml-auto p-0 mb-4"
+                        >
                           <span className="sr-only">More options</span>
                           ...
                         </Button>
@@ -736,16 +740,16 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
                       {/* Username */}
-                      <span className="text-gray-500 dark:text-gray-400 text-base whitespace-nowrap min-w-[120px] text-center">
+                      <span className="text-gray-500 dark:text-gray-400 text-base whitespace-nowrap min-w-[120px] ml-[100px] text-center">
                         {student.username}
                       </span>
                       {/* Grade */}
-                      <span className="flex items-center text-indigo-700 text-base whitespace-nowrap min-w-[110px] justify-center">
+                      <span className="flex items-center dark:text-gray-400  text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
                         <UserIcon className="h-5 w-5 mr-1" />{" "}
                         {student.grade ? student.grade + " grade" : "-"}
                       </span>
                       {/* Points */}
-                      <span className="flex items-center text-indigo-700 text-base whitespace-nowrap min-w-[110px] justify-center">
+                      <span className="flex items-center dark:text-gray-400  text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
                         <Star className="h-5 w-5 mr-1" />{" "}
                         {typeof student.points === "number"
                           ? student.points
