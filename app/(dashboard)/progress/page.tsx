@@ -9,7 +9,7 @@ import {
 } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { cn } from "@/lib/utils";
-
+import { useSearchParams } from "next/navigation";
 type Badge = {
   badge_id: string;
   earned_at: string;
@@ -21,11 +21,13 @@ type Badge = {
 
 export default function ProgressPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [tab, setTab] = useState("quiz");
+
   const [badges, setBadges] = useState<Badge[]>([]); // user badges
   const [allBadges, setAllBadges] = useState<Badge[]>([]); // all possible badges
   const [attempts, setAttempts] = useState<any[]>([]); // quiz attempts
-
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "quiz";
+  const [tab, setTab] = useState(defaultTab);
   // Fetch user badges
   useEffect(() => {
     async function fetchBadges() {

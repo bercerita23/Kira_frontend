@@ -86,7 +86,7 @@ export function DashboardHeader() {
       // Call proxy PATCH route
       const res = await fetch(`/api/users/badges/${badgeId}/viewed`, {
         method: "PATCH",
-        cache: "no-store", // 💥 Prevent caching viewed requests too
+        cache: "no-store",
       });
       if (!res.ok) throw new Error("Failed to mark badge as viewed");
 
@@ -95,8 +95,8 @@ export function DashboardHeader() {
         prev.filter((badge) => badge.badge_id !== badgeId)
       );
 
-      // Navigate to /progress
-      router.push("/progress/");
+      // Navigate to /progress?tab=badges
+      router.push("/progress?tab=badges");
     } catch (err) {
       console.error("Error marking badge as viewed:", err);
     }
@@ -169,7 +169,7 @@ export function DashboardHeader() {
                 className="text-sm text-blue-500 cursor-pointer"
                 onClick={() => router.push("/progress/")}
               >
-                View all badges
+                View progress
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
