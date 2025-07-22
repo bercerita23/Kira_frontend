@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { badge_id: string } }
+) {
   const token = req.cookies.get("token")?.value;
   if (!token) {
     return new Response(
@@ -19,23 +22,27 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const badgeId = params.badge_id; // 👈 Clean dynamic param
+
   try {
-    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/attempts`;
-    const outgoingHeaders = {
-      Authorization: `Bearer ${token}`,
-    };
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/badges/${badgeId}/viewed`;
     const response = await fetch(backendUrl, {
-      method: "GET",
-      headers: outgoingHeaders,
-      cache: "no-store", // 💥 Also force no-cache on fetch to FastAPI
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store", // 💥 Force no-cache on fetch
     });
+
     const rawData = await response.text();
     let data;
     try {
       data = JSON.parse(rawData);
-    } catch (e) {
+    } catch {
       data = {};
     }
+
     if (!response.ok) {
       return new Response(JSON.stringify(data), {
         status: response.status,
@@ -49,8 +56,9 @@ export async function GET(req: NextRequest) {
         },
       });
     }
+
     return new Response(JSON.stringify(data), {
-      status: 200,
+      status: response.status,
       headers: {
         "Cache-Control":
           "no-store, no-cache, must-revalidate, proxy-revalidate",

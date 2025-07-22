@@ -8,6 +8,14 @@ export async function GET(req: NextRequest) {
       JSON.stringify({ message: "Missing authentication token" }),
       {
         status: 401,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Surrogate-Control": "no-store",
+          "Content-Type": "application/json",
+        },
       }
     );
   }
@@ -21,6 +29,7 @@ export async function GET(req: NextRequest) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        cache: "no-store", // 💥 Force no cache on FastAPI call
       }
     );
 
@@ -37,17 +46,41 @@ export async function GET(req: NextRequest) {
         }),
         {
           status: response.status,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Surrogate-Control": "no-store",
+            "Content-Type": "application/json",
+          },
         }
       );
     }
 
     return new Response(JSON.stringify({ badges: data.badges || [] }), {
       status: 200,
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store",
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
     console.error("Proxy error:", error);
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {
       status: 500,
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store",
+        "Content-Type": "application/json",
+      },
     });
   }
 }
