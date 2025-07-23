@@ -1,4 +1,3 @@
-// app/api/users/badges/route.ts
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/badges`,
+      `${process.env.NEXT_PUBLIC_API_URL}/users/achievements/notification`,
       {
         method: "GET",
         headers: {
@@ -59,17 +58,20 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return new Response(JSON.stringify({ badges: data.badges || [] }), {
-      status: 200,
-      headers: {
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-        "Surrogate-Control": "no-store",
-        "Content-Type": "application/json",
-      },
-    });
+    return new Response(
+      JSON.stringify({ achievements: data.achievements || [] }),
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Surrogate-Control": "no-store",
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
     console.error("Proxy error:", error);
     return new Response(JSON.stringify({ message: "Internal Server Error" }), {

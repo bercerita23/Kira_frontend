@@ -1,4 +1,3 @@
-// app/api/users/badges/route.ts
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/badges`,
+      `${process.env.NEXT_PUBLIC_API_URL}/users/badges/notification`,
       {
         method: "GET",
         headers: {

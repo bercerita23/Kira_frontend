@@ -105,7 +105,9 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchStreaks() {
       try {
-        const res = await fetch("/api/users/streaks");
+        const res = await fetch("/api/users/streaks", {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error("Failed to fetch streaks");
         const data = await res.json();
         setStreaks(data);
@@ -151,19 +153,6 @@ export default function DashboardPage() {
     fetchAttempts();
   }, []);
 
-  useEffect(() => {
-    async function fetchAllBadges() {
-      try {
-        const res = await fetch("/api/users/badges/all");
-        if (!res.ok) throw new Error("Failed to fetch all badges");
-        const data = await res.json();
-        console.log("All badges:", data);
-      } catch (err) {
-        console.error("Error fetching all badges:", err);
-      }
-    }
-    fetchAllBadges();
-  }, []);
   // Show loading state while checking authentication
   if (isLoading) {
     return (
