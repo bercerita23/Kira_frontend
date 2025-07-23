@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // 👈 Next.js router
+import { useRouter } from "next/navigation";
 import { Bell, Menu, Settings, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,32 +26,32 @@ export function DashboardHeader() {
   const { isMobileMenuOpen, setIsMobileMenuOpen } =
     useContext(MobileMenuContext);
   const { user, logout } = useAuth();
-  const router = useRouter(); // 👈 Initialize router
+  const router = useRouter();
 
   const [notifications, setNotifications] = useState<
     { badge_id: string; name: string; description: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch unviewed badges
+  // Fetch notifications (not viewed badges)
   useEffect(() => {
-    const fetchUnviewedBadges = async () => {
+    const fetchNotifications = async () => {
       try {
-        const res = await fetch("/api/users/badges/not-viewed", {
-          cache: "no-store", // 💥 Force no-cache like attempts
+        const res = await fetch("/api/users/badges/notification", {
+          cache: "no-store", // 💥 Force no-cache
         });
-        if (!res.ok) throw new Error("Failed to fetch badges");
+        if (!res.ok) throw new Error("Failed to fetch notifications");
         const data = await res.json();
         setNotifications(data.badges || []);
       } catch (err) {
-        console.error("Error fetching unviewed badges:", err);
+        console.error("Error fetching notifications:", err);
         setNotifications([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUnviewedBadges();
+    fetchNotifications();
   }, []);
 
   const getUserInitials = () => {
@@ -81,25 +81,9 @@ export function DashboardHeader() {
     }
   };
 
-  const handleNotificationClick = async (badgeId: string) => {
-    try {
-      // Call proxy PATCH route
-      const res = await fetch(`/api/users/badges/${badgeId}/viewed`, {
-        method: "PATCH",
-        cache: "no-store",
-      });
-      if (!res.ok) throw new Error("Failed to mark badge as viewed");
-
-      // Remove badge from local state
-      setNotifications((prev) =>
-        prev.filter((badge) => badge.badge_id !== badgeId)
-      );
-
-      // Navigate to /progress?tab=badges
-      router.push("/progress?tab=badges");
-    } catch (err) {
-      console.error("Error marking badge as viewed:", err);
-    }
+  const handleNotificationClick = (badgeId: string) => {
+    // Navigate to /progress?tab=badges when user clicks a notification
+    router.push("/progress?tab=badges");
   };
 
   return (

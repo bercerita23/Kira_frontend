@@ -1,8 +1,10 @@
+// app/(dashboard)/progress/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 import {
   DashboardHeader,
   MobileMenuContext,
@@ -18,7 +20,15 @@ type Badge = {
   description: string;
   icon_url?: string;
 };
-
+type Achievement = {
+  achievement_id: string;
+  name_en: string;
+  description_en: string;
+  points: number;
+  completed_at: string;
+  view_count: number;
+};
+import { CircularProgress } from "@/components/ui/circular-progress";
 export default function ProgressPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -28,6 +38,65 @@ export default function ProgressPage() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "quiz";
   const [tab, setTab] = useState(defaultTab);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [allAchievements, setAllAchievements] = useState<Achievement[]>([]);
+  const [points, setPoints] = useState<{
+    points: number;
+  } | null>(null);
+  type Attempt = {
+    quiz_id: number;
+    quiz_name: string;
+    pass_count: number;
+    fail_count: number;
+    attempt_count: number;
+    completed_at: string | null;
+    duration_in_sec: number | null;
+  };
+  const [selectedQuiz, setSelectedQuiz] = useState<Attempt | null>(null);
+
+  function formatDuration(seconds: number | null): string {
+    if (seconds === null || seconds < 0) return "N/A";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  }
+  // Fetch user's unlocked achievements
+  useEffect(() => {
+    async function fetchAchievements() {
+      try {
+        const res = await fetch("/api/users/achievements");
+        if (!res.ok) throw new Error("Failed to fetch achievements");
+        const data = await res.json();
+        setAchievements(data.user_achievements || []);
+        console.log("User poiachievements:", data);
+      } catch (err) {
+        console.error("Error fetching achievements:", err);
+      }
+    }
+
+    if (tab === "achievements") {
+      fetchAchievements();
+    }
+  }, [tab]);
+
+  // Fetch all possible achievements
+  useEffect(() => {
+    async function fetchAllAchievements() {
+      try {
+        const res = await fetch("/api/users/achievements/all");
+        if (!res.ok) throw new Error("Failed to fetch all achievements");
+        const data = await res.json();
+        setAllAchievements(data.achievements || []);
+      } catch (err) {
+        console.error("Error fetching all achievements:", err);
+      }
+    }
+
+    fetchAllAchievements();
+  }, []);
+
   // Fetch user badges
   useEffect(() => {
     async function fetchBadges() {
@@ -37,13 +106,31 @@ export default function ProgressPage() {
         const data = await res.json();
         setBadges(data.badges || []);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("Error fetching badges:", err);
       }
     }
-    fetchBadges();
-  }, []);
 
+    if (tab === "badges") {
+      fetchBadges();
+    }
+  }, [tab]);
+  useEffect(() => {
+    async function fetchPoints() {
+      try {
+        const res = await fetch("/api/users/points");
+        if (!res.ok) throw new Error("Failed to fetch points");
+        const data = await res.json();
+        setPoints(data);
+        // Log points to the console
+        // eslint-disable-next-line no-console
+        console.log("User points:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching points:", err);
+      }
+    }
+    fetchPoints();
+  }, []);
   // Fetch all badges
   useEffect(() => {
     async function fetchAllBadges() {
@@ -88,10 +175,44 @@ export default function ProgressPage() {
           <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
             <div className="max-w-none py-4">
               <h1 className="text-2xl font-bold mb-6">Progress</h1>
+              {points && (
+                <div className="mb-6">
+                  <Card className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 border-none shadow-lg">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex justify-between items-center">
+                        <p className="text-lg font-semibold text-gray-800 dark:text-white">
+                          {points.points} / 350 XP
+                        </p>
+                        <span className="text-2xl">🏁</span>
+                      </div>
+                      <div className="relative w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div
+                          className="absolute top-0 left-0 h-full bg-purple-500 rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(
+                              (points.points / 350) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        {350 - points.points > 0
+                          ? `${
+                              350 - points.points
+                            } XP to reach the finish line!`
+                          : "🎉 You’ve reached the maximum XP!"}
+                      </p>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
               <Tabs value={tab} onValueChange={setTab} className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="quiz">Quiz History</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
+                  <TabsTrigger value="achievements">achievements</TabsTrigger>
                 </TabsList>
                 <TabsContent value="quiz">
                   <Card>
@@ -112,6 +233,9 @@ export default function ProgressPage() {
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Score
                               </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                Duration
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
@@ -119,6 +243,8 @@ export default function ProgressPage() {
                               attempts.map((attempt) => (
                                 <tr
                                   key={`${attempt.quiz_id}-${attempt.attempt_count}`}
+                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  onClick={() => setSelectedQuiz(attempt)}
                                 >
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                     {attempt.quiz_name ||
@@ -134,6 +260,22 @@ export default function ProgressPage() {
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                     {attempt.pass_count} /{" "}
                                     {attempt.pass_count + attempt.fail_count}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {formatDuration(attempt.duration_in_sec)}
+                                  </td>
+                                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+                                    {attempt.pass_count !==
+                                      attempt.pass_count +
+                                        attempt.fail_count && (
+                                      <Link
+                                        href={`/lesson/${attempt.quiz_id}`}
+                                        className="px-2 py-1.5 rounded hover:bg-purple-700 hover:text-white transition text-sm"
+                                        onClick={(e) => e.stopPropagation()} // to prevent modal opening
+                                      >
+                                        Retake Quiz
+                                      </Link>
+                                    )}
                                   </td>
                                 </tr>
                               ))
@@ -250,7 +392,193 @@ export default function ProgressPage() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+                <TabsContent value="achievements">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Achievements</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                Name
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                Description
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                Points
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                Completed
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allAchievements.length > 0 ? (
+                              allAchievements.map((achievement) => {
+                                const unlocked = achievements.some(
+                                  (a) =>
+                                    a.achievement_id ===
+                                    achievement.achievement_id
+                                );
+                                const userData = achievements.find(
+                                  (a) =>
+                                    a.achievement_id ===
+                                    achievement.achievement_id
+                                );
+                                return (
+                                  <tr
+                                    key={achievement.achievement_id}
+                                    className={cn(
+                                      unlocked
+                                        ? ""
+                                        : "opacity-60 grayscale bg-gray-50"
+                                    )}
+                                  >
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-900 dark:text-white"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {achievement.name_en}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-700 dark:text-gray-200"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {achievement.description_en}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-700 dark:text-gray-200"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {achievement.points}
+                                    </td>
+                                    <td
+                                      className={cn(
+                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        unlocked
+                                          ? "text-gray-500 dark:text-gray-400"
+                                          : "text-gray-400"
+                                      )}
+                                    >
+                                      {unlocked && userData?.completed_at
+                                        ? new Date(
+                                            userData.completed_at
+                                          ).toLocaleDateString()
+                                        : "Locked"}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td
+                                  colSpan={4}
+                                  className="px-4 py-2 text-center text-gray-500 dark:text-gray-400"
+                                >
+                                  No achievements available.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
+              {selectedQuiz && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 w-full max-w-[300px] relative">
+                    {/* Close X Button */}
+                    <button
+                      className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl"
+                      onClick={() => setSelectedQuiz(null)}
+                    >
+                      ✕
+                    </button>
+
+                    {/* Quiz Title */}
+                    <h2 className="text-3xl font-bold text-center mb-8">
+                      {selectedQuiz.quiz_name || `Quiz ${selectedQuiz.quiz_id}`}
+                    </h2>
+
+                    {/* Circular Progress */}
+                    <div className="flex justify-center mb-6">
+                      <div className="relative">
+                        <CircularProgress
+                          value={
+                            (selectedQuiz.pass_count /
+                              (selectedQuiz.pass_count +
+                                selectedQuiz.fail_count)) *
+                            100
+                          }
+                          size={160}
+                          strokeWidth={14}
+                          color="primary"
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-3xl font-bold text-gray-800 dark:text-white">
+                            {selectedQuiz.pass_count}/
+                            {selectedQuiz.pass_count + selectedQuiz.fail_count}
+                          </span>
+                          <span className="text-base text-gray-500 dark:text-gray-400">
+                            Correct
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-3 text-center mb-8">
+                      <p className="text-lg text-gray-700 dark:text-gray-300">
+                        <span className="font-medium">Completed On:</span>{" "}
+                        {selectedQuiz.completed_at
+                          ? new Date(
+                              selectedQuiz.completed_at
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="text-lg text-gray-700 dark:text-gray-300">
+                        <span className="font-medium">Attempts:</span>{" "}
+                        {selectedQuiz.attempt_count}
+                      </p>
+                      <p className="text-lg text-gray-700 dark:text-gray-300">
+                        <span className="font-medium">Duration:</span>{" "}
+                        {formatDuration(selectedQuiz.duration_in_sec)}
+                      </p>
+                    </div>
+
+                    {/* Retake Quiz Button */}
+                    {selectedQuiz.pass_count !==
+                      selectedQuiz.pass_count + selectedQuiz.fail_count && (
+                      <div className="flex justify-center">
+                        <Link
+                          href={`/lesson/${selectedQuiz.quiz_id}`}
+                          className="bg-purple-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-purple-700 transition text-center"
+                        >
+                          Retake Quiz
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </main>
         </div>

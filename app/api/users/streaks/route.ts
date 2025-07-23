@@ -1,54 +1,85 @@
+// app/api/users/streaks/route.ts
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
-
   if (!token) {
     return new Response(
       JSON.stringify({ message: "Missing authentication token" }),
       {
         status: 401,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Surrogate-Control": "no-store",
+          "Content-Type": "application/json",
+        },
       }
     );
   }
 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/streaks`,
-      {
-        method: "GET",
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/users/streaks`;
+    const outgoingHeaders = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(backendUrl, {
+      method: "GET",
+      headers: outgoingHeaders,
+      cache: "no-store", // disable fetch cache to FastAPI
+    });
+
+    const rawData = await response.text();
+    let data;
+    try {
+      data = JSON.parse(rawData);
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      return new Response(JSON.stringify(data), {
+        status: response.status,
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Surrogate-Control": "no-store",
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store",
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ message: "Proxy error", error: String(error) }),
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Surrogate-Control": "no-store",
           "Content-Type": "application/json",
         },
       }
     );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Log backend error details for debugging
-      console.error("Backend error:", data);
-      return new Response(
-        JSON.stringify({
-          message: "Backend error",
-          backendStatus: response.status,
-          backendData: data,
-        }),
-        {
-          status: response.status,
-        }
-      );
-    }
-
-    // Forward backend response as-is
-    return new Response(JSON.stringify(data), {
-      status: 200,
-    });
-  } catch (error) {
-    console.error("Proxy error:", error);
-    return new Response(JSON.stringify({ message: "Internal Server Error" }), {
-      status: 500,
-    });
   }
 }
