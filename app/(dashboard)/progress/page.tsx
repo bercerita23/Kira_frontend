@@ -17,13 +17,16 @@ type Badge = {
   earned_at: string;
   is_viewed: boolean;
   name: string;
+  bahasa_indonesia_name?: string;
   description: string;
   icon_url?: string;
 };
 type Achievement = {
   achievement_id: string;
   name_en: string;
+  name_ind?: string;
   description_en: string;
+  description_ind: string;
   points: number;
   completed_at: string;
   view_count: number;
@@ -196,6 +199,7 @@ export default function ProgressPage() {
                           }}
                         />
                       </div>
+
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                         {350 - points.points > 0
                           ? `${
@@ -311,6 +315,7 @@ export default function ProgressPage() {
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Name
                               </th>
+
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Description
                               </th>
@@ -337,6 +342,7 @@ export default function ProgressPage() {
                                     <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
                                       {badge.icon_url || "🏅"}
                                     </td>
+
                                     <td
                                       className={cn(
                                         "px-4 py-2 whitespace-nowrap text-sm",
@@ -345,8 +351,16 @@ export default function ProgressPage() {
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {badge.name}
+                                      <div>
+                                        <div>{badge.name}</div>
+                                        {badge.bahasa_indonesia_name && (
+                                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                                            {badge.bahasa_indonesia_name}
+                                          </div>
+                                        )}
+                                      </div>
                                     </td>
+
                                     <td
                                       className={cn(
                                         "px-4 py-2 whitespace-nowrap text-sm",
@@ -447,6 +461,11 @@ export default function ProgressPage() {
                                       )}
                                     >
                                       {achievement.name_en}
+                                      {achievement.name_ind && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                          {achievement.name_ind}
+                                        </div>
+                                      )}
                                     </td>
                                     <td
                                       className={cn(
@@ -457,6 +476,11 @@ export default function ProgressPage() {
                                       )}
                                     >
                                       {achievement.description_en}
+                                      {achievement.description_ind && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                          {achievement.description_ind}
+                                        </div>
+                                      )}
                                     </td>
                                     <td
                                       className={cn(

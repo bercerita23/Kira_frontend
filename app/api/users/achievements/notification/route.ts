@@ -1,3 +1,5 @@
+// app/api/users/achievements/notification/route.ts
+
 import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     return new Response(
-      JSON.stringify({ achievements: data.achievements || [] }),
+      JSON.stringify({ user_achievements: data.user_achievements || [] }),
       {
         status: 200,
         headers: {
