@@ -31,6 +31,8 @@ export default function LessonPage() {
   const [selectedPairs, setSelectedPairs] = useState<{ [key: string]: string }>(
     {}
   );
+  const [activeWord, setActiveWord] = useState<string | null>(null);
+
   const [arrangedWords, setArrangedWords] = useState<string[]>([]);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -104,46 +106,25 @@ export default function LessonPage() {
   const handlePairSelect = (type: "word" | "meaning", item: string) => {
     if (isSubmitted) return;
 
-    const currentQuestion = lessonSteps[currentStep];
-
     if (type === "word") {
-      // If this word is already matched, unselect it
-      const existingPair = Object.entries(selectedPairs).find(
-        ([_, v]) => v === item
-      );
-      if (existingPair) {
-        const updatedPairs = { ...selectedPairs };
-        delete updatedPairs[existingPair[0]];
-        setSelectedPairs(updatedPairs);
-        return;
-      }
-
-      // If user has already selected a meaning, create a pair
-      const selectedMeaning = Object.keys(selectedPairs).find(
-        (key) => !selectedPairs[key]
-      );
-      if (selectedMeaning) {
-        setSelectedPairs({
-          ...selectedPairs,
-          [selectedMeaning]: item,
-        });
-      }
+      // Select or deselect the word
+      setActiveWord((prev) => (prev === item ? null : item));
     } else {
-      // If this meaning is already in a pair, remove the pair
-      if (selectedPairs[item]) {
-        const updatedPairs = { ...selectedPairs };
-        delete updatedPairs[item];
-        setSelectedPairs(updatedPairs);
-        return;
-      }
+      // User clicked on meaning (English), with an activeWord (Indonesian)
+      if (!activeWord) return;
 
-      // Add the meaning as a key with no value yet
-      if (!Object.keys(selectedPairs).includes(item)) {
-        setSelectedPairs({
-          ...selectedPairs,
-          [item]: "",
-        });
-      }
+      // Check if that meaning is already taken
+      const meaningAlreadyUsed = Object.values(selectedPairs).includes(item);
+      if (meaningAlreadyUsed) return;
+
+      // Save the pair: { Indonesian: English }
+      setSelectedPairs({
+        ...selectedPairs,
+        [activeWord]: item,
+      });
+
+      // Clear selected word
+      setActiveWord(null);
     }
   };
 
@@ -168,13 +149,12 @@ export default function LessonPage() {
             .split(",")
             .map((pair: any) => {
               const [word, meaning] = pair.split(":");
-              return { word, meaning };
+              return { word: word.trim(), meaning: meaning.trim() };
             });
+          console.log("✅ Answer Pairs:", answerPairs);
+          console.log("🟨 Selected Pairs:", selectedPairs);
           const allPairsMatched = answerPairs.every((pair: any) => {
-            const selectedMeaning = Object.keys(selectedPairs).find(
-              (key) => selectedPairs[key] === pair.word
-            );
-            return selectedMeaning === pair.meaning;
+            return selectedPairs[pair.word] === pair.meaning;
           });
           correct =
             Object.keys(selectedPairs).length === answerPairs.length &&
@@ -531,8 +511,7 @@ export default function LessonPage() {
               <div className="space-y-3">
                 {currentLesson.options?.map((pair: any, idx: number) => {
                   const [word, meaning] = pair.split(":");
-                  const isSelected =
-                    Object.values(selectedPairs).includes(word);
+                  const isSelected = Object.keys(selectedPairs).includes(word);
                   return (
                     <button
                       key={`word-${idx}`}
@@ -553,10 +532,8 @@ export default function LessonPage() {
               <div className="space-y-3">
                 {currentLesson.options?.map((pair: any, idx: number) => {
                   const [word, meaning] = pair.split(":");
-                  const isPaired =
-                    pair.split(":").length === 2 &&
-                    pair.split(":")[1] in selectedPairs;
-                  const isComplete = selectedPairs[pair.split(":")[1]] !== "";
+                  const isSelected =
+                    Object.values(selectedPairs).includes(meaning);
                   return (
                     <button
                       key={`meaning-${idx}`}
@@ -564,10 +541,8 @@ export default function LessonPage() {
                         handlePairSelect("meaning", pair.split(":")[1])
                       }
                       className={`w-full p-3 rounded-lg border text-left font-medium ${
-                        isPaired
-                          ? isComplete
-                            ? "bg-primary/10 border-primary"
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
+                        isSelected
+                          ? "bg-primary/10 border-primary"
                           : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                       }`}
                       disabled={isSubmitted}
