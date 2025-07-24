@@ -28,21 +28,63 @@ export function DashboardHeader() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const [notifications, setNotifications] = useState<
-    { badge_id: string; name: string; description: string }[]
-  >([]);
+  type NotificationItem = {
+    id: string;
+    name: string;
+    description: string;
+    type: "badge" | "achievement";
+  };
+  type Achievement = {
+    achievement_id: string;
+    name_en: string;
+    name_ind: string;
+    description_en: string;
+    description_ind: string;
+    points: number;
+    completed_at: string;
+    view_count: number | null;
+  };
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   // Fetch notifications (not viewed badges)
   useEffect(() => {
     const fetchNotifications = async () => {
+      setLoading(true);
       try {
-        const res = await fetch("/api/users/badges/notification", {
-          cache: "no-store", // 💥 Force no-cache
-        });
-        if (!res.ok) throw new Error("Failed to fetch notifications");
-        const data = await res.json();
-        setNotifications(data.badges || []);
+        const [badgeRes, achievementRes] = await Promise.all([
+          fetch("/api/users/badges/notification", { cache: "no-store" }),
+          fetch("/api/users/achievements/notification", { cache: "no-store" }),
+        ]);
+
+        const badgeData = await badgeRes.json();
+        const achievementData = await achievementRes.json();
+
+        console.log("🎖️ Badge API Response:", badgeData);
+        console.log("🏆 Achievement API Response:", achievementData);
+
+        const badgeNotifications: NotificationItem[] =
+          badgeData.badges?.map(
+            (b: { badge_id: string; name: string; description: string }) => ({
+              id: b.badge_id,
+              name: b.name,
+              description: b.description,
+              type: "badge",
+            })
+          ) || [];
+        const achievementNotifications: NotificationItem[] =
+          (achievementData.user_achievements as Achievement[])?.map((a) => ({
+            id: a.achievement_id,
+            name: a.name_en,
+            description: a.description_en,
+            type: "achievement",
+          })) || [];
+
+        console.log("Parsed 🧠 Notifications:", [
+          ...badgeNotifications,
+          ...achievementNotifications,
+        ]);
+
+        setNotifications([...badgeNotifications, ...achievementNotifications]);
       } catch (err) {
         console.error("Error fetching notifications:", err);
         setNotifications([]);
@@ -81,9 +123,12 @@ export function DashboardHeader() {
     }
   };
 
-  const handleNotificationClick = (badgeId: string) => {
-    // Navigate to /progress?tab=badges when user clicks a notification
-    router.push("/progress?tab=badges");
+  const handleNotificationClick = (id: string, type: string) => {
+    if (type === "badge") {
+      router.push("/progress?tab=badges");
+    } else if (type === "achievement") {
+      router.push("/progress?tab=achievements");
+    }
   };
 
   return (
@@ -134,13 +179,14 @@ export function DashboardHeader() {
                   Loading notifications...
                 </DropdownMenuItem>
               ) : notifications.length > 0 ? (
-                notifications.map((badge) => (
+                notifications.map((item) => (
                   <DropdownMenuItem
-                    key={badge.badge_id}
+                    key={`${item.type}-${item.id}`}
                     className="text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleNotificationClick(badge.badge_id)}
+                    onClick={() => handleNotificationClick(item.id, item.type)}
                   >
-                    🎖️ {badge.name}: {badge.description}
+                    {item.type === "badge" ? "🎖️" : "🏆"} {item.name}:{" "}
+                    {item.description}
                   </DropdownMenuItem>
                 ))
               ) : (
