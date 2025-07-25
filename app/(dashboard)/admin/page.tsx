@@ -53,6 +53,38 @@ type DbUser = {
   points?: number;
 };
 
+// Add proper type for student quiz data
+type StudentQuizData = {
+  total_points: number;
+  points_history: Array<{
+    points: number;
+    date: string;
+    description: string;
+  }>;
+  avg_quiz_grade: string;
+  quiz_history: Array<{
+    quiz_name: string;
+    date: string;
+    grade: string;
+    retakes: number;
+  }>;
+  badges_earned: number;
+  badges: Array<{
+    badge_id: string;
+    name: string;
+    earned_at: string;
+    description: string;
+    icon_url: string;
+  }>;
+  learning_streak: number;
+  achievements: Array<{
+    achievement_id: string;
+    name: string;
+    description: string;
+    completed_at: string;
+  }>;
+};
+
 export default function AdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const { toast } = useToast();
@@ -64,6 +96,10 @@ export default function AdminDashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  // Fix the type here - it should be StudentQuizData or null, not an array
+  const [studentQuizAttempts, setStudentQuizAttempts] =
+    useState<StudentQuizData | null>(null);
+
   // Add new state for edit modal
   const [editStudent, setEditStudent] = useState<DbUser | null>(null);
   const [editForm, setEditForm] = useState({
@@ -127,7 +163,7 @@ export default function AdminDashboardPage() {
   }, [students]);
 
   // When clicking a student, open edit modal (not password reset)
-  const handleStudentClick = (student: DbUser) => {
+  const handleStudentClick = async (student: DbUser) => {
     setEditStudent(student);
     setEditForm({
       first_name: student.first_name || "",
@@ -135,6 +171,17 @@ export default function AdminDashboardPage() {
       email: student.email || "",
       notes: student.notes || "",
     });
+
+    try {
+      const res = await fetch(`/api/admin/student/${student.username}`);
+      if (!res.ok) throw new Error("Failed to fetch student quiz attempts");
+      const data = await res.json();
+      console.log("Quiz attempts:", data);
+      setStudentQuizAttempts(data); // store it in state
+    } catch (error) {
+      console.error("Error fetching student quiz attempts:", error);
+      setStudentQuizAttempts(null); // clear or fallback
+    }
   };
 
   // Update student info handler
@@ -894,6 +941,8 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Password Reset Modal */}
           {showModal && selectedStudent && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
@@ -928,13 +977,26 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           )}
+
+          {/* Student Edit Modal */}
           {editStudent && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                {/* Header with Avatar and Name */}
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold">
-                    Edit Student: {editStudent.username}
-                  </h2>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarFallback className="bg-green-500 text-white font-semibold text-2xl">
+                        {getUserInitials(editStudent)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="text-2xl font-bold">
+                        {getDisplayName(editStudent)}
+                      </h2>
+                      <p className="text-gray-500">{editStudent.username}</p>
+                    </div>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -943,248 +1005,416 @@ export default function AdminDashboardPage() {
                     ✕
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left Column - Editable Fields */}
-                  <div className="space-y-6">
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Student Information
-                      </h3>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="edit_first_name">First Name *</Label>
+
+                {/* Two Tab Layout */}
+                <Tabs defaultValue="progress" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="progress">PROGRESS</TabsTrigger>
+                    <TabsTrigger value="profile">STUDENT PROFILE</TabsTrigger>
+                  </TabsList>
+
+                  {/* Progress Tab */}
+                  <TabsContent value="progress" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Total Points Circle */}
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-32 h-32 mb-4">
+                          <div className="w-32 h-32 rounded-full border-8 border-green-500 bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-300">
+                                Total Points
+                              </div>
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {studentQuizAttempts?.total_points || 0}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-center space-y-1 w-full">
+                          {studentQuizAttempts?.points_history
+                            ?.slice(0, 4)
+                            .map((point, index) => (
+                              <div key={index} className="text-xs">
+                                <div className="font-medium">
+                                  {point.points} points
+                                </div>
+                                <div className="text-gray-500">
+                                  Quiz completed
+                                </div>
+                                <div className="text-gray-500">
+                                  {new Date(point.date).toLocaleDateString()}
+                                </div>
+                              </div>
+                            )) || (
+                            <>
+                              <div className="text-sm font-medium">
+                                No activity yet
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Complete quizzes to earn points
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <Button
+                          variant="link"
+                          className="text-blue-600 text-sm mt-2"
+                        >
+                          View Details →
+                        </Button>
+                      </div>
+
+                      {/* Average Quiz Grade Circle */}
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-32 h-32 mb-4">
+                          <div className="w-32 h-32 rounded-full border-8 border-purple-600 bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-300">
+                                Ave. Quiz Grade
+                              </div>
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {studentQuizAttempts?.avg_quiz_grade || "0%"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right space-y-1 w-full">
+                          {studentQuizAttempts?.quiz_history
+                            ?.slice(0, 4)
+                            .map((quiz, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between text-sm"
+                              >
+                                <span>{quiz.quiz_name}</span>
+                                <span>
+                                  {new Date(quiz.date).toLocaleDateString()}
+                                </span>
+                                <span>{quiz.grade}</span>
+                                <span>{quiz.retakes} retakes</span>
+                              </div>
+                            )) || (
+                            <>
+                              <div className="flex items-center justify-between text-sm">
+                                <span>No quizzes yet</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <Button
+                          variant="link"
+                          className="text-blue-600 text-sm mt-2"
+                        >
+                          View Details →
+                        </Button>
+                      </div>
+
+                      {/* Learning Streak Circle */}
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-32 h-32 mb-4">
+                          <div className="w-32 h-32 rounded-full border-8 border-red-400 bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-xs text-gray-600 dark:text-gray-300">
+                                Learning Streak
+                              </div>
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {studentQuizAttempts?.learning_streak || 0} days
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm">Keep it up!</div>
+                          <div className="text-xs text-gray-500">
+                            Daily learning streak
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Combined Badges and Achievements Column */}
+                      <div className="space-y-6">
+                        {/* Badges Earned Circle */}
+                        <div className="flex flex-col items-center">
+                          <div className="relative w-24 h-24 mb-2">
+                            <div className="w-24 h-24 rounded-full border-6 border-teal-500 bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-xs text-gray-600 dark:text-gray-300">
+                                  Badges Earned
+                                </div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                                  {studentQuizAttempts?.badges_earned || 0}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right space-y-1 w-full">
+                            {studentQuizAttempts?.badges
+                              ?.slice(0, 4)
+                              .map((badge, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between text-sm"
+                                >
+                                  <span>{badge.name}</span>
+                                  <span>
+                                    {new Date(
+                                      badge.earned_at
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )) || (
+                              <>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span>No badges yet</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <Button
+                            variant="link"
+                            className="text-blue-600 text-sm mt-2"
+                          >
+                            View Details →
+                          </Button>
+                        </div>
+
+                        {/* Achievements Circle */}
+                        <div className="flex flex-col items-center">
+                          <div className="relative w-24 h-24 mb-2">
+                            <div className="w-24 h-24 rounded-full border-6 border-yellow-500 bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-xs text-gray-600 dark:text-gray-300">
+                                  Achievements
+                                </div>
+                                <div className="text-xl font-bold text-gray-900 dark:text-white">
+                                  {studentQuizAttempts?.achievements?.length ||
+                                    0}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right space-y-1 w-full">
+                            {studentQuizAttempts?.achievements
+                              ?.slice(0, 4)
+                              .map((achievement, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between text-sm"
+                                >
+                                  <span>{achievement.name}</span>
+                                  <span>
+                                    {new Date(
+                                      achievement.completed_at
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )) || (
+                              <>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span>No achievements yet</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <Button
+                            variant="link"
+                            className="text-blue-600 text-sm mt-2"
+                          >
+                            View Details →
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Student Profile Tab */}
+                  <TabsContent value="profile" className="space-y-6">
+                    <div className="max-w-2xl">
+                      {/* Account Details Section */}
+                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">
+                            Account Details
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                          >
+                            Edit
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>First Name</Label>
+                            <Input
+                              value={editForm.first_name}
+                              onChange={(e) =>
+                                setEditForm((f) => ({
+                                  ...f,
+                                  first_name: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="First name"
+                            />
+                          </div>
+                          <div>
+                            <Label>Last Name</Label>
+                            <Input
+                              value={editForm.last_name}
+                              onChange={(e) =>
+                                setEditForm((f) => ({
+                                  ...f,
+                                  last_name: e.target.value,
+                                }))
+                              }
+                              className="mt-1"
+                              placeholder="Last name"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <Label>Email</Label>
                           <Input
-                            id="edit_first_name"
-                            value={editForm.first_name}
+                            value={editForm.email}
                             onChange={(e) =>
                               setEditForm((f) => ({
                                 ...f,
-                                first_name: e.target.value,
+                                email: e.target.value,
                               }))
                             }
                             className="mt-1"
+                            placeholder="Email address"
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="edit_last_name">Last Name *</Label>
+
+                        <div className="mt-4">
+                          <Label>Username</Label>
                           <Input
-                            id="edit_last_name"
-                            value={editForm.last_name}
-                            onChange={(e) =>
-                              setEditForm((f) => ({
-                                ...f,
-                                last_name: e.target.value,
-                              }))
-                            }
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit_username">Username</Label>
-                          <Input
-                            id="edit_username"
                             value={editStudent.username}
                             disabled
                             className="mt-1 bg-gray-100 dark:bg-gray-700"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Username cannot be changed
-                          </p>
                         </div>
-                        <div>
-                          <Label htmlFor="edit_school_id">School</Label>
-                          <Input
-                            id="edit_school_id"
-                            value={
-                              schoolName ||
-                              `School ID: ${
-                                user?.school_id || "Not assigned"
-                              } ()`
-                            }
-                            disabled
-                            className="mt-1 bg-gray-100 dark:bg-gray-700"
-                          />
-                          {user?.school_id && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              School ID: {user.school_id}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">Notes</h3>
-                      <textarea
-                        id="edit_notes"
-                        value={editForm.notes}
-                        onChange={(e) =>
-                          setEditForm((f) => ({ ...f, notes: e.target.value }))
-                        }
-                        placeholder="Add notes about this student..."
-                        className="mt-1 w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Use this section to add any additional notes or comments
-                        about the student.
-                      </p>
-                    </div>
-                    {/* Learning Streak Activity Section (template with mock data) */}
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Learning Streak Activity
-                      </h3>
-                      <div className="flex flex-col gap-2">
-                        <div className="text-gray-500">
-                          Consecutive Days Active:{" "}
-                          <span className="font-semibold">14</span>
-                        </div>
-                        <div className="text-gray-500">
-                          Total Time Spent Learning:{" "}
-                          <span className="font-semibold">5h 30m</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Right Column - Info & Templates */}
-                  <div className="space-y-6">
-                    {/* Grade Level Section (template with mock data) */}
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Grade Level
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-blue-700 dark:text-blue-300">
-                          3rd Grade
-                        </span>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          Elementary School
-                        </span>
-                      </div>
-                      <div className="mt-2 text-gray-500">
-                        Homeroom:{" "}
-                        <span className="font-semibold">Ms. Smith</span>
-                      </div>
-                    </div>
-                    {/* Badges Earned Section (template with mock data) */}
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Badges Earned
-                      </h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="flex flex-col items-center bg-yellow-100 dark:bg-yellow-900 rounded p-2">
-                          <span className="text-2xl">🏅</span>
-                          <span className="text-xs mt-1">Math Whiz</span>
-                        </div>
-                        <div className="flex flex-col items-center bg-green-100 dark:bg-green-900 rounded p-2">
-                          <span className="text-2xl">📚</span>
-                          <span className="text-xs mt-1">Bookworm</span>
-                        </div>
-                        <div className="flex flex-col items-center bg-blue-100 dark:bg-blue-900 rounded p-2">
-                          <span className="text-2xl">🧪</span>
-                          <span className="text-xs mt-1">Science Star</span>
-                        </div>
-                        <div className="flex flex-col items-center bg-purple-100 dark:bg-purple-900 rounded p-2">
-                          <span className="text-2xl">🔥</span>
-                          <span className="text-xs mt-1">Streak Master</span>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-500">
-                        Total Points:{" "}
-                        <span className="font-semibold">1,250</span>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Account Details
-                      </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <Label>Account Status</Label>
-                          <div className="mt-1">
-                            <Badge
-                              variant={
-                                editStudent.is_admin
-                                  ? "destructive"
-                                  : "secondary"
-                              }
-                            >
-                              {editStudent.is_admin
-                                ? "Admin Account"
-                                : "Student Account"}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Created At</Label>
-                          <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            {editStudent.created_at
-                              ? formatDate(editStudent.created_at)
-                              : "Unknown"}
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Last Login</Label>
-                          <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            {editStudent.last_login_time
-                              ? formatDate(editStudent.last_login_time)
-                              : "Never logged in"}
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Email</Label>
-                          <div className="mt-1 text-sm text-gray-900 dark:text-white">
-                            {editStudent.email || "-"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Quiz History Section (template with mock data) */}
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow border">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Quiz History
-                      </h3>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full text-sm">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="px-2 py-1 text-left font-medium">
-                                Quiz
-                              </th>
-                              <th className="px-2 py-1 text-left font-medium">
-                                Score
-                              </th>
-                              <th className="px-2 py-1 text-left font-medium">
-                                Date
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="px-2 py-1">Math Basics</td>
-                              <td className="px-2 py-1">85%</td>
-                              <td className="px-2 py-1">2024-05-01</td>
-                            </tr>
-                            <tr>
-                              <td className="px-2 py-1">Science Quiz 1</td>
-                              <td className="px-2 py-1">92%</td>
-                              <td className="px-2 py-1">2024-05-03</td>
-                            </tr>
-                            <tr>
-                              <td className="px-2 py-1">
-                                Reading Comprehension
-                              </td>
-                              <td className="px-2 py-1">78%</td>
-                              <td className="px-2 py-1">2024-05-07</td>
-                            </tr>
-                          </tbody>
-                        </table>
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                          <div>
+                            <Label>School</Label>
+                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <option>{schoolName || "Not assigned"}</option>
+                            </select>
+                          </div>
+                          <div>
+                            <Label>Grade</Label>
+                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <option>
+                                {editStudent.grade || "Not assigned"}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <Label>Assigned Administrator</Label>
+                          <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <option>
+                              {user.first_name || "Current Admin"}
+                            </option>
+                          </select>
+                        </div>
+
+                        <div className="mt-4">
+                          <Label>Notes</Label>
+                          <textarea
+                            value={editForm.notes}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                notes: e.target.value,
+                              }))
+                            }
+                            placeholder="Add notes about this student..."
+                            className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Password Settings Section */}
+                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">
+                            Password Settings
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                            onClick={() => setSelectedStudent(editStudent)}
+                          >
+                            Change Password
+                          </Button>
+                        </div>
+
+                        <div>
+                          <Label>Password</Label>
+                          <div className="relative mt-1">
+                            <Input
+                              type="password"
+                              value="••••••••••••"
+                              disabled
+                              className="bg-gray-100 dark:bg-gray-700 pr-10"
+                            />
+                            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Account Options Section */}
+                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold">
+                            Account Options
+                          </h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled
+                            className="text-red-600 border-red-600 opacity-50"
+                            title="Delete functionality not yet available"
+                          >
+                            Delete Account
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </TabsContent>
+                </Tabs>
+
                 {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 mt-10 pt-6 border-t">
+                <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                   <Button
                     variant="outline"
                     onClick={() => setEditStudent(null)}
@@ -1196,7 +1426,7 @@ export default function AdminDashboardPage() {
                     disabled={isUpdating}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {isUpdating ? "Updating..." : "Update Student"}
+                    {isUpdating ? "Updating..." : "Save Changes"}
                   </Button>
                 </div>
               </div>

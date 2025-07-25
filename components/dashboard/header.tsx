@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Bell, Menu, Settings, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,6 +27,8 @@ export function DashboardHeader() {
     useContext(MobileMenuContext);
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   type NotificationItem = {
     id: string;
@@ -34,6 +36,7 @@ export function DashboardHeader() {
     description: string;
     type: "badge" | "achievement";
   };
+
   type Achievement = {
     achievement_id: string;
     name_en: string;
@@ -44,57 +47,91 @@ export function DashboardHeader() {
     completed_at: string;
     view_count: number | null;
   };
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+
   // Fetch notifications (not viewed badges)
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const [badgeRes, achievementRes] = await Promise.all([
+        fetch("/api/users/badges/notification", { cache: "no-store" }),
+        fetch("/api/users/achievements/notification", { cache: "no-store" }),
+      ]);
+
+      const badgeData = await badgeRes.json();
+      const achievementData = await achievementRes.json();
+
+      console.log("🎖️ Badge API Response:", badgeData);
+      console.log("🏆 Achievement API Response:", achievementData);
+
+      const badgeNotifications: NotificationItem[] =
+        badgeData.badges?.map(
+          (b: { badge_id: string; name: string; description: string }) => ({
+            id: b.badge_id,
+            name: b.name,
+            description: b.description,
+            type: "badge",
+          })
+        ) || [];
+
+      const achievementNotifications: NotificationItem[] =
+        (achievementData.user_achievements as Achievement[])?.map((a) => ({
+          id: a.achievement_id,
+          name: a.name_en,
+          description: a.description_en,
+          type: "achievement",
+        })) || [];
+
+      console.log("Parsed 🧠 Notifications:", [
+        ...badgeNotifications,
+        ...achievementNotifications,
+      ]);
+
+      setNotifications([...badgeNotifications, ...achievementNotifications]);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      try {
-        const [badgeRes, achievementRes] = await Promise.all([
-          fetch("/api/users/badges/notification", { cache: "no-store" }),
-          fetch("/api/users/achievements/notification", { cache: "no-store" }),
-        ]);
-
-        const badgeData = await badgeRes.json();
-        const achievementData = await achievementRes.json();
-
-        console.log("🎖️ Badge API Response:", badgeData);
-        console.log("🏆 Achievement API Response:", achievementData);
-
-        const badgeNotifications: NotificationItem[] =
-          badgeData.badges?.map(
-            (b: { badge_id: string; name: string; description: string }) => ({
-              id: b.badge_id,
-              name: b.name,
-              description: b.description,
-              type: "badge",
-            })
-          ) || [];
-        const achievementNotifications: NotificationItem[] =
-          (achievementData.user_achievements as Achievement[])?.map((a) => ({
-            id: a.achievement_id,
-            name: a.name_en,
-            description: a.description_en,
-            type: "achievement",
-          })) || [];
-
-        console.log("Parsed 🧠 Notifications:", [
-          ...badgeNotifications,
-          ...achievementNotifications,
-        ]);
-
-        setNotifications([...badgeNotifications, ...achievementNotifications]);
-      } catch (err) {
-        console.error("Error fetching notifications:", err);
-        setNotifications([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotifications();
   }, []);
+
+  // Monitor progress page visits and clear notifications automatically
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+
+    if (pathname === "/progress") {
+      if (tab === "badges") {
+        // Clear badge notifications from the header
+        setNotifications((prev) => prev.filter((n) => n.type !== "badge"));
+
+        // Optionally call API to mark as viewed
+        fetch("/api/users/badges/mark-viewed", { method: "POST" })
+          .then(() => console.log("Badge notifications marked as viewed"))
+          .catch((err) =>
+            console.error("Error marking badges as viewed:", err)
+          );
+      } else if (tab === "achievements") {
+        // Clear achievement notifications from the header
+        setNotifications((prev) =>
+          prev.filter((n) => n.type !== "achievement")
+        );
+
+        // Optionally call API to mark as viewed
+        fetch("/api/users/achievements/mark-viewed", { method: "POST" })
+          .then(() => console.log("Achievement notifications marked as viewed"))
+          .catch((err) =>
+            console.error("Error marking achievements as viewed:", err)
+          );
+      }
+    }
+  }, [pathname, searchParams]);
 
   const getUserInitials = () => {
     if (!user) return "U";
@@ -123,7 +160,16 @@ export function DashboardHeader() {
     }
   };
 
-  const handleNotificationClick = (id: string, type: string) => {
+  const handleNotificationClick = async (
+    id: string,
+    type: "badge" | "achievement"
+  ) => {
+    // Remove the clicked notification immediately
+    setNotifications((prev) =>
+      prev.filter((n) => !(n.id === id && n.type === type))
+    );
+
+    // Navigate to the appropriate tab
     if (type === "badge") {
       router.push("/progress?tab=badges");
     } else if (type === "achievement") {

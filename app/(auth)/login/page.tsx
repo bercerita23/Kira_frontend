@@ -250,16 +250,7 @@ export default function LoginPage() {
                 Forgot Password?
               </a>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="checkbox"
-                className="accent-[#B71C3B]"
-                id="remember"
-              />
-              <label htmlFor="remember" className="text-sm text-[#2D0B18]">
-                Remember me for 30 days
-              </label>
-            </div>
+
             <button
               type="submit"
               className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200"

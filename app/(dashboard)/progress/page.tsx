@@ -156,6 +156,7 @@ export default function ProgressPage() {
         const res = await fetch("/api/users/attempts");
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
+        console.log("Fetched attempts:", data.attempts);
         setAttempts(data.attempts || []);
       } catch (err) {
         console.error("Error fetching attempts:", err);
@@ -269,17 +270,17 @@ export default function ProgressPage() {
                                     {formatDuration(attempt.duration_in_sec)}
                                   </td>
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                                    {attempt.pass_count !==
-                                      attempt.pass_count +
-                                        attempt.fail_count && (
-                                      <Link
-                                        href={`/lesson/${attempt.quiz_id}`}
-                                        className="px-2 py-1.5 rounded hover:bg-purple-700 hover:text-white transition text-sm"
-                                        onClick={(e) => e.stopPropagation()} // to prevent modal opening
-                                      >
-                                        Retake Quiz
-                                      </Link>
-                                    )}
+                                    {attempt.pass_count <
+                                      attempt.pass_count + attempt.fail_count &&
+                                      attempt.attempt_count < 2 && (
+                                        <Link
+                                          href={`/lesson/${attempt.quiz_id}`}
+                                          className="px-2 py-1.5 rounded hover:bg-purple-700 hover:text-white transition text-sm"
+                                          onClick={(e) => e.stopPropagation()} // to prevent modal opening
+                                        >
+                                          Retake Quiz
+                                        </Link>
+                                      )}
                                   </td>
                                 </tr>
                               ))
@@ -289,7 +290,7 @@ export default function ProgressPage() {
                                   colSpan={3}
                                   className="px-4 py-2 text-center text-gray-400"
                                 >
-                                  No quiz history yet.
+                                  Ready to begin? Take your first quiz!
                                 </td>
                               </tr>
                             )}
@@ -589,17 +590,18 @@ export default function ProgressPage() {
                     </div>
 
                     {/* Retake Quiz Button */}
-                    {selectedQuiz.pass_count !==
-                      selectedQuiz.pass_count + selectedQuiz.fail_count && (
-                      <div className="flex justify-center">
-                        <Link
-                          href={`/lesson/${selectedQuiz.quiz_id}`}
-                          className="bg-purple-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-purple-700 transition text-center"
-                        >
-                          Retake Quiz
-                        </Link>
-                      </div>
-                    )}
+                    {selectedQuiz.pass_count <
+                      selectedQuiz.pass_count + selectedQuiz.fail_count &&
+                      selectedQuiz.attempt_count < 2 && (
+                        <div className="flex justify-center">
+                          <Link
+                            href={`/lesson/${selectedQuiz.quiz_id}`}
+                            className="bg-purple-600 text-white px-6 py-3 rounded-lg text-lg hover:bg-purple-700 transition text-center"
+                          >
+                            Retake Quiz
+                          </Link>
+                        </div>
+                      )}
                   </div>
                 </div>
               )}
