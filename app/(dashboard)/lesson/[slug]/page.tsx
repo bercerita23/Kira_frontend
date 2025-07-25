@@ -110,14 +110,57 @@ export default function LessonPage() {
       // Select or deselect the word
       setActiveWord((prev) => (prev === item ? null : item));
     } else {
-      // User clicked on meaning (English), with an activeWord (Indonesian)
-      if (!activeWord) return;
+      // User clicked on meaning (English)
+      if (!activeWord) {
+        // If no active word but this meaning is already connected, disconnect it
+        const connectedWord = Object.keys(selectedPairs).find(
+          (key) => selectedPairs[key] === item
+        );
+        if (connectedWord) {
+          const newPairs = { ...selectedPairs };
+          delete newPairs[connectedWord];
+          setSelectedPairs(newPairs);
+        }
+        return;
+      }
 
-      // Check if that meaning is already taken
+      // Check if the active word is already connected to something
+      if (selectedPairs[activeWord]) {
+        // If clicking on the same meaning, disconnect
+        if (selectedPairs[activeWord] === item) {
+          const newPairs = { ...selectedPairs };
+          delete newPairs[activeWord];
+          setSelectedPairs(newPairs);
+          setActiveWord(null);
+          return;
+        }
+        // If clicking on a different meaning, replace the connection
+        const newPairs = { ...selectedPairs };
+        newPairs[activeWord] = item;
+        setSelectedPairs(newPairs);
+        setActiveWord(null);
+        return;
+      }
+
+      // Check if that meaning is already taken by another word
       const meaningAlreadyUsed = Object.values(selectedPairs).includes(item);
-      if (meaningAlreadyUsed) return;
+      if (meaningAlreadyUsed) {
+        // Find and remove the existing connection
+        const existingWord = Object.keys(selectedPairs).find(
+          (key) => selectedPairs[key] === item
+        );
+        if (existingWord) {
+          const newPairs = { ...selectedPairs };
+          delete newPairs[existingWord];
+          // Create new connection
+          newPairs[activeWord] = item;
+          setSelectedPairs(newPairs);
+          setActiveWord(null);
+        }
+        return;
+      }
 
-      // Save the pair: { Indonesian: English }
+      // Save the new pair: { Indonesian: English }
       setSelectedPairs({
         ...selectedPairs,
         [activeWord]: item,
@@ -507,51 +550,184 @@ export default function LessonPage() {
           )}
 
           {currentLesson.question_type === "match-pairs" && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-3">
-                {currentLesson.options?.map((pair: any, idx: number) => {
-                  const [word, meaning] = pair.split(":");
-                  const isSelected = Object.keys(selectedPairs).includes(word);
-                  return (
-                    <button
-                      key={`word-${idx}`}
-                      onClick={() => handlePairSelect("word", word)}
-                      className={`w-full p-3 rounded-lg border text-left font-medium ${
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                      disabled={isSubmitted}
-                    >
-                      {word}
-                    </button>
-                  );
-                })}
+            <div className="relative">
+              {/* Canvas for drawing connection lines */}
+              <canvas
+                ref={(canvas) => {
+                  if (canvas && Object.keys(selectedPairs).length > 0) {
+                    const ctx = canvas.getContext("2d");
+                    if (ctx) {
+                      // Clear previous lines
+                      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                      // Set line style
+                      ctx.strokeStyle = "#3b82f6"; // Blue color
+                      ctx.lineWidth = 3;
+                      ctx.lineCap = "round";
+
+                      // Draw lines for each connection
+                      Object.entries(selectedPairs).forEach(
+                        ([word, meaning]) => {
+                          const wordElement = document.querySelector(
+                            `[data-word="${word}"]`
+                          );
+                          const meaningElement = document.querySelector(
+                            `[data-meaning="${meaning}"]`
+                          );
+
+                          if (wordElement && meaningElement) {
+                            const wordRect =
+                              wordElement.getBoundingClientRect();
+                            const meaningRect =
+                              meaningElement.getBoundingClientRect();
+                            const canvasRect = canvas.getBoundingClientRect();
+
+                            const startX = wordRect.right - canvasRect.left;
+                            const startY =
+                              wordRect.top +
+                              wordRect.height / 2 -
+                              canvasRect.top;
+                            const endX = meaningRect.left - canvasRect.left;
+                            const endY =
+                              meaningRect.top +
+                              meaningRect.height / 2 -
+                              canvasRect.top;
+
+                            ctx.beginPath();
+                            ctx.moveTo(startX, startY);
+                            ctx.lineTo(endX, endY);
+                            ctx.stroke();
+
+                            // Add small circles at connection points
+                            ctx.fillStyle = "#3b82f6";
+                            ctx.beginPath();
+                            ctx.arc(startX, startY, 4, 0, 2 * Math.PI);
+                            ctx.fill();
+                            ctx.beginPath();
+                            ctx.arc(endX, endY, 4, 0, 2 * Math.PI);
+                            ctx.fill();
+                          }
+                        }
+                      );
+                    }
+                  }
+                }}
+                className="absolute inset-0 pointer-events-none z-10"
+                width="800"
+                height="400"
+              />
+
+              <div className="grid grid-cols-2 gap-8">
+                {/* Left column - Words */}
+                <div className="space-y-3">
+                  {currentLesson.options?.map((pair: any, idx: number) => {
+                    const [word, meaning] = pair.split(":");
+                    const isSelected =
+                      Object.keys(selectedPairs).includes(word);
+                    const isActive = activeWord === word;
+                    const isMatched = selectedPairs[word];
+
+                    return (
+                      <button
+                        key={`word-${idx}`}
+                        data-word={word}
+                        onClick={() => handlePairSelect("word", word)}
+                        className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all duration-200 relative ${
+                          isMatched && isSubmitted
+                            ? isCorrect
+                              ? "bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600 shadow-md"
+                              : "bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-600"
+                            : isMatched
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 shadow-md"
+                            : isActive
+                            ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400 dark:border-yellow-600 shadow-lg scale-105"
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        }`}
+                        disabled={isSubmitted}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{word}</span>
+                          {isMatched && (
+                            <div className="flex items-center space-x-2">
+                              {isSubmitted && (
+                                <span className="text-sm">
+                                  {isCorrect ? (
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                  ) : (
+                                    <X className="h-4 w-4 text-red-500" />
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right column - Meanings */}
+                <div className="space-y-3">
+                  {currentLesson.options?.map((pair: any, idx: number) => {
+                    const [word, meaning] = pair.split(":");
+                    const isMatched =
+                      Object.values(selectedPairs).includes(meaning);
+                    const connectedWord = Object.keys(selectedPairs).find(
+                      (key) => selectedPairs[key] === meaning
+                    );
+
+                    return (
+                      <button
+                        key={`meaning-${idx}`}
+                        data-meaning={meaning}
+                        onClick={() => handlePairSelect("meaning", meaning)}
+                        className={`w-full p-4 rounded-xl border-2 text-left font-medium transition-all duration-200 relative ${
+                          isMatched && isSubmitted
+                            ? isCorrect
+                              ? "bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-600 shadow-md"
+                              : "bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-600"
+                            : isMatched
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600 shadow-md"
+                            : activeWord && !isMatched
+                            ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:border-yellow-400 dark:hover:border-yellow-600"
+                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                        }`}
+                        disabled={isSubmitted || (!activeWord && isMatched)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{meaning}</span>
+                          {isMatched && (
+                            <div className="flex items-center space-x-2">
+                              {isSubmitted && (
+                                <span className="text-sm">
+                                  {isCorrect ? (
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                  ) : (
+                                    <X className="h-4 w-4 text-red-500" />
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {currentLesson.options?.map((pair: any, idx: number) => {
-                  const [word, meaning] = pair.split(":");
-                  const isSelected =
-                    Object.values(selectedPairs).includes(meaning);
-                  return (
-                    <button
-                      key={`meaning-${idx}`}
-                      onClick={() =>
-                        handlePairSelect("meaning", pair.split(":")[1])
-                      }
-                      className={`w-full p-3 rounded-lg border text-left font-medium ${
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                      disabled={isSubmitted}
-                    >
-                      {meaning}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Progress indicator */}
+              {Object.keys(selectedPairs).length > 0 && (
+                <div className="mt-6 text-center">
+                  <div className="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-full">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                      {Object.keys(selectedPairs).length} of{" "}
+                      {currentLesson.options?.length || 0} pairs matched
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
