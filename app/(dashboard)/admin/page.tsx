@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
 import { parseISO, isThisWeek } from "date-fns";
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import {
   Users,
@@ -33,12 +39,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
 type DbUser = {
   user_id: string;
   username: string;
@@ -123,6 +130,9 @@ export default function AdminDashboardPage() {
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<"students" | "analytics">(
+    "students"
+  );
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -547,41 +557,63 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Admin Header - Fixed at top */}
-      <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Crown className="h-8 w-8 text-yellow-500" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Admin Dashboard
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Student Management System
-                </p>
-              </div>
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Left side: Branding */}
+          <div className="flex items-center gap-2">
+            <span className="text-[#B40000] font-semibold text-lg">Kira</span>
+            <span className="text-gray-700 font-medium">Admin Dashboard</span>
+          </div>
+
+          {/* Middle: Tabs */}
+          <div className="flex bg-[#f1f1f1] p-1 rounded-[8px] ">
+            <button
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "students"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("students")}
+            >
+              My Students
+            </button>
+            <button
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "analytics"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("analytics")}
+            >
+              Usage Analytics
+            </button>
+          </div>
+
+          {/* Right side: User info */}
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">
+                {user.first_name} {user.last_name}
+              </p>
+              <p className="text-xs text-[#B40000]">Administrator</p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.first_name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Administrator
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="cursor-pointer">
+                  <AvatarFallback>
+                    {user?.first_name?.[0]}
+                    {user?.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-50 bg-white">
+                <DropdownMenuItem disabled>{user.email}</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -998,18 +1030,20 @@ export default function AdminDashboardPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
               <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
                 {/* Header with Avatar and Name */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarFallback className="bg-green-500 text-white font-semibold text-2xl">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-green-500 text-white font-semibold text-1xl">
                         {getUserInitials(editStudent)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h2 className="text-2xl font-bold">
+                      <h2 className="text-1xl font-bold">
                         {getDisplayName(editStudent)}
                       </h2>
-                      <p className="text-gray-500">{editStudent.username}</p>
+                      <p className="text-gray-500 text-[13px]">
+                        {editStudent.username}
+                      </p>
                     </div>
                   </div>
                   <Button
@@ -1022,7 +1056,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <hr className="my-2 w-full border-t border-gray-300 mb-4" />
                 {/* Two Tab Layout */}
-                <div className="bg-white dark:bg-gray-900 pl-1 pr-1  pb-6 rounded-xl">
+                <div className="bg-white dark:bg-gray-900 pl-1 pr-1  pb-2 rounded-xl">
                   <Tabs defaultValue="progress" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-6 rounded-md overflow-hidden ">
                       <TabsTrigger value="progress">PROGRESS</TabsTrigger>
@@ -1476,7 +1510,7 @@ export default function AdminDashboardPage() {
                   </Tabs>
                 </div>
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
+                <div className="flex justify-end gap-3 pt-6 border-t">
                   <Button
                     variant="outline"
                     onClick={() => setEditStudent(null)}
