@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
+import { parseISO, isThisWeek } from "date-fns";
 
 import Link from "next/link";
 import {
@@ -37,7 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-
+import { cn } from "@/lib/utils";
 type DbUser = {
   user_id: string;
   username: string;
@@ -183,7 +184,21 @@ export default function AdminDashboardPage() {
       setStudentQuizAttempts(null); // clear or fallback
     }
   };
+  function getThisWeekQuizStatus(
+    pointsHistory: StudentQuizData["points_history"]
+  ) {
+    const weekly = pointsHistory
+      .filter((entry) => isThisWeek(parseISO(entry.date)))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    const result: ("completed" | "pending")[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      result.push(i < weekly.length ? "completed" : "pending");
+    }
+
+    return result;
+  }
   // Update student info handler
   const handleUpdateStudent = async () => {
     if (!editStudent) return;
@@ -980,8 +995,8 @@ export default function AdminDashboardPage() {
 
           {/* Student Edit Modal */}
           {editStudent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
                 {/* Header with Avatar and Name */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
@@ -1005,414 +1020,461 @@ export default function AdminDashboardPage() {
                     ✕
                   </Button>
                 </div>
-
+                <hr className="my-2 w-full border-t border-gray-300 mb-4" />
                 {/* Two Tab Layout */}
-                <Tabs defaultValue="progress" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="progress">PROGRESS</TabsTrigger>
-                    <TabsTrigger value="profile">STUDENT PROFILE</TabsTrigger>
-                  </TabsList>
+                <div className="bg-white dark:bg-gray-900 pl-1 pr-1  pb-6 rounded-xl">
+                  <Tabs defaultValue="progress" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 rounded-md overflow-hidden ">
+                      <TabsTrigger value="progress">PROGRESS</TabsTrigger>
+                      <TabsTrigger value="profile" className="rounded-[8px]">
+                        STUDENT PROFILE
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {/* Progress Tab */}
-                  <TabsContent value="progress" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {/* Total Points Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-green-500 bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Total Points
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.total_points || 0}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-center space-y-1 w-full">
-                          {studentQuizAttempts?.points_history
-                            ?.slice(0, 4)
-                            .map((point, index) => (
-                              <div key={index} className="text-xs">
-                                <div className="font-medium">
-                                  {point.points} points
-                                </div>
-                                <div className="text-gray-500">
-                                  Quiz completed
-                                </div>
-                                <div className="text-gray-500">
-                                  {new Date(point.date).toLocaleDateString()}
-                                </div>
-                              </div>
-                            )) || (
-                            <>
-                              <div className="text-sm font-medium">
-                                No activity yet
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                Complete quizzes to earn points
-                              </div>
-                            </>
+                    {/* Progress Tab */}
+                    <TabsContent value="progress" className="space-y-4 p-8">
+                      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+                        {/* LEFT COLUMN */}
+                        <div className="space-y-6 w-full max-w-[300px]">
+                          {studentQuizAttempts && (
+                            <Card className="rounded-2xl shadow-sm">
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-center text-base font-medium">
+                                  This Week’s Progress
+                                </CardTitle>
+                              </CardHeader>
+
+                              <CardContent className="text-sm space-y-2 text-center text-muted-foreground">
+                                {getThisWeekQuizStatus(
+                                  studentQuizAttempts.points_history
+                                ).map((status, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-center gap-2"
+                                  >
+                                    <span
+                                      className={
+                                        status === "completed"
+                                          ? "text-green-600"
+                                          : "text-yellow-500"
+                                      }
+                                    >
+                                      {status === "completed" ? "✔️" : "🕒"}
+                                    </span>
+                                    <span>Quiz {index + 1}</span>
+                                  </div>
+                                ))}
+                              </CardContent>
+                            </Card>
                           )}
-                        </div>
-                        <Button
-                          variant="link"
-                          className="text-blue-600 text-sm mt-2"
-                        >
-                          View Details →
-                        </Button>
-                      </div>
 
-                      {/* Average Quiz Grade Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-purple-600 bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Ave. Quiz Grade
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.avg_quiz_grade || "0%"}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1 w-full">
-                          {studentQuizAttempts?.quiz_history
-                            ?.slice(0, 4)
-                            .map((quiz, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm"
-                              >
-                                <span>{quiz.quiz_name}</span>
-                                <span>
-                                  {new Date(quiz.date).toLocaleDateString()}
-                                </span>
-                                <span>{quiz.grade}</span>
-                                <span>{quiz.retakes} retakes</span>
-                              </div>
-                            )) || (
-                            <>
-                              <div className="flex items-center justify-between text-sm">
-                                <span>No quizzes yet</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        <Button
-                          variant="link"
-                          className="text-blue-600 text-sm mt-2"
-                        >
-                          View Details →
-                        </Button>
-                      </div>
-
-                      {/* Learning Streak Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-red-400 bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Learning Streak
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.learning_streak || 0} days
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm">Keep it up!</div>
-                          <div className="text-xs text-gray-500">
-                            Daily learning streak
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Combined Badges and Achievements Column */}
-                      <div className="space-y-6">
-                        {/* Badges Earned Circle */}
-                        <div className="flex flex-col items-center">
-                          <div className="relative w-24 h-24 mb-2">
-                            <div className="w-24 h-24 rounded-full border-6 border-teal-500 bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                          {/* Learning Streak + Time Spent */}
+                          <Card className="p-6 rounded-2xl shadow-sm text-center flex flex-col items-center">
+                            <div className="w-40 h-40 rounded-full border-[12px] border-rose-500 bg-rose-100 flex items-center justify-center relative">
                               <div className="text-center">
-                                <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  Badges Earned
+                                <div className="text-base text-gray-600 font-medium">
+                                  Learning Streak
                                 </div>
-                                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                  {studentQuizAttempts?.badges_earned || 0}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right space-y-1 w-full">
-                            {studentQuizAttempts?.badges
-                              ?.slice(0, 4)
-                              .map((badge, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between text-sm"
-                                >
-                                  <span>{badge.name}</span>
-                                  <span>
-                                    {new Date(
-                                      badge.earned_at
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              )) || (
-                              <>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span>No badges yet</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                          <Button
-                            variant="link"
-                            className="text-blue-600 text-sm mt-2"
-                          >
-                            View Details →
-                          </Button>
-                        </div>
-
-                        {/* Achievements Circle */}
-                        <div className="flex flex-col items-center">
-                          <div className="relative w-24 h-24 mb-2">
-                            <div className="w-24 h-24 rounded-full border-6 border-yellow-500 bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  Achievements
-                                </div>
-                                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                  {studentQuizAttempts?.achievements?.length ||
-                                    0}
+                                <div className="text-3xl font-bold text-rose-600">
+                                  {studentQuizAttempts?.learning_streak || 0}{" "}
+                                  days
                                 </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="text-right space-y-1 w-full">
-                            {studentQuizAttempts?.achievements
-                              ?.slice(0, 4)
-                              .map((achievement, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between text-sm"
-                                >
-                                  <span>{achievement.name}</span>
-                                  <span>
-                                    {new Date(
-                                      achievement.completed_at
-                                    ).toLocaleDateString()}
-                                  </span>
+                            <p className="mt-4 text-sm font-semibold text-black">
+                              {"10 hours 20 minutes"}
+                            </p>
+                            <hr className="my-2 w-[138px] border-t border-gray-300" />
+                            <p className="text-xs text-muted-foreground ml-5">
+                              time spent learning
+                            </p>
+                          </Card>
+                        </div>
+
+                        {/* RIGHT COLUMN */}
+                        <div className="space-y-6">
+                          {/* Total Points */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Total Points Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px] ">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-emerald-400 bg-emerald-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-emerald-700 font-semibold">
+                                    Total Points
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {studentQuizAttempts?.total_points}
+                                  </div>
                                 </div>
-                              )) || (
-                              <>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span>No achievements yet</span>
+                              </div>
+
+                              {/* Right: Points History Table */}
+                              <div className="flex-1 space-y-2 w-full">
+                                <div className="border rounded-lg overflow-hidden divide-y">
+                                  {studentQuizAttempts?.points_history.map(
+                                    (entry, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                      >
+                                        <span className="font-medium text-black">
+                                          {entry.points} points
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {formatDate(entry.date)}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {entry.description}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
-                              </>
-                            )}
-                          </div>
-                          <Button
-                            variant="link"
-                            className="text-blue-600 text-sm mt-2"
-                          >
-                            View Details →
-                          </Button>
+
+                                {/* View Details Link */}
+                                <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                                  View Details{" "}
+                                  <span className="inline-block">⌄</span>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+
+                          {/* Average Quiz Grade + History */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Average Quiz Grade Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px] ">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-purple-700 bg-purple-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-purple-700 font-semibold">
+                                    Avg. Quiz Grade
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {studentQuizAttempts?.avg_quiz_grade ||
+                                      "N/A"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: Quiz History Table */}
+                              <div className="flex-1 space-y-2 w-full">
+                                <div className="flex-1 w-full">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.quiz_history.map(
+                                      (quiz, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="grid grid-cols-4 gap-4 items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {quiz.quiz_name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              quiz.date
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {quiz.grade}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {quiz.retakes} retakes
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+
+                                  {/* View Details Link */}
+                                  <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                                    View Details{" "}
+                                    <span className="inline-block">⌄</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+
+                          {/* Badges & Achievements */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Badges & Achievements Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px]">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-yellow-400 bg-yellow-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-yellow-700 font-semibold">
+                                    Badges & Achievements
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {(studentQuizAttempts?.badges.length || 0) +
+                                      (studentQuizAttempts?.achievements
+                                        .length || 0)}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: Badges and Achievements Lists */}
+                              <div className="flex flex-col md:flex-row gap-4 w-full">
+                                {/* Badges List */}
+                                <div className="flex-1 space-y-2">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.badges.map(
+                                      (badge, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {badge.name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              badge.earned_at
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Achievements List */}
+                                <div className="flex-1 space-y-2">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.achievements.map(
+                                      (ach, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {ach.name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              ach.completed_at
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* View Details Link */}
+                            <div className="text-right mt-4 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                              View Details{" "}
+                              <span className="inline-block">⌄</span>
+                            </div>
+                          </Card>
                         </div>
                       </div>
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
 
-                  {/* Student Profile Tab */}
-                  <TabsContent value="profile" className="space-y-6">
-                    <div className="max-w-2xl">
-                      {/* Account Details Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">
-                            Account Details
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                          >
-                            Edit
-                          </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>First Name</Label>
-                            <Input
-                              value={editForm.first_name}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f,
-                                  first_name: e.target.value,
-                                }))
-                              }
-                              className="mt-1"
-                              placeholder="First name"
-                            />
-                          </div>
-                          <div>
-                            <Label>Last Name</Label>
-                            <Input
-                              value={editForm.last_name}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f,
-                                  last_name: e.target.value,
-                                }))
-                              }
-                              className="mt-1"
-                              placeholder="Last name"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Email</Label>
-                          <Input
-                            value={editForm.email}
-                            onChange={(e) =>
-                              setEditForm((f) => ({
-                                ...f,
-                                email: e.target.value,
-                              }))
-                            }
-                            className="mt-1"
-                            placeholder="Email address"
-                          />
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Username</Label>
-                          <Input
-                            value={editStudent.username}
-                            disabled
-                            className="mt-1 bg-gray-100 dark:bg-gray-700"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div>
-                            <Label>School</Label>
-                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                              <option>{schoolName || "Not assigned"}</option>
-                            </select>
-                          </div>
-                          <div>
-                            <Label>Grade</Label>
-                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                              <option>
-                                {editStudent.grade || "Not assigned"}
-                              </option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Assigned Administrator</Label>
-                          <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            <option>
-                              {user.first_name || "Current Admin"}
-                            </option>
-                          </select>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Notes</Label>
-                          <textarea
-                            value={editForm.notes}
-                            onChange={(e) =>
-                              setEditForm((f) => ({
-                                ...f,
-                                notes: e.target.value,
-                              }))
-                            }
-                            placeholder="Add notes about this student..."
-                            className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Password Settings Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">
-                            Password Settings
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                            onClick={() => setSelectedStudent(editStudent)}
-                          >
-                            Change Password
-                          </Button>
-                        </div>
-
-                        <div>
-                          <Label>Password</Label>
-                          <div className="relative mt-1">
-                            <Input
-                              type="password"
-                              value="••••••••••••"
-                              disabled
-                              className="bg-gray-100 dark:bg-gray-700 pr-10"
-                            />
-                            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <svg
-                                className="w-4 h-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                    {/* Student Profile Tab */}
+                    <TabsContent value="profile" className="space-y-6">
+                      <div className="w-full flex justify-center">
+                        <div className="max-w-2xl ">
+                          {/* Account Details Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold">
+                                Account Details
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                Edit
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>First Name</Label>
+                                <Input
+                                  value={editForm.first_name}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({
+                                      ...f,
+                                      first_name: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1"
+                                  placeholder="First name"
                                 />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              </div>
+                              <div>
+                                <Label>Last Name</Label>
+                                <Input
+                                  value={editForm.last_name}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({
+                                      ...f,
+                                      last_name: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1"
+                                  placeholder="Last name"
                                 />
-                              </svg>
-                            </button>
+                              </div>
+                            </div>
+
+                            <div className="mt-4">
+                              <Label>Email</Label>
+                              <Input
+                                value={editForm.email}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    email: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                placeholder="Email address"
+                              />
+                            </div>
+
+                            <div className="mt-4">
+                              <Label>Username</Label>
+                              <Input
+                                value={editStudent.username}
+                                disabled
+                                className="mt-1 bg-gray-100 dark:bg-gray-700"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div>
+                                <Label>School</Label>
+                                <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                  <option>
+                                    {schoolName || "Not assigned"}
+                                  </option>
+                                </select>
+                              </div>
+                              <div>
+                                <Label>Grade</Label>
+                                <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                  <option>
+                                    {editStudent.grade || "Not assigned"}
+                                  </option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="mt-4">
+                              <Label>Assigned Administrator</Label>
+                              <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option>
+                                  {user.first_name || "Current Admin"}
+                                </option>
+                              </select>
+                            </div>
+
+                            <div className="mt-4">
+                              <Label>Notes</Label>
+                              <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
+                              <textarea
+                                value={editForm.notes}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    notes: e.target.value,
+                                  }))
+                                }
+                                placeholder="Add notes about this student..."
+                                className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Password Settings Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold">
+                                Password Settings
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => setSelectedStudent(editStudent)}
+                              >
+                                Change Password
+                              </Button>
+                            </div>
+
+                            <div>
+                              <Label>Password</Label>
+                              <div className="relative mt-1">
+                                <Input
+                                  type="password"
+                                  value="••••••••••••"
+                                  disabled
+                                  className="bg-gray-100 dark:bg-gray-700 pr-10"
+                                />
+                                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <svg
+                                    className="w-4 h-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Account Options Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-semibold">
+                                Account Options
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled
+                                className="text-red-600 border-red-600 opacity-50"
+                                title="Delete functionality not yet available"
+                              >
+                                Delete Account
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Account Options Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold">
-                            Account Options
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                            className="text-red-600 border-red-600 opacity-50"
-                            title="Delete functionality not yet available"
-                          >
-                            Delete Account
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
+                    </TabsContent>
+                  </Tabs>
+                </div>
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                   <Button

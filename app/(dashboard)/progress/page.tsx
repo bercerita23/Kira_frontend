@@ -217,7 +217,7 @@ export default function ProgressPage() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="quiz">Quiz History</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
-                  <TabsTrigger value="achievements">achievements</TabsTrigger>
+                  <TabsTrigger value="achievements">Achievements</TabsTrigger>
                 </TabsList>
                 <TabsContent value="quiz">
                   <Card>
@@ -303,7 +303,7 @@ export default function ProgressPage() {
                 <TabsContent value="badges">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Badges</CardTitle>
+                      <CardTitle>Awards</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
@@ -354,11 +354,6 @@ export default function ProgressPage() {
                                     >
                                       <div>
                                         <div>{badge.name}</div>
-                                        {badge.bahasa_indonesia_name && (
-                                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                                            {badge.bahasa_indonesia_name}
-                                          </div>
-                                        )}
                                       </div>
                                     </td>
 
@@ -462,11 +457,6 @@ export default function ProgressPage() {
                                       )}
                                     >
                                       {achievement.name_en}
-                                      {achievement.name_ind && (
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                          {achievement.name_ind}
-                                        </div>
-                                      )}
                                     </td>
                                     <td
                                       className={cn(
@@ -477,11 +467,6 @@ export default function ProgressPage() {
                                       )}
                                     >
                                       {achievement.description_en}
-                                      {achievement.description_ind && (
-                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                          {achievement.description_ind}
-                                        </div>
-                                      )}
                                     </td>
                                     <td
                                       className={cn(
