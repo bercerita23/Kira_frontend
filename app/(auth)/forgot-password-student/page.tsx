@@ -2,17 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,8 +12,7 @@ export default function ForgotPasswordPage() {
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const router = useRouter();
+  const [codeSent, setCodeSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +29,11 @@ export default function ForgotPasswordPage() {
       if (!response.ok) throw new Error("Failed to send request to admin");
 
       localStorage.setItem("resetUsername", username);
+      setCodeSent(true);
 
       toast({
-        title: "Reset Password Request Has Been Sent",
-        description: "your request has beem forwarded to the admin.",
+        title: "Code has been sent ✓",
+        description: "Your request has been forwarded to the admin.",
       });
     } catch (err: any) {
       console.error(err);
@@ -53,45 +44,62 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-primary">Kira</span>
-          </Link>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Forgot Password
-            </CardTitle>
-            <CardDescription className="text-center">
-              Enter your username to receive a reset code
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-              <Button className="w-full" disabled={isLoading} type="submit">
-                {isLoading ? "Sending..." : "Request"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
+      <div className="bg-white p-12 rounded-[8px] shadow-md w-full max-w-md text-center">
+        <h1 className="text-4xl font-bold text-[#B71C3B] mb-1">KIRA</h1>
+        <h2 className="text-[24px] font-medium text-black mb-10">
+          Forgot Password
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-6 mb-14">
+          <div className="text-left mb-4">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Enter your username to send a request
+            </label>
+            <Input
+              id="username"
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full rounded-[7px]"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white font-semibold rounded-[7px]"
+            disabled={isLoading || codeSent}
+          >
+            {codeSent
+              ? "Code has been sent ✓"
+              : isLoading
+              ? "Sending..."
+              : "Send Code"}
+          </Button>
+        </form>
+
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <p className="text-sm text-gray-700 mt-4">
+          If you haven’t heard back for a while,{" "}
+          <button
+            className="text-[#B71C3B] underline"
+            onClick={() => {
+              setCodeSent(false);
+              setUsername("");
+            }}
+          >
+            Resend your request
+          </button>
+        </p>
       </div>
     </div>
   );
