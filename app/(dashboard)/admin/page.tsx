@@ -171,6 +171,53 @@ export default function AdminDashboardPage() {
     });
   };
 
+  async function deactivateStudent(username: string) {
+    try {
+      const response = await fetch("/api/admin/deactivate_student", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to deactivate student");
+      }
+
+      console.log("✅ Student deactivated:", data);
+      // Optionally refetch students or show a success toast here
+    } catch (error) {
+      console.error("❌ Error deactivating student:", error);
+      // Optionally show an error toast here
+    }
+  }
+
+  async function reactivateStudent(username: string) {
+    try {
+      const response = await fetch("/api/admin/reactivate-student", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to reactivate student");
+      }
+
+      console.log("✅ Student reactivated:", data);
+      // Optionally refresh state/UI here
+    } catch (error) {
+      console.error("❌ Reactivation failed:", error);
+    }
+  }
+
   // Auto-select target student for password reset (special link flow only)
   useEffect(() => {
     if (students.length > 0) {
@@ -1610,10 +1657,26 @@ export default function AdminDashboardPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-red-600 border-red-600 "
-                                title="Delete functionality not yet available"
+                                className={`border-red-600 hover:bg-red-50 ${
+                                  studentQuizAttempts?.student_info.deactivated
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }`}
+                                onClick={() => {
+                                  const username = editStudent.username;
+                                  if (
+                                    studentQuizAttempts?.student_info
+                                      .deactivated
+                                  ) {
+                                    reactivateStudent(username);
+                                  } else {
+                                    deactivateStudent(username);
+                                  }
+                                }}
                               >
-                                Deactivate account
+                                {studentQuizAttempts?.student_info.deactivated
+                                  ? "Reactivate Account"
+                                  : "Deactivate Account"}
                               </Button>
                             </div>
                           </div>
