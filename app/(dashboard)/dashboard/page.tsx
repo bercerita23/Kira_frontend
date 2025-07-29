@@ -247,22 +247,6 @@ export default function DashboardPage() {
               {/* Stats Overview */}
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                      <Star className="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Daily Streak
-                      </p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {streaks ? streaks.current_streak : "…"} days
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
                   <div className="flex flex-col">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Today's Goal

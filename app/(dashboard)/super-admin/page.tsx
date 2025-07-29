@@ -862,7 +862,7 @@ function InviteAdminsTab() {
     try {
       console.log("📧 Sending invitations:", invitationList);
 
-      const response = await fetch("/api/invite", {
+      const response = await fetch("/api/super_admin/invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1013,7 +1013,7 @@ function InviteAdminsTab() {
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a school" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {schools.map((school) => (
                     <SelectItem
                       key={school.school_id}
@@ -1052,7 +1052,7 @@ function InviteAdminsTab() {
           {invitationList.length > 0 && (
             <div className="space-y-2">
               <Label>Invitation List ({invitationList.length})</Label>
-              <div className="max-h-60 overflow-y-auto border rounded-lg p-3 space-y-3">
+              <div className="max-h-60 overflow-y-auto border rounded-lg  p-3 space-y-3">
                 {invitationList.map((invitation, index) => (
                   <div
                     key={index}
@@ -1337,7 +1337,7 @@ function ManageSchoolsTab({
         },
       ];
 
-      const response = await fetch("/api/invite", {
+      const response = await fetch("/api/super_admin/invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

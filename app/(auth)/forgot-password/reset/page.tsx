@@ -1,20 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useSearchParams } from "next/navigation";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,11 +13,12 @@ export default function ResetPasswordPage() {
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [codeValid, setCodeValid] = useState<null | boolean>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
   const searchParams = useSearchParams();
   const router = useRouter();
+
   useEffect(() => {
     const urlCode = searchParams.get("code");
     const firstName = searchParams.get("first_name");
@@ -41,6 +31,7 @@ export default function ResetPasswordPage() {
       });
     }
   }, [searchParams]);
+
   useEffect(() => {
     const storedEmail = localStorage.getItem("resetEmail");
     if (storedEmail) {
@@ -69,7 +60,7 @@ export default function ResetPasswordPage() {
 
       toast({ title: "Success", description: "Password has been reset." });
       localStorage.removeItem("resetEmail");
-      router.push("/admin/login");
+      router.push("/login");
     } catch (err: any) {
       setError(err.message || "An error occurred.");
     } finally {
@@ -82,73 +73,83 @@ export default function ResetPasswordPage() {
     newPassword && confirmPassword && passwordsMatch && newPassword.length >= 8;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              Kira Admin
-            </span>
-          </Link>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Reset Password
-            </CardTitle>
-            <CardDescription className="text-center">
-              Enter your code and new password
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <form onSubmit={handleSubmitNewPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Verification Code</Label>
-                <Input
-                  id="code"
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={
-                    confirmPassword && !passwordsMatch ? "border-red-500" : ""
-                  }
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading || !canSubmit}
-              >
-                {isLoading ? "Resetting..." : "Reset Password"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
+      <div className="bg-white p-12 rounded-[8px] shadow-md w-full max-w-md text-center">
+        <h1 className="text-4xl font-bold text-[#B71C3B] mb-1">KIRA</h1>
+        <h2 className="text-[24px] font-medium text-black mb-10">
+          Forgot Password
+        </h2>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4 text-left">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form
+          onSubmit={handleSubmitNewPassword}
+          className="space-y-6 mb-2 text-left"
+        >
+          <div>
+            <label
+              htmlFor="code"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Reset Code
+            </label>
+            <Input
+              id="code"
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="rounded-[7px]"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              New Password
+            </label>
+            <Input
+              id="newPassword"
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="rounded-[7px]"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Repeat New Password
+            </label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`rounded-[7px] ${
+                confirmPassword && !passwordsMatch ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white font-semibold rounded-[7px]"
+            disabled={isLoading || !canSubmit}
+          >
+            {isLoading ? "Updating..." : "Update Password"}
+          </Button>
+        </form>
       </div>
     </div>
   );

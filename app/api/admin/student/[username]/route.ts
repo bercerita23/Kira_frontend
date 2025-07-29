@@ -1,5 +1,13 @@
 import { NextRequest } from "next/server";
 
+const noCacheHeaders = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+  "Surrogate-Control": "no-store",
+  "Content-Type": "application/json",
+};
+
 export async function GET(
   req: NextRequest,
   context: { params: { username: string } }
@@ -8,7 +16,10 @@ export async function GET(
   if (!token) {
     return new Response(
       JSON.stringify({ message: "Missing authentication token" }),
-      { status: 401 }
+      {
+        status: 401,
+        headers: noCacheHeaders,
+      }
     );
   }
 
@@ -23,6 +34,7 @@ export async function GET(
     const response = await fetch(backendUrl, {
       method: "GET",
       headers: outgoingHeaders,
+      cache: "no-store", // prevent fetch caching
     });
 
     const rawData = await response.text();
@@ -36,16 +48,21 @@ export async function GET(
     if (!response.ok) {
       return new Response(JSON.stringify(data), {
         status: response.status,
+        headers: noCacheHeaders,
       });
     }
 
     return new Response(JSON.stringify(data), {
       status: 200,
+      headers: noCacheHeaders,
     });
   } catch (error) {
     return new Response(
       JSON.stringify({ message: "Proxy error", error: String(error) }),
-      { status: 500 }
+      {
+        status: 500,
+        headers: noCacheHeaders,
+      }
     );
   }
 }

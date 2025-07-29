@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
-
+import { parseISO, isThisWeek } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import {
   Users,
@@ -32,11 +39,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 type DbUser = {
   user_id: string;
@@ -47,7 +55,7 @@ type DbUser = {
   is_admin: boolean;
   created_at: string;
   last_login_time: string;
-  school_id: string;
+  school: string;
   notes: string;
   grade?: string;
   points?: number;
@@ -83,10 +91,23 @@ type StudentQuizData = {
     description: string;
     completed_at: string;
   }>;
+  student_info: {
+    first_name: string;
+    last_name: string;
+    created_at: string;
+    notes: string;
+    last_login_time: string;
+    deactivated: boolean;
+    grade: string;
+  };
 };
 
 export default function AdminDashboardPage() {
+  const GRADES = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+
   const { user, isLoading, logout } = useAuth();
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const { toast } = useToast();
   const [schoolName, setSchoolName] = useState<string | null>(null);
   const [students, setStudents] = useState<DbUser[]>([]);
@@ -107,6 +128,8 @@ export default function AdminDashboardPage() {
     last_name: "",
     email: "",
     notes: "",
+    school: "",
+    grade: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
   //
@@ -118,10 +141,16 @@ export default function AdminDashboardPage() {
     first_name: "",
     last_name: "",
   });
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<"students" | "analytics">(
+    "students"
+  );
+  const [passwordError, setPasswordError] = useState(false);
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -170,6 +199,8 @@ export default function AdminDashboardPage() {
       last_name: student.last_name || "",
       email: student.email || "",
       notes: student.notes || "",
+      school: student.school || "", // or student.school if that’s correct
+      grade: student.grade || "",
     });
 
     try {
@@ -183,28 +214,56 @@ export default function AdminDashboardPage() {
       setStudentQuizAttempts(null); // clear or fallback
     }
   };
+  function getThisWeekQuizStatus(
+    pointsHistory: StudentQuizData["points_history"]
+  ) {
+    const weekly = pointsHistory
+      .filter((entry) => isThisWeek(parseISO(entry.date)))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  // Update student info handler
+    const result: ("completed" | "pending")[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      result.push(i < weekly.length ? "completed" : "pending");
+    }
+
+    return result;
+  }
   const handleUpdateStudent = async () => {
     if (!editStudent) return;
     setIsUpdating(true);
+
     try {
+      const rawPayload = {
+        username: editStudent.username,
+        ...editForm,
+        school: editStudent.school || "",
+        grade: editForm.grade || "",
+      };
+
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, v]) => v !== "")
+      );
+      console.log("🟡 Sending update payload to /api/admin/update:", payload);
+
       const res = await fetch("/api/admin/update", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: editStudent.username,
-          ...editForm,
-        }),
+        body: JSON.stringify(payload),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update student");
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to update student");
+      }
+
       toast({
         title: "Student Updated",
         description: `Information for ${editStudent.username} updated.`,
       });
-      setEditStudent(null);
-      // Optionally refresh students list
+
+      // Reset and refresh
       window.location.reload();
     } catch (err: any) {
       toast({
@@ -524,110 +583,138 @@ export default function AdminDashboardPage() {
       student.last_name || ""
     }`.toLowerCase();
     const username = student.username?.toLowerCase() || "";
-    return (
+    const matchesSearch =
       name.includes(search.toLowerCase()) ||
-      username.includes(search.toLowerCase())
-    );
+      username.includes(search.toLowerCase());
+    const matchesGrade =
+      selectedGrades.length === 0 ||
+      selectedGrades.includes(student.grade || "");
+
+    return matchesSearch && matchesGrade;
   });
+
+  {
+    /* Stats Overview */
+  }
+  // <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         Total Students
+  //       </CardTitle>
+  //       <Users className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">{students.length}</div>
+  //       <p className="text-xs text-muted-foreground">Active learners</p>
+  //     </CardContent>
+  //   </Card>
+
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         Recent Signups
+  //       </CardTitle>
+  //       <UserCheck className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">
+  //         {
+  //           students.filter((s) => {
+  //             const signupDate = new Date(s.created_at || "");
+  //             const weekAgo = new Date();
+  //             weekAgo.setDate(weekAgo.getDate() - 7);
+  //             return signupDate > weekAgo;
+  //           }).length
+  //         }
+  //       </div>
+  //       <p className="text-xs text-muted-foreground">Last 7 days</p>
+  //     </CardContent>
+  //   </Card>
+
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         School Assigned
+  //       </CardTitle>
+  //       <Users className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">
+  //         {students.filter((s) => s.school_id).length}
+  //       </div>
+  //       <p className="text-xs text-muted-foreground">
+  //         Students with schools
+  //       </p>
+  //     </CardContent>
+  //   </Card>
+  // </div>
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Admin Header - Fixed at top */}
-      <div className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Crown className="h-8 w-8 text-yellow-500" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Admin Dashboard
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Student Management System
-                </p>
-              </div>
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          {/* Left side: Branding */}
+          <div className="flex items-center gap-2">
+            <span className="text-[#B40000] font-semibold text-lg">Kira</span>
+            <span className="text-gray-700 font-medium">Admin Dashboard</span>
+          </div>
+
+          {/* Middle: Tabs */}
+          <div className="flex bg-[#f1f1f1] p-1 rounded-[8px] ">
+            <button
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "students"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("students")}
+            >
+              My Students
+            </button>
+            <button
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "analytics"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("analytics")}
+            >
+              Usage Analytics
+            </button>
+          </div>
+
+          {/* Right side: User info */}
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">
+                {user.first_name} {user.last_name}
+              </p>
+              <p className="text-xs text-[#B40000]">Administrator</p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.first_name}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Administrator
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="cursor-pointer">
+                  <AvatarFallback>
+                    {user?.first_name?.[0]}
+                    {user?.last_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-50 bg-white">
+                <DropdownMenuItem disabled>{user.email}</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Students
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{students.length}</div>
-              <p className="text-xs text-muted-foreground">Active learners</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Recent Signups
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {
-                  students.filter((s) => {
-                    const signupDate = new Date(s.created_at || "");
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return signupDate > weekAgo;
-                  }).length
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">Last 7 days</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                School Assigned
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {students.filter((s) => s.school_id).length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Students with schools
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tabbed Content */}
         <Tabs defaultValue="students" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -661,9 +748,72 @@ export default function AdminDashboardPage() {
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
-                <Button variant="outline" size="icon" className="ml-2">
-                  <Filter className="h-5 w-5" />
-                </Button>
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={`ml-2 ${
+                      selectedGrades.length > 0 ? "text-[#B40000]" : ""
+                    }`}
+                    onClick={() => setShowFilter(!showFilter)}
+                  >
+                    <Filter className="h-5 w-5" />
+                  </Button>
+                  {selectedGrades.length > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-[#B40000] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {selectedGrades.length}
+                    </div>
+                  )}
+                </div>
+                {showFilter && (
+                  <div className="absolute mt-[280px] mr-12 w-64 right-0 bg-white rounded-lg shadow-xl p-4 z-50 border border-gray-200">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-md font-semibold">Filter Results</h3>
+                      <button onClick={() => setShowFilter(false)}>✕</button>
+                    </div>
+                    <hr className="mb-3" />
+                    <div className="mb-4">
+                      <p className="text-sm font-medium mb-2">Grade</p>
+                      {["3rd", "4th", "5th", "6th", "7th"].map((grade) => (
+                        <label
+                          key={grade}
+                          className="flex items-center justify-between mb-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedGrades.includes(grade)}
+                              onChange={() => {
+                                setSelectedGrades((prev) =>
+                                  prev.includes(grade)
+                                    ? prev.filter((g) => g !== grade)
+                                    : [...prev, grade]
+                                );
+                              }}
+                            />
+                            <span>{grade}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            ({students.filter((s) => s.grade === grade).length})
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={() => setShowFilter(false)}
+                      className="w-full bg-[#B40000] text-white rounded-sm"
+                    >
+                      Apply
+                    </Button>
+                    <button
+                      className="mt-2 text-sm text-[#B40000] underline w-full"
+                      onClick={() => setSelectedGrades([])}
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center ml-2 border rounded overflow-hidden">
                   <button
                     className={`px-2 py-1 ${
@@ -950,14 +1100,30 @@ export default function AdminDashboardPage() {
                   Reset Password for {selectedStudent.username}
                 </h2>
                 <div className="space-y-4">
-                  <Label htmlFor="new_password">New Password</Label>
-                  <Input
-                    id="new_password"
-                    type="password"
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
+                  <div>
+                    <Label htmlFor="new_password">New Password</Label>
+                    <Input
+                      id="new_password"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className={cn(passwordError && "border-red-500")}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirm_password">Confirm Password</Label>
+                    <Input
+                      id="confirm_password"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={cn(passwordError && "border-red-500")}
+                    />
+                  </div>
+
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
@@ -980,21 +1146,23 @@ export default function AdminDashboardPage() {
 
           {/* Student Edit Modal */}
           {editStudent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
                 {/* Header with Avatar and Name */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarFallback className="bg-green-500 text-white font-semibold text-2xl">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-green-500 text-white font-semibold text-1xl">
                         {getUserInitials(editStudent)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h2 className="text-2xl font-bold">
+                      <h2 className="text-1xl font-bold">
                         {getDisplayName(editStudent)}
                       </h2>
-                      <p className="text-gray-500">{editStudent.username}</p>
+                      <p className="text-gray-500 text-[13px]">
+                        {editStudent.username}
+                      </p>
                     </div>
                   </div>
                   <Button
@@ -1005,416 +1173,457 @@ export default function AdminDashboardPage() {
                     ✕
                   </Button>
                 </div>
-
+                <hr className="my-2 w-full border-t border-gray-300 mb-4" />
                 {/* Two Tab Layout */}
-                <Tabs defaultValue="progress" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="progress">PROGRESS</TabsTrigger>
-                    <TabsTrigger value="profile">STUDENT PROFILE</TabsTrigger>
-                  </TabsList>
+                <div className="bg-white dark:bg-gray-900 pl-1 pr-1  pb-2 rounded-xl">
+                  <Tabs defaultValue="progress" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6 rounded-md overflow-hidden ">
+                      <TabsTrigger value="progress">PROGRESS</TabsTrigger>
+                      <TabsTrigger value="profile" className="rounded-[8px]">
+                        STUDENT PROFILE
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {/* Progress Tab */}
-                  <TabsContent value="progress" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {/* Total Points Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-green-500 bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Total Points
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.total_points || 0}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-center space-y-1 w-full">
-                          {studentQuizAttempts?.points_history
-                            ?.slice(0, 4)
-                            .map((point, index) => (
-                              <div key={index} className="text-xs">
-                                <div className="font-medium">
-                                  {point.points} points
-                                </div>
-                                <div className="text-gray-500">
-                                  Quiz completed
-                                </div>
-                                <div className="text-gray-500">
-                                  {new Date(point.date).toLocaleDateString()}
-                                </div>
-                              </div>
-                            )) || (
-                            <>
-                              <div className="text-sm font-medium">
-                                No activity yet
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                Complete quizzes to earn points
-                              </div>
-                            </>
+                    {/* Progress Tab */}
+                    <TabsContent value="progress" className="space-y-4 p-8">
+                      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
+                        {/* LEFT COLUMN */}
+                        <div className="space-y-6 w-full max-w-[300px]">
+                          {studentQuizAttempts && (
+                            <Card className="rounded-2xl shadow-sm">
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-center text-base font-medium">
+                                  This Week’s Progress
+                                </CardTitle>
+                              </CardHeader>
+
+                              <CardContent className="text-sm space-y-2 text-center text-muted-foreground">
+                                {getThisWeekQuizStatus(
+                                  studentQuizAttempts.points_history
+                                ).map((status, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-center gap-2"
+                                  >
+                                    <span
+                                      className={
+                                        status === "completed"
+                                          ? "text-green-600"
+                                          : "text-yellow-500"
+                                      }
+                                    >
+                                      {status === "completed" ? "✔️" : "🕒"}
+                                    </span>
+                                    <span>Quiz {index + 1}</span>
+                                  </div>
+                                ))}
+                              </CardContent>
+                            </Card>
                           )}
                         </div>
-                        <Button
-                          variant="link"
-                          className="text-blue-600 text-sm mt-2"
-                        >
-                          View Details →
-                        </Button>
-                      </div>
 
-                      {/* Average Quiz Grade Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-purple-600 bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Ave. Quiz Grade
+                        {/* RIGHT COLUMN */}
+                        <div className="space-y-6">
+                          {/* Total Points */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Total Points Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px] ">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-emerald-400 bg-emerald-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-emerald-700 font-semibold">
+                                    Total Points
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {studentQuizAttempts?.total_points}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.avg_quiz_grade || "0%"}
+
+                              {/* Right: Points History Table */}
+                              <div className="flex-1 space-y-2 w-full">
+                                <div className="border rounded-lg overflow-hidden divide-y">
+                                  {studentQuizAttempts?.points_history.map(
+                                    (entry, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                      >
+                                        <span className="font-medium text-black">
+                                          {entry.points} points
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {formatDate(entry.date)}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {entry.description}
+                                        </span>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+
+                                {/* View Details Link */}
+                                <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                                  View Details{" "}
+                                  <span className="inline-block">⌄</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          </Card>
+
+                          {/* Average Quiz Grade + History */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Average Quiz Grade Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px] ">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-purple-700 bg-purple-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-purple-700 font-semibold">
+                                    Avg. Quiz Grade
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {studentQuizAttempts?.avg_quiz_grade ||
+                                      "N/A"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: Quiz History Table */}
+                              <div className="flex-1 space-y-2 w-full">
+                                <div className="flex-1 w-full">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.quiz_history.map(
+                                      (quiz, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="grid grid-cols-4 gap-4 items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {quiz.quiz_name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              quiz.date
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {quiz.grade}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {quiz.retakes} retakes
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+
+                                  {/* View Details Link */}
+                                  <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                                    View Details{" "}
+                                    <span className="inline-block">⌄</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+
+                          {/* Badges & Achievements */}
+                          <Card className="p-6 rounded-2xl shadow-sm">
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                              {/* Left: Badges & Achievements Circle */}
+                              <div className="flex justify-center md:justify-start md:w-[180px]">
+                                <div className="w-36 h-36 rounded-full border-[10px] border-yellow-400 bg-yellow-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                  <div className="text-sm text-yellow-700 font-semibold">
+                                    Badges & Achievements
+                                  </div>
+                                  <div className="text-3xl font-bold text-black">
+                                    {(studentQuizAttempts?.badges.length || 0) +
+                                      (studentQuizAttempts?.achievements
+                                        .length || 0)}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: Badges and Achievements Lists */}
+                              <div className="flex flex-col md:flex-row gap-4 w-full">
+                                {/* Badges List */}
+                                <div className="flex-1 space-y-2">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.badges.map(
+                                      (badge, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {badge.name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              badge.earned_at
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Achievements List */}
+                                <div className="flex-1 space-y-2">
+                                  <div className="border rounded-lg overflow-hidden divide-y">
+                                    {studentQuizAttempts?.achievements.map(
+                                      (ach, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                        >
+                                          <span className="text-black">
+                                            {ach.name}
+                                          </span>
+                                          <span className="text-muted-foreground">
+                                            {new Date(
+                                              ach.completed_at
+                                            ).toLocaleDateString("en-US", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* View Details Link */}
+                            <div className="text-right mt-4 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
+                              View Details{" "}
+                              <span className="inline-block">⌄</span>
+                            </div>
+                          </Card>
                         </div>
-                        <div className="text-right space-y-1 w-full">
-                          {studentQuizAttempts?.quiz_history
-                            ?.slice(0, 4)
-                            .map((quiz, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm"
+                      </div>
+                    </TabsContent>
+
+                    {/* Student Profile Tab */}
+                    <TabsContent value="profile" className="space-y-6">
+                      <div className="w-full flex justify-center">
+                        <div className="max-w-2xl ">
+                          {/* Account Details Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold">
+                                Account Details
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
                               >
-                                <span>{quiz.quiz_name}</span>
-                                <span>
-                                  {new Date(quiz.date).toLocaleDateString()}
-                                </span>
-                                <span>{quiz.grade}</span>
-                                <span>{quiz.retakes} retakes</span>
-                              </div>
-                            )) || (
-                            <>
-                              <div className="flex items-center justify-between text-sm">
-                                <span>No quizzes yet</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        <Button
-                          variant="link"
-                          className="text-blue-600 text-sm mt-2"
-                        >
-                          View Details →
-                        </Button>
-                      </div>
+                                Edit
+                              </Button>
+                            </div>
 
-                      {/* Learning Streak Circle */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-32 h-32 mb-4">
-                          <div className="w-32 h-32 rounded-full border-8 border-red-400 bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                Learning Streak
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>First Name</Label>
+                                <Input
+                                  value={editForm.first_name}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({
+                                      ...f,
+                                      first_name: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1"
+                                  placeholder="First name"
+                                />
                               </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {studentQuizAttempts?.learning_streak || 0} days
+                              <div>
+                                <Label>Last Name</Label>
+                                <Input
+                                  value={editForm.last_name}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({
+                                      ...f,
+                                      last_name: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1"
+                                  placeholder="Last name"
+                                />
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm">Keep it up!</div>
-                          <div className="text-xs text-gray-500">
-                            Daily learning streak
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* Combined Badges and Achievements Column */}
-                      <div className="space-y-6">
-                        {/* Badges Earned Circle */}
-                        <div className="flex flex-col items-center">
-                          <div className="relative w-24 h-24 mb-2">
-                            <div className="w-24 h-24 rounded-full border-6 border-teal-500 bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  Badges Earned
-                                </div>
-                                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                  {studentQuizAttempts?.badges_earned || 0}
-                                </div>
-                              </div>
+                            <div className="mt-4">
+                              <Label>Email</Label>
+                              <Input
+                                value={editForm.email}
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    email: e.target.value,
+                                  }))
+                                }
+                                className="mt-1"
+                                placeholder="Email address"
+                              />
                             </div>
-                          </div>
-                          <div className="text-right space-y-1 w-full">
-                            {studentQuizAttempts?.badges
-                              ?.slice(0, 4)
-                              .map((badge, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between text-sm"
+
+                            <div className="mt-4">
+                              <Label>Username</Label>
+                              <Input
+                                value={editStudent.username}
+                                disabled
+                                className="mt-1 bg-gray-100 dark:bg-gray-700"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mt-4">
+                              <div>
+                                <Label>School</Label>
+                                <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                  <option>
+                                    {schoolName || "Not assigned"}
+                                  </option>
+                                </select>
+                              </div>
+                              <div>
+                                <Label>Grade</Label>
+                                <select
+                                  value={editForm.grade || ""}
+                                  onChange={(e) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      grade: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 >
-                                  <span>{badge.name}</span>
-                                  <span>
-                                    {new Date(
-                                      badge.earned_at
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              )) || (
-                              <>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span>No badges yet</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                          <Button
-                            variant="link"
-                            className="text-blue-600 text-sm mt-2"
-                          >
-                            View Details →
-                          </Button>
-                        </div>
-
-                        {/* Achievements Circle */}
-                        <div className="flex flex-col items-center">
-                          <div className="relative w-24 h-24 mb-2">
-                            <div className="w-24 h-24 rounded-full border-6 border-yellow-500 bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  Achievements
-                                </div>
-                                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                                  {studentQuizAttempts?.achievements?.length ||
-                                    0}
-                                </div>
+                                  <option value="">Not assigned</option>
+                                  {GRADES.map((grade) => (
+                                    <option key={grade} value={grade}>
+                                      {grade}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
+
+                            <div className="mt-4">
+                              <Label>Assigned Administrator</Label>
+                              <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option>
+                                  {user.first_name || "Current Admin"}
+                                </option>
+                              </select>
+                            </div>
+
+                            <div className="mt-4">
+                              <Label>Notes</Label>
+                              <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
+                              <textarea
+                                value={
+                                  editForm.notes !== ""
+                                    ? editForm.notes
+                                    : studentQuizAttempts?.student_info.notes ||
+                                      ""
+                                }
+                                onChange={(e) =>
+                                  setEditForm((f) => ({
+                                    ...f,
+                                    notes: e.target.value,
+                                  }))
+                                }
+                                placeholder="Add notes about this student..."
+                                className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                              />
+                            </div>
                           </div>
-                          <div className="text-right space-y-1 w-full">
-                            {studentQuizAttempts?.achievements
-                              ?.slice(0, 4)
-                              .map((achievement, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between text-sm"
-                                >
-                                  <span>{achievement.name}</span>
-                                  <span>
-                                    {new Date(
-                                      achievement.completed_at
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              )) || (
-                              <>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span>No achievements yet</span>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                          <Button
-                            variant="link"
-                            className="text-blue-600 text-sm mt-2"
-                          >
-                            View Details →
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
 
-                  {/* Student Profile Tab */}
-                  <TabsContent value="profile" className="space-y-6">
-                    <div className="max-w-2xl">
-                      {/* Account Details Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">
-                            Account Details
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                          >
-                            Edit
-                          </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>First Name</Label>
-                            <Input
-                              value={editForm.first_name}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f,
-                                  first_name: e.target.value,
-                                }))
-                              }
-                              className="mt-1"
-                              placeholder="First name"
-                            />
-                          </div>
-                          <div>
-                            <Label>Last Name</Label>
-                            <Input
-                              value={editForm.last_name}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f,
-                                  last_name: e.target.value,
-                                }))
-                              }
-                              className="mt-1"
-                              placeholder="Last name"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Email</Label>
-                          <Input
-                            value={editForm.email}
-                            onChange={(e) =>
-                              setEditForm((f) => ({
-                                ...f,
-                                email: e.target.value,
-                              }))
-                            }
-                            className="mt-1"
-                            placeholder="Email address"
-                          />
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Username</Label>
-                          <Input
-                            value={editStudent.username}
-                            disabled
-                            className="mt-1 bg-gray-100 dark:bg-gray-700"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div>
-                            <Label>School</Label>
-                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                              <option>{schoolName || "Not assigned"}</option>
-                            </select>
-                          </div>
-                          <div>
-                            <Label>Grade</Label>
-                            <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                              <option>
-                                {editStudent.grade || "Not assigned"}
-                              </option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Assigned Administrator</Label>
-                          <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            <option>
-                              {user.first_name || "Current Admin"}
-                            </option>
-                          </select>
-                        </div>
-
-                        <div className="mt-4">
-                          <Label>Notes</Label>
-                          <textarea
-                            value={editForm.notes}
-                            onChange={(e) =>
-                              setEditForm((f) => ({
-                                ...f,
-                                notes: e.target.value,
-                              }))
-                            }
-                            placeholder="Add notes about this student..."
-                            className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Password Settings Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">
-                            Password Settings
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                            onClick={() => setSelectedStudent(editStudent)}
-                          >
-                            Change Password
-                          </Button>
-                        </div>
-
-                        <div>
-                          <Label>Password</Label>
-                          <div className="relative mt-1">
-                            <Input
-                              type="password"
-                              value="••••••••••••"
-                              disabled
-                              className="bg-gray-100 dark:bg-gray-700 pr-10"
-                            />
-                            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <svg
-                                className="w-4 h-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                          {/* Password Settings Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold">
+                                Password Settings
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => setSelectedStudent(editStudent)}
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                Change Password
+                              </Button>
+                            </div>
+
+                            <div>
+                              <Label>Password</Label>
+                              <div className="relative mt-1">
+                                <Input
+                                  type="password"
+                                  value="••••••••••••"
+                                  disabled
+                                  className="bg-gray-100 dark:bg-gray-700 pr-10"
                                 />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                />
-                              </svg>
-                            </button>
+                                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <svg
+                                    className="w-4 h-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Account Options Section */}
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-semibold">
+                                Account Options
+                              </h3>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-600 "
+                                title="Delete functionality not yet available"
+                              >
+                                Deactivate account
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Account Options Section */}
-                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold">
-                            Account Options
-                          </h3>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                            className="text-red-600 border-red-600 opacity-50"
-                            title="Delete functionality not yet available"
-                          >
-                            Delete Account
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
+                    </TabsContent>
+                  </Tabs>
+                </div>
                 {/* Action Buttons */}
-                <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
+                <div className="flex justify-end gap-3 pt-6 border-t">
                   <Button
                     variant="outline"
                     onClick={() => setEditStudent(null)}
