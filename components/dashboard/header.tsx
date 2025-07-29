@@ -264,7 +264,7 @@ export function DashboardHeader() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 bg-white">
               <DropdownMenuLabel className="text-xs font-normal text-gray-500">
                 Signed in as{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">

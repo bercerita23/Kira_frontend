@@ -6,6 +6,8 @@ import { LogIn, AlertCircle, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
@@ -41,6 +43,11 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState<"student" | "admin">("student");
+  const [targetStudent, setTargetStudent] = useState<{
+    email?: string;
+    username?: string;
+  } | null>(null);
+
   const [formData, setFormData] = useState({
     identifier: "", // Single field for username or email
     password: "",
@@ -132,7 +139,33 @@ export default function LoginPage() {
     }
     return "general";
   };
+  const searchParams = useSearchParams();
 
+  useEffect(() => {
+    const email = searchParams.get("email");
+    const username = searchParams.get("username");
+
+    if (email || username) {
+      const target = {
+        email: email || undefined,
+        username: username || undefined,
+      };
+      setTargetStudent(target);
+
+      // Set identifier input prefill (email or username)
+      setFormData((prev) => ({
+        ...prev,
+        identifier: email || username || "",
+      }));
+
+      // Switch to admin login if email is provided
+      if (email) {
+        setLoginType("admin");
+      }
+
+      sessionStorage.setItem("targetStudentReset", JSON.stringify(target));
+    }
+  }, [searchParams]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6]">
       <div className="w-full max-w-md">
@@ -197,6 +230,12 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+          {targetStudent && (
+            <div className="w-full mb-4 p-3 text-sm text-purple-800 bg-purple-50 border border-purple-200 rounded">
+              Password reset requested for:{" "}
+              <strong>{targetStudent.username || targetStudent.email}</strong>
+            </div>
+          )}
           <form
             onSubmit={handleSubmit}
             className="w-full flex flex-col gap-4 mt-5"
@@ -212,7 +251,7 @@ export default function LoginPage() {
                 id="identifier"
                 name="identifier"
                 type="text"
-                placeholder="admin@kira.io"
+                placeholder=""
                 value={formData.identifier}
                 onChange={handleChange}
                 required
@@ -284,15 +323,15 @@ export default function LoginPage() {
                 "Log In"
               )}
             </button>
-            <div className="text-center mt-">
+            <div className="text-center ">
               <span className="text-[#2D0B18] text-sm">
                 Don't have an account?{" "}
               </span>
               <a
                 href="/signup"
-                className="text-[#B71C3B] font-medium hover:underline"
+                className="text-[#B71C3B] font-medium hover:underline text-sm"
               >
-                Register
+                Admin Sign Up
               </a>
             </div>
           </form>

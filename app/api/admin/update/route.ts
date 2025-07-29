@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function PATCH(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
-    return NextResponse.json(
-      { message: "Missing authentication token" },
+    return new Response(
+      JSON.stringify({ message: "Missing authentication token" }),
       { status: 401 }
     );
   }
@@ -25,27 +25,21 @@ export async function PATCH(req: NextRequest) {
       }
     );
 
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      console.error("Non-JSON response from backend:", text);
-      return NextResponse.json({ detail: text }, { status: response.status });
-    }
+    const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+      return new Response(JSON.stringify(data), {
+        status: response.status,
+      });
     }
 
-    return NextResponse.json(data);
+    return new Response(JSON.stringify(data), {
+      status: 200,
+    });
   } catch (error) {
     console.error("Proxy error:", error);
-    return NextResponse.json(
-      { detail: "Network error occurred" },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ message: "Internal Server Error" }), {
+      status: 500,
+    });
   }
 }

@@ -55,7 +55,7 @@ type DbUser = {
   is_admin: boolean;
   created_at: string;
   last_login_time: string;
-  school_id: string;
+  school: string;
   notes: string;
   grade?: string;
   points?: number;
@@ -91,10 +91,23 @@ type StudentQuizData = {
     description: string;
     completed_at: string;
   }>;
+  student_info: {
+    first_name: string;
+    last_name: string;
+    created_at: string;
+    notes: string;
+    last_login_time: string;
+    deactivated: boolean;
+    grade: string;
+  };
 };
 
 export default function AdminDashboardPage() {
+  const GRADES = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+
   const { user, isLoading, logout } = useAuth();
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedGrades, setSelectedGrades] = useState<string[]>([]);
   const { toast } = useToast();
   const [schoolName, setSchoolName] = useState<string | null>(null);
   const [students, setStudents] = useState<DbUser[]>([]);
@@ -115,6 +128,8 @@ export default function AdminDashboardPage() {
     last_name: "",
     email: "",
     notes: "",
+    school: "",
+    grade: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
   //
@@ -126,6 +141,8 @@ export default function AdminDashboardPage() {
     first_name: "",
     last_name: "",
   });
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -133,6 +150,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"students" | "analytics">(
     "students"
   );
+  const [passwordError, setPasswordError] = useState(false);
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -181,6 +199,8 @@ export default function AdminDashboardPage() {
       last_name: student.last_name || "",
       email: student.email || "",
       notes: student.notes || "",
+      school: student.school || "", // or student.school if that’s correct
+      grade: student.grade || "",
     });
 
     try {
@@ -209,27 +229,41 @@ export default function AdminDashboardPage() {
 
     return result;
   }
-  // Update student info handler
   const handleUpdateStudent = async () => {
     if (!editStudent) return;
     setIsUpdating(true);
+
     try {
+      const rawPayload = {
+        username: editStudent.username,
+        ...editForm,
+        school: editStudent.school || "",
+        grade: editForm.grade || "",
+      };
+
+      const payload = Object.fromEntries(
+        Object.entries(rawPayload).filter(([_, v]) => v !== "")
+      );
+      console.log("🟡 Sending update payload to /api/admin/update:", payload);
+
       const res = await fetch("/api/admin/update", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: editStudent.username,
-          ...editForm,
-        }),
+        body: JSON.stringify(payload),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update student");
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to update student");
+      }
+
       toast({
         title: "Student Updated",
         description: `Information for ${editStudent.username} updated.`,
       });
-      setEditStudent(null);
-      // Optionally refresh students list
+
+      // Reset and refresh
       window.location.reload();
     } catch (err: any) {
       toast({
@@ -549,11 +583,72 @@ export default function AdminDashboardPage() {
       student.last_name || ""
     }`.toLowerCase();
     const username = student.username?.toLowerCase() || "";
-    return (
+    const matchesSearch =
       name.includes(search.toLowerCase()) ||
-      username.includes(search.toLowerCase())
-    );
+      username.includes(search.toLowerCase());
+    const matchesGrade =
+      selectedGrades.length === 0 ||
+      selectedGrades.includes(student.grade || "");
+
+    return matchesSearch && matchesGrade;
   });
+
+  {
+    /* Stats Overview */
+  }
+  // <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         Total Students
+  //       </CardTitle>
+  //       <Users className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">{students.length}</div>
+  //       <p className="text-xs text-muted-foreground">Active learners</p>
+  //     </CardContent>
+  //   </Card>
+
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         Recent Signups
+  //       </CardTitle>
+  //       <UserCheck className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">
+  //         {
+  //           students.filter((s) => {
+  //             const signupDate = new Date(s.created_at || "");
+  //             const weekAgo = new Date();
+  //             weekAgo.setDate(weekAgo.getDate() - 7);
+  //             return signupDate > weekAgo;
+  //           }).length
+  //         }
+  //       </div>
+  //       <p className="text-xs text-muted-foreground">Last 7 days</p>
+  //     </CardContent>
+  //   </Card>
+
+  //   <Card>
+  //     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  //       <CardTitle className="text-sm font-medium">
+  //         School Assigned
+  //       </CardTitle>
+  //       <Users className="h-4 w-4 text-muted-foreground" />
+  //     </CardHeader>
+  //     <CardContent>
+  //       <div className="text-2xl font-bold">
+  //         {students.filter((s) => s.school_id).length}
+  //       </div>
+  //       <p className="text-xs text-muted-foreground">
+  //         Students with schools
+  //       </p>
+  //     </CardContent>
+  //   </Card>
+  // </div>
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -620,61 +715,6 @@ export default function AdminDashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Students
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{students.length}</div>
-              <p className="text-xs text-muted-foreground">Active learners</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Recent Signups
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {
-                  students.filter((s) => {
-                    const signupDate = new Date(s.created_at || "");
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return signupDate > weekAgo;
-                  }).length
-                }
-              </div>
-              <p className="text-xs text-muted-foreground">Last 7 days</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                School Assigned
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {students.filter((s) => s.school_id).length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Students with schools
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tabbed Content */}
         <Tabs defaultValue="students" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -708,9 +748,72 @@ export default function AdminDashboardPage() {
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 </div>
-                <Button variant="outline" size="icon" className="ml-2">
-                  <Filter className="h-5 w-5" />
-                </Button>
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={`ml-2 ${
+                      selectedGrades.length > 0 ? "text-[#B40000]" : ""
+                    }`}
+                    onClick={() => setShowFilter(!showFilter)}
+                  >
+                    <Filter className="h-5 w-5" />
+                  </Button>
+                  {selectedGrades.length > 0 && (
+                    <div className="absolute -top-1 -right-1 bg-[#B40000] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {selectedGrades.length}
+                    </div>
+                  )}
+                </div>
+                {showFilter && (
+                  <div className="absolute mt-[280px] mr-12 w-64 right-0 bg-white rounded-lg shadow-xl p-4 z-50 border border-gray-200">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-md font-semibold">Filter Results</h3>
+                      <button onClick={() => setShowFilter(false)}>✕</button>
+                    </div>
+                    <hr className="mb-3" />
+                    <div className="mb-4">
+                      <p className="text-sm font-medium mb-2">Grade</p>
+                      {["3rd", "4th", "5th", "6th", "7th"].map((grade) => (
+                        <label
+                          key={grade}
+                          className="flex items-center justify-between mb-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedGrades.includes(grade)}
+                              onChange={() => {
+                                setSelectedGrades((prev) =>
+                                  prev.includes(grade)
+                                    ? prev.filter((g) => g !== grade)
+                                    : [...prev, grade]
+                                );
+                              }}
+                            />
+                            <span>{grade}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            ({students.filter((s) => s.grade === grade).length})
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={() => setShowFilter(false)}
+                      className="w-full bg-[#B40000] text-white rounded-sm"
+                    >
+                      Apply
+                    </Button>
+                    <button
+                      className="mt-2 text-sm text-[#B40000] underline w-full"
+                      onClick={() => setSelectedGrades([])}
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center ml-2 border rounded overflow-hidden">
                   <button
                     className={`px-2 py-1 ${
@@ -997,14 +1100,30 @@ export default function AdminDashboardPage() {
                   Reset Password for {selectedStudent.username}
                 </h2>
                 <div className="space-y-4">
-                  <Label htmlFor="new_password">New Password</Label>
-                  <Input
-                    id="new_password"
-                    type="password"
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
+                  <div>
+                    <Label htmlFor="new_password">New Password</Label>
+                    <Input
+                      id="new_password"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className={cn(passwordError && "border-red-500")}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirm_password">Confirm Password</Label>
+                    <Input
+                      id="confirm_password"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={cn(passwordError && "border-red-500")}
+                    />
+                  </div>
+
                   <div className="flex justify-end space-x-2">
                     <Button
                       variant="outline"
@@ -1101,28 +1220,6 @@ export default function AdminDashboardPage() {
                               </CardContent>
                             </Card>
                           )}
-
-                          {/* Learning Streak + Time Spent */}
-                          <Card className="p-6 rounded-2xl shadow-sm text-center flex flex-col items-center">
-                            <div className="w-40 h-40 rounded-full border-[12px] border-rose-500 bg-rose-100 flex items-center justify-center relative">
-                              <div className="text-center">
-                                <div className="text-base text-gray-600 font-medium">
-                                  Learning Streak
-                                </div>
-                                <div className="text-3xl font-bold text-rose-600">
-                                  {studentQuizAttempts?.learning_streak || 0}{" "}
-                                  days
-                                </div>
-                              </div>
-                            </div>
-                            <p className="mt-4 text-sm font-semibold text-black">
-                              {"10 hours 20 minutes"}
-                            </p>
-                            <hr className="my-2 w-[138px] border-t border-gray-300" />
-                            <p className="text-xs text-muted-foreground ml-5">
-                              time spent learning
-                            </p>
-                          </Card>
                         </div>
 
                         {/* RIGHT COLUMN */}
@@ -1403,10 +1500,22 @@ export default function AdminDashboardPage() {
                               </div>
                               <div>
                                 <Label>Grade</Label>
-                                <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                  <option>
-                                    {editStudent.grade || "Not assigned"}
-                                  </option>
+                                <select
+                                  value={editForm.grade || ""}
+                                  onChange={(e) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      grade: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                >
+                                  <option value="">Not assigned</option>
+                                  {GRADES.map((grade) => (
+                                    <option key={grade} value={grade}>
+                                      {grade}
+                                    </option>
+                                  ))}
                                 </select>
                               </div>
                             </div>
@@ -1424,7 +1533,12 @@ export default function AdminDashboardPage() {
                               <Label>Notes</Label>
                               <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
                               <textarea
-                                value={editForm.notes}
+                                value={
+                                  editForm.notes !== ""
+                                    ? editForm.notes
+                                    : studentQuizAttempts?.student_info.notes ||
+                                      ""
+                                }
                                 onChange={(e) =>
                                   setEditForm((f) => ({
                                     ...f,
@@ -1496,11 +1610,10 @@ export default function AdminDashboardPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                disabled
-                                className="text-red-600 border-red-600 opacity-50"
+                                className="text-red-600 border-red-600 "
                                 title="Delete functionality not yet available"
                               >
-                                Delete Account
+                                Deactivate account
                               </Button>
                             </div>
                           </div>

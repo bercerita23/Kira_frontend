@@ -87,19 +87,20 @@ export default function ForgotPasswordPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
-        <p className="text-sm text-gray-700 mt-4">
-          If you haven’t heard back for a while,{" "}
-          <button
-            className="text-[#B71C3B] underline"
-            onClick={() => {
-              setCodeSent(false);
-              setUsername("");
-            }}
-          >
-            Resend your request
-          </button>
-        </p>
+        {codeSent && (
+          <p className="text-sm text-gray-700 mt-4">
+            If you haven’t heard back for a while,{" "}
+            <button
+              className="text-[#B71C3B] underline"
+              onClick={() => {
+                setCodeSent(false);
+                setUsername("");
+              }}
+            >
+              Resend your request
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );

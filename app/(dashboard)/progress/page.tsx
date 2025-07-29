@@ -18,6 +18,7 @@ type Badge = {
   is_viewed: boolean;
   name: string;
   bahasa_indonesia_name?: string;
+  bahasa_indonesia_description?: string;
   description: string;
   icon_url?: string;
 };
@@ -32,11 +33,12 @@ type Achievement = {
   view_count: number;
 };
 import { CircularProgress } from "@/components/ui/circular-progress";
+
 export default function ProgressPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   const [badges, setBadges] = useState<Badge[]>([]); // user badges
   const [allBadges, setAllBadges] = useState<Badge[]>([]); // all possible badges
+  const [goalPoints, setGoalPoints] = useState<number>(350);
   const [attempts, setAttempts] = useState<any[]>([]); // quiz attempts
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") || "quiz";
@@ -46,6 +48,13 @@ export default function ProgressPage() {
   const [points, setPoints] = useState<{
     points: number;
   } | null>(null);
+
+  // Add hover state for translations
+  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
+  const [hoveredAchievement, setHoveredAchievement] = useState<string | null>(
+    null
+  );
+
   type Attempt = {
     quiz_id: number;
     quiz_name: string;
@@ -65,6 +74,7 @@ export default function ProgressPage() {
       .toString()
       .padStart(2, "0")}`;
   }
+
   // Fetch user's unlocked achievements
   useEffect(() => {
     async function fetchAchievements() {
@@ -117,6 +127,7 @@ export default function ProgressPage() {
       fetchBadges();
     }
   }, [tab]);
+
   useEffect(() => {
     async function fetchPoints() {
       try {
@@ -134,6 +145,7 @@ export default function ProgressPage() {
     }
     fetchPoints();
   }, []);
+
   // Fetch all badges
   useEffect(() => {
     async function fetchAllBadges() {
@@ -142,6 +154,12 @@ export default function ProgressPage() {
         if (!res.ok) throw new Error("Failed to fetch all badges");
         const data = await res.json();
         setAllBadges(data.badges || []);
+
+        const highest = data.badges?.reduce((max: number, b: any) => {
+          return Math.max(max, b.points_required || 0);
+        }, 0);
+
+        if (highest > 0) setGoalPoints(highest);
       } catch (err) {
         console.error("Error fetching all badges:", err);
       }
@@ -185,7 +203,7 @@ export default function ProgressPage() {
                     <div className="flex flex-col space-y-2">
                       <div className="flex justify-between items-center">
                         <p className="text-lg font-semibold text-gray-800 dark:text-white">
-                          {points.points} / 350 XP
+                          {points.points} / {goalPoints} XP
                         </p>
                         <span className="text-2xl">🏁</span>
                       </div>
@@ -194,7 +212,7 @@ export default function ProgressPage() {
                           className="absolute top-0 left-0 h-full bg-purple-500 rounded-full transition-all"
                           style={{
                             width: `${Math.min(
-                              (points.points / 350) * 100,
+                              (points.points / goalPoints) * 100,
                               100
                             )}%`,
                           }}
@@ -206,7 +224,7 @@ export default function ProgressPage() {
                           ? `${
                               350 - points.points
                             } XP to reach the finish line!`
-                          : "🎉 You’ve reached the maximum XP!"}
+                          : "🎉 You've reached the maximum XP!"}
                       </p>
                     </div>
                   </Card>
@@ -219,6 +237,7 @@ export default function ProgressPage() {
                   <TabsTrigger value="badges">Badges</TabsTrigger>
                   <TabsTrigger value="achievements">Achievements</TabsTrigger>
                 </TabsList>
+
                 <TabsContent value="quiz">
                   <Card>
                     <CardHeader>
@@ -300,6 +319,7 @@ export default function ProgressPage() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
                 <TabsContent value="badges">
                   <Card>
                     <CardHeader>
@@ -307,20 +327,19 @@ export default function ProgressPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
                           <thead>
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-16 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Icon
                               </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-48 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Name
                               </th>
-
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="px-4  py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Description
                               </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-24 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Earned
                               </th>
                             </tr>
@@ -331,57 +350,82 @@ export default function ProgressPage() {
                                 const unlocked = earnedBadgeIds.has(
                                   badge.badge_id
                                 );
+                                const isHovered =
+                                  hoveredBadge === badge.badge_id;
                                 return (
                                   <tr
                                     key={badge.badge_id}
                                     className={cn(
+                                      "transition-colors duration-200",
                                       unlocked
-                                        ? ""
-                                        : "opacity-60 grayscale bg-gray-50"
+                                        ? "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        : "opacity-60 grayscale bg-gray-50 hover:bg-gray-100"
                                     )}
+                                    onMouseEnter={() =>
+                                      setHoveredBadge(badge.badge_id)
+                                    }
+                                    onMouseLeave={() => setHoveredBadge(null)}
                                   >
-                                    <td className="px-4 py-2 whitespace-nowrap text-xl text-center">
+                                    <td className="w-16 px-4 py-2 text-xl text-center">
                                       {badge.icon_url || "🏅"}
                                     </td>
 
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "w-48 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-900 dark:text-white"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      <div>
-                                        <div>{badge.name}</div>
+                                      <div
+                                        className="truncate"
+                                        title={
+                                          isHovered &&
+                                          badge.bahasa_indonesia_name
+                                            ? badge.bahasa_indonesia_name
+                                            : badge.name
+                                        }
+                                      >
+                                        {isHovered &&
+                                        badge.bahasa_indonesia_name
+                                          ? badge.bahasa_indonesia_name
+                                          : badge.name}
                                       </div>
                                     </td>
 
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {badge.description}
+                                      <div className="line-clamp-2">
+                                        {isHovered &&
+                                        badge.bahasa_indonesia_description
+                                          ? badge.bahasa_indonesia_description
+                                          : badge.description}
+                                      </div>
                                     </td>
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "w-24 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-500 dark:text-gray-400"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {unlocked
-                                        ? badge.earned_at
-                                          ? new Date(
-                                              badge.earned_at
-                                            ).toLocaleDateString()
-                                          : "✓"
-                                        : "Locked"}
+                                      <div className="truncate">
+                                        {unlocked
+                                          ? badge.earned_at
+                                            ? new Date(
+                                                badge.earned_at
+                                              ).toLocaleDateString()
+                                            : "✓"
+                                          : "Locked"}
+                                      </div>
                                     </td>
                                   </tr>
                                 );
@@ -402,6 +446,7 @@ export default function ProgressPage() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
                 <TabsContent value="achievements">
                   <Card>
                     <CardHeader>
@@ -409,19 +454,19 @@ export default function ProgressPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table className="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700">
                           <thead>
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-48 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Name
                               </th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Description
                               </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-20 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Points
                               </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                              <th className="w-24 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                                 Completed
                               </th>
                             </tr>
@@ -439,38 +484,66 @@ export default function ProgressPage() {
                                     a.achievement_id ===
                                     achievement.achievement_id
                                 );
+                                const isHovered =
+                                  hoveredAchievement ===
+                                  achievement.achievement_id;
                                 return (
                                   <tr
                                     key={achievement.achievement_id}
                                     className={cn(
+                                      "transition-colors duration-200",
                                       unlocked
-                                        ? ""
-                                        : "opacity-60 grayscale bg-gray-50"
+                                        ? "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        : "opacity-60 grayscale bg-gray-50 hover:bg-gray-100"
                                     )}
+                                    onMouseEnter={() =>
+                                      setHoveredAchievement(
+                                        achievement.achievement_id
+                                      )
+                                    }
+                                    onMouseLeave={() =>
+                                      setHoveredAchievement(null)
+                                    }
                                   >
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "w-48 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-900 dark:text-white"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {achievement.name_en}
+                                      <div
+                                        className="h-6 max-w-[160px] overflow-hidden truncate"
+                                        title={
+                                          isHovered && achievement.name_ind
+                                            ? achievement.name_ind
+                                            : achievement.name_en
+                                        }
+                                      >
+                                        {isHovered && achievement.name_ind
+                                          ? achievement.name_ind
+                                          : achievement.name_en}
+                                      </div>
                                     </td>
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {achievement.description_en}
+                                      <div className="line-clamp-2">
+                                        {isHovered &&
+                                        achievement.description_ind
+                                          ? achievement.description_ind
+                                          : achievement.description_en}
+                                      </div>
                                     </td>
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "w-20 px-4 py-2 text-sm text-center",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
                                           : "text-gray-400"
@@ -480,17 +553,19 @@ export default function ProgressPage() {
                                     </td>
                                     <td
                                       className={cn(
-                                        "px-4 py-2 whitespace-nowrap text-sm",
+                                        "w-24 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-500 dark:text-gray-400"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      {unlocked && userData?.completed_at
-                                        ? new Date(
-                                            userData.completed_at
-                                          ).toLocaleDateString()
-                                        : "Locked"}
+                                      <div className="truncate">
+                                        {unlocked && userData?.completed_at
+                                          ? new Date(
+                                              userData.completed_at
+                                            ).toLocaleDateString()
+                                          : "Locked"}
+                                      </div>
                                     </td>
                                   </tr>
                                 );
@@ -512,6 +587,7 @@ export default function ProgressPage() {
                   </Card>
                 </TabsContent>
               </Tabs>
+
               {selectedQuiz && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 w-full max-w-[300px] relative">

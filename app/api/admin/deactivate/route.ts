@@ -4,9 +4,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const authHeader = req.headers.get("authorization");
-    
+
     if (!authHeader) {
-      return NextResponse.json({ detail: "Authorization header is required." }, { status: 401 });
+      return NextResponse.json(
+        { detail: "Authorization header is required." },
+        { status: 401 }
+      );
     }
 
     console.log("🔄 Deactivate admin request received...");
@@ -14,25 +17,32 @@ export async function POST(req: NextRequest) {
 
     // Validate required fields
     const { admin_email } = body;
-    
+
     if (!admin_email) {
-      return NextResponse.json({ 
-        detail: "Missing required field: admin_email" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          detail: "Missing required field: admin_email",
+        },
+        { status: 400 }
+      );
     }
 
     // Note: This would need a corresponding backend endpoint
     // For now, this is a placeholder that simulates the functionality
     // The actual endpoint would be something like PUT /super_admin/deactivate_admin
-    
+
     // Placeholder response since backend endpoint doesn't exist yet
     console.log(`⚠️ Would deactivate admin: ${admin_email}`);
-    
-    return NextResponse.json({ 
-      message: `Admin ${admin_email} would be deactivated (backend endpoint needed)`,
-      detail: "Backend endpoint /super_admin/deactivate_admin needs to be implemented"
-    }, { status: 501 }); // 501 Not Implemented
-    
+
+    return NextResponse.json(
+      {
+        message: `Admin ${admin_email} would be deactivated (backend endpoint needed)`,
+        detail:
+          "Backend endpoint /super_admin/deactivate_admin needs to be implemented",
+      },
+      { status: 501 }
+    ); // 501 Not Implemented
+
     /* 
     // This is what the implementation would look like when backend is ready:
     
@@ -68,7 +78,7 @@ export async function POST(req: NextRequest) {
         case 403:
           return NextResponse.json({ detail: "You don't have permission to deactivate admins." }, { status: 403 });
         case 404:
-          return NextResponse.json({ detail: "Admin not found." }, { status: 404 });
+          return NextResponse.json({ detail: "Admin not found." }, { status: L404 });
         default:
           return NextResponse.json({ 
             detail: errorData.detail || "Failed to deactivate admin. Please try again later." 
@@ -76,20 +86,19 @@ export async function POST(req: NextRequest) {
       }
     }
     */
-    
   } catch (error) {
     console.error("❌ Failed to process admin deactivation request:", error);
-    
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "An unexpected error occurred.";
+
+    const errorMessage =
+      error instanceof Error ? error.message : "An unexpected error occurred.";
 
     return NextResponse.json(
-      { 
-        detail: "Internal server error while processing admin deactivation request",
-        error: errorMessage
+      {
+        detail:
+          "Internal server error while processing admin deactivation request",
+        error: errorMessage,
       },
       { status: 500 }
     );
   }
-} 
+}

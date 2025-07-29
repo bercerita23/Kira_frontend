@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         console.log("📋 Invitation data:", invitation);
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/invite`,
+          `${process.env.NEXT_PUBLIC_API_URL}/super_admin/invite`,
           {
             method: "POST",
             headers: {
