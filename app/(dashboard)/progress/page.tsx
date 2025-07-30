@@ -50,10 +50,35 @@ export default function ProgressPage() {
   } | null>(null);
 
   // Add hover state for translations
-  const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
-  const [hoveredAchievement, setHoveredAchievement] = useState<string | null>(
-    null
-  );
+  const [hoveredBadgeName, setHoveredBadgeName] = useState<string | null>(null);
+  const [hoveredBadgeDesc, setHoveredBadgeDesc] = useState<string | null>(null);
+  const [hoveredAchievementName, setHoveredAchievementName] = useState<string | null>(null);
+  const [hoveredAchievementDesc, setHoveredAchievementDesc] = useState<string | null>(null);
+
+  // Clear all hover states when tab changes
+  useEffect(() => {
+    setHoveredBadgeName(null);
+    setHoveredBadgeDesc(null);
+    setHoveredAchievementName(null);
+    setHoveredAchievementDesc(null);
+  }, [tab]);
+
+  // Clear hover states when component unmounts or user navigates away
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setHoveredBadgeName(null);
+        setHoveredBadgeDesc(null);
+        setHoveredAchievementName(null);
+        setHoveredAchievementDesc(null);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   type Attempt = {
     quiz_id: number;
@@ -221,9 +246,8 @@ export default function ProgressPage() {
 
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                         {350 - points.points > 0
-                          ? `${
-                              350 - points.points
-                            } XP to reach the finish line!`
+                          ? `${350 - points.points
+                          } XP to reach the finish line!`
                           : "🎉 You've reached the maximum XP!"}
                       </p>
                     </div>
@@ -277,8 +301,8 @@ export default function ProgressPage() {
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
                                     {attempt.completed_at
                                       ? new Date(
-                                          attempt.completed_at
-                                        ).toLocaleDateString()
+                                        attempt.completed_at
+                                      ).toLocaleDateString()
                                       : "-"}
                                   </td>
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
@@ -350,8 +374,6 @@ export default function ProgressPage() {
                                 const unlocked = earnedBadgeIds.has(
                                   badge.badge_id
                                 );
-                                const isHovered =
-                                  hoveredBadge === badge.badge_id;
                                 return (
                                   <tr
                                     key={badge.badge_id}
@@ -359,12 +381,8 @@ export default function ProgressPage() {
                                       "transition-colors duration-200",
                                       unlocked
                                         ? "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        : "opacity-60 grayscale bg-gray-50 hover:bg-gray-100"
+                                        : "opacity-100 bg-gray-50 hover:bg-gray-100"
                                     )}
-                                    onMouseEnter={() =>
-                                      setHoveredBadge(badge.badge_id)
-                                    }
-                                    onMouseLeave={() => setHoveredBadge(null)}
                                   >
                                     <td className="w-16 px-4 py-2 text-xl text-center">
                                       {badge.icon_url || "🏅"}
@@ -372,57 +390,65 @@ export default function ProgressPage() {
 
                                     <td
                                       className={cn(
-                                        "w-48 px-4 py-2 text-sm",
+                                        "w-48 px-4 py-2 text-sm relative",
                                         unlocked
                                           ? "text-gray-900 dark:text-white"
-                                          : "text-gray-400"
+                                          : "text-gray-600"
                                       )}
                                     >
                                       <div
                                         className="truncate"
-                                        title={
-                                          isHovered &&
-                                          badge.bahasa_indonesia_name
-                                            ? badge.bahasa_indonesia_name
-                                            : badge.name
-                                        }
+                                        onMouseEnter={() => {
+                                          setTimeout(() => setHoveredBadgeName(badge.badge_id), 1000);
+                                        }}
+                                        onMouseLeave={() => setHoveredBadgeName(null)}
                                       >
-                                        {isHovered &&
-                                        badge.bahasa_indonesia_name
-                                          ? badge.bahasa_indonesia_name
-                                          : badge.name}
+                                        {badge.name}
                                       </div>
+                                      {hoveredBadgeName === badge.badge_id && badge.bahasa_indonesia_name && (
+                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
+                                          {badge.bahasa_indonesia_name}
+                                        </div>
+                                      )}
                                     </td>
 
                                     <td
                                       className={cn(
-                                        "px-4 py-2 text-sm",
+                                        "px-4 py-2 text-sm relative",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      <div className="line-clamp-2">
-                                        {isHovered &&
-                                        badge.bahasa_indonesia_description
-                                          ? badge.bahasa_indonesia_description
-                                          : badge.description}
+                                      <div
+                                        className="line-clamp-2"
+                                        onMouseEnter={() => {
+                                          setTimeout(() => setHoveredBadgeDesc(badge.badge_id), 1000);
+                                        }}
+                                        onMouseLeave={() => setHoveredBadgeDesc(null)}
+                                      >
+                                        {badge.description}
                                       </div>
+                                      {hoveredBadgeDesc === badge.badge_id && badge.bahasa_indonesia_description && (
+                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
+                                          {badge.bahasa_indonesia_description}
+                                        </div>
+                                      )}
                                     </td>
                                     <td
                                       className={cn(
                                         "w-24 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-500 dark:text-gray-400"
-                                          : "text-gray-400"
+                                          : "text-gray-600"
                                       )}
                                     >
                                       <div className="truncate">
                                         {unlocked
                                           ? badge.earned_at
                                             ? new Date(
-                                                badge.earned_at
-                                              ).toLocaleDateString()
+                                              badge.earned_at
+                                            ).toLocaleDateString()
                                             : "✓"
                                           : "Locked"}
                                       </div>
@@ -484,9 +510,6 @@ export default function ProgressPage() {
                                     a.achievement_id ===
                                     achievement.achievement_id
                                 );
-                                const isHovered =
-                                  hoveredAchievement ===
-                                  achievement.achievement_id;
                                 return (
                                   <tr
                                     key={achievement.achievement_id}
@@ -494,59 +517,61 @@ export default function ProgressPage() {
                                       "transition-colors duration-200",
                                       unlocked
                                         ? "hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        : "opacity-60 grayscale bg-gray-50 hover:bg-gray-100"
+                                        : "opacity-100 bg-gray-50 hover:bg-gray-100"
                                     )}
-                                    onMouseEnter={() =>
-                                      setHoveredAchievement(
-                                        achievement.achievement_id
-                                      )
-                                    }
-                                    onMouseLeave={() =>
-                                      setHoveredAchievement(null)
-                                    }
                                   >
                                     <td
                                       className={cn(
-                                        "w-48 px-4 py-2 text-sm",
+                                        "w-48 px-4 py-2 text-sm relative",
                                         unlocked
                                           ? "text-gray-900 dark:text-white"
-                                          : "text-gray-400"
+                                          : "text-gray-600"
                                       )}
                                     >
                                       <div
                                         className="h-6 max-w-[160px] overflow-hidden truncate"
-                                        title={
-                                          isHovered && achievement.name_ind
-                                            ? achievement.name_ind
-                                            : achievement.name_en
-                                        }
+                                        onMouseEnter={() => {
+                                          setTimeout(() => setHoveredAchievementName(achievement.achievement_id), 1000);
+                                        }}
+                                        onMouseLeave={() => setHoveredAchievementName(null)}
                                       >
-                                        {isHovered && achievement.name_ind
-                                          ? achievement.name_ind
-                                          : achievement.name_en}
+                                        {achievement.name_en}
                                       </div>
+                                      {hoveredAchievementName === achievement.achievement_id && achievement.name_ind && (
+                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
+                                          {achievement.name_ind}
+                                        </div>
+                                      )}
                                     </td>
                                     <td
                                       className={cn(
-                                        "px-4 py-2 text-sm",
+                                        "px-4 py-2 text-sm relative",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
                                           : "text-gray-400"
                                       )}
                                     >
-                                      <div className="line-clamp-2">
-                                        {isHovered &&
-                                        achievement.description_ind
-                                          ? achievement.description_ind
-                                          : achievement.description_en}
+                                      <div
+                                        className="line-clamp-2"
+                                        onMouseEnter={() => {
+                                          setTimeout(() => setHoveredAchievementDesc(achievement.achievement_id), 1000);
+                                        }}
+                                        onMouseLeave={() => setHoveredAchievementDesc(null)}
+                                      >
+                                        {achievement.description_en}
                                       </div>
+                                      {hoveredAchievementDesc === achievement.achievement_id && achievement.description_ind && (
+                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
+                                          {achievement.description_ind}
+                                        </div>
+                                      )}
                                     </td>
                                     <td
                                       className={cn(
                                         "w-20 px-4 py-2 text-sm text-center",
                                         unlocked
                                           ? "text-gray-700 dark:text-gray-200"
-                                          : "text-gray-400"
+                                          : "text-gray-600"
                                       )}
                                     >
                                       {achievement.points}
@@ -556,14 +581,14 @@ export default function ProgressPage() {
                                         "w-24 px-4 py-2 text-sm",
                                         unlocked
                                           ? "text-gray-500 dark:text-gray-400"
-                                          : "text-gray-400"
+                                          : "text-gray-600"
                                       )}
                                     >
                                       <div className="truncate">
                                         {unlocked && userData?.completed_at
                                           ? new Date(
-                                              userData.completed_at
-                                            ).toLocaleDateString()
+                                            userData.completed_at
+                                          ).toLocaleDateString()
                                           : "Locked"}
                                       </div>
                                     </td>
@@ -636,8 +661,8 @@ export default function ProgressPage() {
                         <span className="font-medium">Completed On:</span>{" "}
                         {selectedQuiz.completed_at
                           ? new Date(
-                              selectedQuiz.completed_at
-                            ).toLocaleDateString()
+                            selectedQuiz.completed_at
+                          ).toLocaleDateString()
                           : "N/A"}
                       </p>
                       <p className="text-lg text-gray-700 dark:text-gray-300">
