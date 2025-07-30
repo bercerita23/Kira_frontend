@@ -234,7 +234,7 @@ export default function ProgressPage() {
               <Tabs value={tab} onValueChange={setTab} className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="quiz">Quiz History</TabsTrigger>
-                  <TabsTrigger value="badges">Badges</TabsTrigger>
+                  <TabsTrigger value="badges">Awards</TabsTrigger>
                   <TabsTrigger value="achievements">Achievements</TabsTrigger>
                 </TabsList>
 
