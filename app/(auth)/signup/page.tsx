@@ -140,7 +140,7 @@ export default function SignupPage() {
 
       router.push("/admin/");
     } catch (err: any) {
-      setError("Registration failed. Please try again later.");
+      setError("Incorrect information entered");
     } finally {
       setIsLoading(false);
     }

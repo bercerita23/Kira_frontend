@@ -323,7 +323,7 @@ export default function ProgressPage() {
                 <TabsContent value="badges">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Awards</CardTitle>
+                      <CardTitle>Medals</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
