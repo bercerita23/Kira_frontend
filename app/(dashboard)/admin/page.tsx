@@ -104,6 +104,8 @@ type StudentQuizData = {
 
 export default function AdminDashboardPage() {
   const GRADES = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
+  const [showAllAwards, setShowAllAwards] = useState(false);
 
   const { user, isLoading, logout } = useAuth();
   const [showFilter, setShowFilter] = useState(false);
@@ -120,7 +122,9 @@ export default function AdminDashboardPage() {
   // Fix the type here - it should be StudentQuizData or null, not an array
   const [studentQuizAttempts, setStudentQuizAttempts] =
     useState<StudentQuizData | null>(null);
-
+  const [showAllPointsHistory, setShowAllPointsHistory] = useState(false);
+  const [showAllBadges, setShowAllBadges] = useState(false);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
   // Add new state for edit modal
   const [editStudent, setEditStudent] = useState<DbUser | null>(null);
   const [editForm, setEditForm] = useState({
@@ -261,17 +265,34 @@ export default function AdminDashboardPage() {
       setStudentQuizAttempts(null); // clear or fallback
     }
   };
+  type QuizStatus = { status: "completed" | "pending"; id: string };
+
   function getThisWeekQuizStatus(
-    pointsHistory: StudentQuizData["points_history"]
-  ) {
-    const weekly = pointsHistory
+    quizHistory: StudentQuizData["quiz_history"]
+  ): QuizStatus[] {
+    const weekly = quizHistory
       .filter((entry) => isThisWeek(parseISO(entry.date)))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    const result: ("completed" | "pending")[] = [];
+    const uniqueQuizzes = Array.from(
+      new Map(weekly.map((q) => [q.quiz_name, q])).values()
+    );
+
+    const result: QuizStatus[] = [];
 
     for (let i = 0; i < 3; i++) {
-      result.push(i < weekly.length ? "completed" : "pending");
+      if (i < uniqueQuizzes.length) {
+        const entry = uniqueQuizzes[i];
+        result.push({
+          status: "completed",
+          id: `${entry.date}-${entry.quiz_name}`,
+        });
+      } else {
+        result.push({
+          status: "pending",
+          id: `pending-${i}`,
+        });
+      }
     }
 
     return result;
@@ -1246,20 +1267,22 @@ export default function AdminDashboardPage() {
 
                               <CardContent className="text-sm space-y-2 text-center text-muted-foreground">
                                 {getThisWeekQuizStatus(
-                                  studentQuizAttempts.points_history
-                                ).map((status, index) => (
+                                  studentQuizAttempts.quiz_history
+                                ).map((entry, index) => (
                                   <div
-                                    key={index}
+                                    key={entry.id}
                                     className="flex items-center justify-center gap-2"
                                   >
                                     <span
                                       className={
-                                        status === "completed"
+                                        entry.status === "completed"
                                           ? "text-green-600"
                                           : "text-yellow-500"
                                       }
                                     >
-                                      {status === "completed" ? "✔️" : "🕒"}
+                                      {entry.status === "completed"
+                                        ? "✔️"
+                                        : "🕒"}
                                     </span>
                                     <span>Quiz {index + 1}</span>
                                   </div>
@@ -1289,30 +1312,42 @@ export default function AdminDashboardPage() {
                               {/* Right: Points History Table */}
                               <div className="flex-1 space-y-2 w-full">
                                 <div className="border rounded-lg overflow-hidden divide-y">
-                                  {studentQuizAttempts?.points_history.map(
-                                    (entry, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="flex justify-between items-center px-4 py-2 text-sm bg-white"
-                                      >
-                                        <span className="font-medium text-black">
-                                          {entry.points} points
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                          {formatDate(entry.date)}
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                          {entry.description}
-                                        </span>
-                                      </div>
-                                    )
-                                  )}
+                                  {(showAllPointsHistory
+                                    ? studentQuizAttempts?.points_history
+                                    : studentQuizAttempts?.points_history.slice(
+                                        0,
+                                        3
+                                      )
+                                  )?.map((entry, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                    >
+                                      <span className="font-medium text-black">
+                                        {entry.points} points
+                                      </span>
+                                      <span className="text-muted-foreground">
+                                        {formatDate(entry.date)}
+                                      </span>
+                                      <span className="text-muted-foreground">
+                                        {entry.description}
+                                      </span>
+                                    </div>
+                                  ))}
                                 </div>
 
                                 {/* View Details Link */}
-                                <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
-                                  View Details{" "}
-                                  <span className="inline-block">⌄</span>
+                                <div
+                                  className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                                  onClick={() =>
+                                    setShowAllPointsHistory(
+                                      !showAllPointsHistory
+                                    )
+                                  }
+                                >
+                                  {showAllPointsHistory
+                                    ? "Hide Details ⌃"
+                                    : "View Details ⌄"}
                                 </div>
                               </div>
                             </div>
@@ -1338,39 +1373,49 @@ export default function AdminDashboardPage() {
                               <div className="flex-1 space-y-2 w-full">
                                 <div className="flex-1 w-full">
                                   <div className="border rounded-lg overflow-hidden divide-y">
-                                    {studentQuizAttempts?.quiz_history.map(
-                                      (quiz, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="grid grid-cols-4 gap-4 items-center px-4 py-2 text-sm bg-white"
-                                        >
-                                          <span className="text-black">
-                                            {quiz.quiz_name}
-                                          </span>
-                                          <span className="text-muted-foreground">
-                                            {new Date(
-                                              quiz.date
-                                            ).toLocaleDateString("en-US", {
-                                              year: "numeric",
-                                              month: "long",
-                                              day: "numeric",
-                                            })}
-                                          </span>
-                                          <span className="text-muted-foreground">
-                                            {quiz.grade}
-                                          </span>
-                                          <span className="text-muted-foreground">
-                                            {quiz.retakes} retakes
-                                          </span>
-                                        </div>
-                                      )
-                                    )}
+                                    {(showAllQuizHistory
+                                      ? studentQuizAttempts?.quiz_history
+                                      : studentQuizAttempts?.quiz_history.slice(
+                                          0,
+                                          3
+                                        )
+                                    )?.map((quiz, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="grid grid-cols-4 gap-4 items-center px-4 py-2 text-sm bg-white"
+                                      >
+                                        <span className="text-black">
+                                          {quiz.quiz_name}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {new Date(
+                                            quiz.date
+                                          ).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                          })}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {quiz.grade}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {quiz.retakes} retakes
+                                        </span>
+                                      </div>
+                                    ))}
                                   </div>
 
                                   {/* View Details Link */}
-                                  <div className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
-                                    View Details{" "}
-                                    <span className="inline-block">⌄</span>
+                                  <div
+                                    className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                                    onClick={() =>
+                                      setShowAllQuizHistory(!showAllQuizHistory)
+                                    }
+                                  >
+                                    {showAllQuizHistory
+                                      ? "Hide Details ⌃"
+                                      : "View Details ⌄"}
                                   </div>
                                 </div>
                               </div>
@@ -1399,63 +1444,72 @@ export default function AdminDashboardPage() {
                                 {/* Badges List */}
                                 <div className="flex-1 space-y-2">
                                   <div className="border rounded-lg overflow-hidden divide-y">
-                                    {studentQuizAttempts?.badges.map(
-                                      (badge, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
-                                        >
-                                          <span className="text-black">
-                                            {badge.name}
-                                          </span>
-                                          <span className="text-muted-foreground">
-                                            {new Date(
-                                              badge.earned_at
-                                            ).toLocaleDateString("en-US", {
-                                              year: "numeric",
-                                              month: "long",
-                                              day: "numeric",
-                                            })}
-                                          </span>
-                                        </div>
-                                      )
-                                    )}
+                                    {(showAllAwards
+                                      ? studentQuizAttempts?.badges
+                                      : studentQuizAttempts?.badges.slice(0, 3)
+                                    )?.map((badge, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                      >
+                                        <span className="text-black">
+                                          {badge.name}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {new Date(
+                                            badge.earned_at
+                                          ).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                          })}
+                                        </span>
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
 
                                 {/* Achievements List */}
                                 <div className="flex-1 space-y-2">
                                   <div className="border rounded-lg overflow-hidden divide-y">
-                                    {studentQuizAttempts?.achievements.map(
-                                      (ach, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="flex justify-between items-center px-4 py-2 text-sm bg-white"
-                                        >
-                                          <span className="text-black">
-                                            {ach.name}
-                                          </span>
-                                          <span className="text-muted-foreground">
-                                            {new Date(
-                                              ach.completed_at
-                                            ).toLocaleDateString("en-US", {
-                                              year: "numeric",
-                                              month: "long",
-                                              day: "numeric",
-                                            })}
-                                          </span>
-                                        </div>
-                                      )
-                                    )}
+                                    {(showAllAwards
+                                      ? studentQuizAttempts?.achievements
+                                      : studentQuizAttempts?.achievements.slice(
+                                          0,
+                                          3
+                                        )
+                                    )?.map((ach, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-center px-4 py-2 text-sm bg-white"
+                                      >
+                                        <span className="text-black">
+                                          {ach.name}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {new Date(
+                                            ach.completed_at
+                                          ).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                          })}
+                                        </span>
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
                             </div>
 
                             {/* View Details Link */}
-                            <div className="text-right mt-4 text-sm text-purple-700 font-medium cursor-pointer hover:underline">
-                              View Details{" "}
-                              <span className="inline-block">⌄</span>
+                            <div
+                              className="text-right mt-4 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                              onClick={() => setShowAllAwards(!showAllAwards)}
+                            >
+                              {showAllAwards
+                                ? "Hide Details ⌃"
+                                : "View Details ⌄"}
                             </div>
                           </Card>
                         </div>
@@ -1539,11 +1593,9 @@ export default function AdminDashboardPage() {
                             <div className="grid grid-cols-2 gap-4 mt-4">
                               <div>
                                 <Label>School</Label>
-                                <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                  <option>
-                                    {schoolName || "Not assigned"}
-                                  </option>
-                                </select>
+                                <div className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                  {schoolName || "Not assigned"}
+                                </div>
                               </div>
                               <div>
                                 <Label>Grade</Label>
@@ -1568,15 +1620,6 @@ export default function AdminDashboardPage() {
                             </div>
 
                             <div className="mt-4">
-                              <Label>Assigned Administrator</Label>
-                              <select className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                <option>
-                                  {user.first_name || "Current Admin"}
-                                </option>
-                              </select>
-                            </div>
-
-                            <div className="mt-4">
                               <Label>Notes</Label>
                               <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
                               <textarea
@@ -1598,58 +1641,8 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Password Settings Section */}
-                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-lg font-semibold">
-                                Password Settings
-                              </h3>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 border-red-600 hover:bg-red-50"
-                                onClick={() => setSelectedStudent(editStudent)}
-                              >
-                                Change Password
-                              </Button>
-                            </div>
-
-                            <div>
-                              <Label>Password</Label>
-                              <div className="relative mt-1">
-                                <Input
-                                  type="password"
-                                  value="••••••••••••"
-                                  disabled
-                                  className="bg-gray-100 dark:bg-gray-700 pr-10"
-                                />
-                                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                  <svg
-                                    className="w-4 h-4 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
                           {/* Account Options Section */}
-                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6">
+                          <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-5">
                             <div className="flex items-center justify-between">
                               <h3 className="text-lg font-semibold">
                                 Account Options
