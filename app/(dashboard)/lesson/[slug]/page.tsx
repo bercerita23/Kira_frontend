@@ -49,6 +49,8 @@ export default function LessonPage() {
   const weekKey = new Date().toISOString().slice(0, 10);
   const [lessonSteps, setLessonSteps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [dailyRetryCount, setDailyRetryCount] = useState(0);
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -85,6 +87,90 @@ export default function LessonPage() {
       setSelectedPairs({});
     }
   }, [currentStep, lessonSteps.length]);
+
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attempts");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        const attempts = data.attempts || [];
+        const quizId = Number(params.slug);
+        const currentQuizAttempt = attempts.find(
+          (a: any) => a.quiz_id === quizId
+        );
+        setAttemptCount(
+          currentQuizAttempt ? currentQuizAttempt.attempt_count : 0
+        );
+
+        // Check global daily retry count from localStorage (global across all quizzes)
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        const globalDailyRetryKey = `globalDailyRetry:${
+          user?.email || user?.id
+        }:${today}`;
+        const storedGlobalDailyRetries =
+          localStorage.getItem(globalDailyRetryKey);
+        setDailyRetryCount(
+          storedGlobalDailyRetries ? parseInt(storedGlobalDailyRetries) : 0
+        );
+
+        // Clean up old per-quiz daily retry keys (migration cleanup)
+        const oldDailyRetryKey = `dailyRetry:${
+          user?.email || user?.id
+        }:${quizId}:${today}`;
+        if (localStorage.getItem(oldDailyRetryKey)) {
+          localStorage.removeItem(oldDailyRetryKey);
+        }
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+        setAttemptCount(0);
+        setDailyRetryCount(0);
+      }
+    }
+    fetchAttempts();
+  }, [params.slug, user]);
+
+  // Submit failed attempt when all lives are lost
+  useEffect(() => {
+    const submitFailedAttempt = async () => {
+      if (livesLeft <= 0 && !showCompletionScreen && startAt) {
+        try {
+          const pass_count = correctCount;
+          const fail_count = lessonSteps.length - correctCount;
+          const end_at = new Date().toISOString();
+          const quiz_id = Number(params.slug);
+          const payload = {
+            quiz_id,
+            pass_count,
+            fail_count,
+            start_at: startAt,
+            end_at,
+          };
+          const res = await fetch("/api/users/submit-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          console.log("Failed quiz submit response:", data);
+
+          // Update attempt count after failed submission
+          setAttemptCount((prev) => prev + 1);
+        } catch (err) {
+          console.error("Error submitting failed quiz:", err);
+        }
+      }
+    };
+
+    submitFailedAttempt();
+  }, [
+    livesLeft,
+    showCompletionScreen,
+    startAt,
+    correctCount,
+    lessonSteps.length,
+    params.slug,
+  ]);
 
   const handleOptionSelect = (option: string) => {
     if (isSubmitted) return;
@@ -282,6 +368,9 @@ export default function LessonPage() {
       });
       const data = await res.json();
       console.log("Quiz submit response:", data);
+
+      // Update attempt count after successful submission
+      setAttemptCount((prev) => prev + 1);
     } catch (err) {
       console.error("Error submitting quiz:", err);
     }
@@ -291,6 +380,36 @@ export default function LessonPage() {
     stopTracking();
     router.push("/dashboard");
   };
+
+  const handleRetry = () => {
+    // Increment global daily retry count (max 1 retry per day across ALL quizzes)
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    const globalDailyRetryKey = `globalDailyRetry:${
+      user?.email || user?.id
+    }:${today}`;
+    const newDailyRetryCount = dailyRetryCount + 1;
+    localStorage.setItem(globalDailyRetryKey, newDailyRetryCount.toString());
+    setDailyRetryCount(newDailyRetryCount);
+
+    // Reset all quiz state
+    setCurrentStep(0);
+    setSelectedOption(null);
+    setSelectedPairs({});
+    setActiveWord(null);
+    setArrangedWords([]);
+    setIsCorrect(null);
+    setIsSubmitted(false);
+    setLivesLeft(5);
+    setProgress(0);
+    setXpEarned(0);
+    setCorrectCount(0);
+    setShowCompletionScreen(false);
+
+    // Start tracking again
+    startTracking();
+    setStartAt(new Date().toISOString());
+  };
+
   // If all lives are lost
   if (livesLeft <= 0 && !showCompletionScreen) {
     return (
@@ -302,14 +421,35 @@ export default function LessonPage() {
           <h1 className="text-2xl font-bold mb-4">Out of hearts!</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             You've run out of hearts. Practice makes perfect! Try again.
+            {dailyRetryCount >= 1 && attemptCount < 2 && (
+              <span className="block mt-2 text-sm">
+                You've used your daily retry for today. Come back tomorrow for
+                another chance!
+              </span>
+            )}
           </p>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => router.push("/dashboard")}
-          >
-            Back to Dashboard
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleRetry}
+              disabled={attemptCount >= 2 || dailyRetryCount >= 1}
+            >
+              {attemptCount >= 2
+                ? "Maximum attempts reached"
+                : dailyRetryCount >= 1
+                ? "Daily retry limit reached"
+                : "Retry Quiz"}
+            </Button>
+            <Button
+              className="w-full"
+              size="lg"
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+            >
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
     );
