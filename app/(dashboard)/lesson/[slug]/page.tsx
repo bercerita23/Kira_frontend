@@ -49,6 +49,7 @@ export default function LessonPage() {
   const weekKey = new Date().toISOString().slice(0, 10);
   const [lessonSteps, setLessonSteps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [attemptCount, setAttemptCount] = useState(0);
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -85,6 +86,70 @@ export default function LessonPage() {
       setSelectedPairs({});
     }
   }, [currentStep, lessonSteps.length]);
+
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attempts");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        const attempts = data.attempts || [];
+        const quizId = Number(params.slug);
+        const currentQuizAttempt = attempts.find(
+          (a: any) => a.quiz_id === quizId
+        );
+        setAttemptCount(
+          currentQuizAttempt ? currentQuizAttempt.attempt_count : 0
+        );
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+        setAttemptCount(0);
+      }
+    }
+    fetchAttempts();
+  }, [params.slug]);
+
+  // Submit failed attempt when all lives are lost
+  useEffect(() => {
+    const submitFailedAttempt = async () => {
+      if (livesLeft <= 0 && !showCompletionScreen && startAt) {
+        try {
+          const pass_count = correctCount;
+          const fail_count = lessonSteps.length - correctCount;
+          const end_at = new Date().toISOString();
+          const quiz_id = Number(params.slug);
+          const payload = {
+            quiz_id,
+            pass_count,
+            fail_count,
+            start_at: startAt,
+            end_at,
+          };
+          const res = await fetch("/api/users/submit-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          console.log("Failed quiz submit response:", data);
+
+          // Update attempt count after failed submission
+          setAttemptCount((prev) => prev + 1);
+        } catch (err) {
+          console.error("Error submitting failed quiz:", err);
+        }
+      }
+    };
+
+    submitFailedAttempt();
+  }, [
+    livesLeft,
+    showCompletionScreen,
+    startAt,
+    correctCount,
+    lessonSteps.length,
+    params.slug,
+  ]);
 
   const handleOptionSelect = (option: string) => {
     if (isSubmitted) return;
@@ -282,6 +347,9 @@ export default function LessonPage() {
       });
       const data = await res.json();
       console.log("Quiz submit response:", data);
+
+      // Update attempt count after successful submission
+      setAttemptCount((prev) => prev + 1);
     } catch (err) {
       console.error("Error submitting quiz:", err);
     }
@@ -291,6 +359,27 @@ export default function LessonPage() {
     stopTracking();
     router.push("/dashboard");
   };
+
+  const handleRetry = () => {
+    // Reset all quiz state
+    setCurrentStep(0);
+    setSelectedOption(null);
+    setSelectedPairs({});
+    setActiveWord(null);
+    setArrangedWords([]);
+    setIsCorrect(null);
+    setIsSubmitted(false);
+    setLivesLeft(5);
+    setProgress(0);
+    setXpEarned(0);
+    setCorrectCount(0);
+    setShowCompletionScreen(false);
+
+    // Start tracking again
+    startTracking();
+    setStartAt(new Date().toISOString());
+  };
+
   // If all lives are lost
   if (livesLeft <= 0 && !showCompletionScreen) {
     return (
@@ -303,13 +392,24 @@ export default function LessonPage() {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             You've run out of hearts. Practice makes perfect! Try again.
           </p>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => router.push("/dashboard")}
-          >
-            Back to Dashboard
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleRetry}
+              disabled={attemptCount >= 2}
+            >
+              {attemptCount >= 2 ? "Maximum attempts reached" : "Retry Quiz"}
+            </Button>
+            <Button
+              className="w-full"
+              size="lg"
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+            >
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
     );
