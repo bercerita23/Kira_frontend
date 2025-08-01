@@ -104,13 +104,20 @@ export default function LessonPage() {
         );
 
         // Check global daily retry count from localStorage (global across all quizzes)
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        const globalDailyRetryKey = `globalDailyRetry:${user?.email || user?.id}:${today}`;
-        const storedGlobalDailyRetries = localStorage.getItem(globalDailyRetryKey);
-        setDailyRetryCount(storedGlobalDailyRetries ? parseInt(storedGlobalDailyRetries) : 0);
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        const globalDailyRetryKey = `globalDailyRetry:${
+          user?.email || user?.id
+        }:${today}`;
+        const storedGlobalDailyRetries =
+          localStorage.getItem(globalDailyRetryKey);
+        setDailyRetryCount(
+          storedGlobalDailyRetries ? parseInt(storedGlobalDailyRetries) : 0
+        );
 
         // Clean up old per-quiz daily retry keys (migration cleanup)
-        const oldDailyRetryKey = `dailyRetry:${user?.email || user?.id}:${quizId}:${today}`;
+        const oldDailyRetryKey = `dailyRetry:${
+          user?.email || user?.id
+        }:${quizId}:${today}`;
         if (localStorage.getItem(oldDailyRetryKey)) {
           localStorage.removeItem(oldDailyRetryKey);
         }
@@ -376,8 +383,10 @@ export default function LessonPage() {
 
   const handleRetry = () => {
     // Increment global daily retry count (max 1 retry per day across ALL quizzes)
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const globalDailyRetryKey = `globalDailyRetry:${user?.email || user?.id}:${today}`;
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    const globalDailyRetryKey = `globalDailyRetry:${
+      user?.email || user?.id
+    }:${today}`;
     const newDailyRetryCount = dailyRetryCount + 1;
     localStorage.setItem(globalDailyRetryKey, newDailyRetryCount.toString());
     setDailyRetryCount(newDailyRetryCount);
@@ -414,7 +423,8 @@ export default function LessonPage() {
             You've run out of hearts. Practice makes perfect! Try again.
             {dailyRetryCount >= 1 && attemptCount < 2 && (
               <span className="block mt-2 text-sm">
-                You've used your daily retry for today. Come back tomorrow for another chance!
+                You've used your daily retry for today. Come back tomorrow for
+                another chance!
               </span>
             )}
           </p>
@@ -425,10 +435,10 @@ export default function LessonPage() {
               onClick={handleRetry}
               disabled={attemptCount >= 2 || dailyRetryCount >= 1}
             >
-              {attemptCount >= 2 
-                ? "Maximum attempts reached" 
-                : dailyRetryCount >= 1 
-                ? "Daily retry limit reached" 
+              {attemptCount >= 2
+                ? "Maximum attempts reached"
+                : dailyRetryCount >= 1
+                ? "Daily retry limit reached"
                 : "Retry Quiz"}
             </Button>
             <Button
