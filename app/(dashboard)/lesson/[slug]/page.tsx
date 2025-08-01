@@ -50,6 +50,7 @@ export default function LessonPage() {
   const [lessonSteps, setLessonSteps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [attemptCount, setAttemptCount] = useState(0);
+  const [dailyRetryCount, setDailyRetryCount] = useState(0);
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -101,13 +102,26 @@ export default function LessonPage() {
         setAttemptCount(
           currentQuizAttempt ? currentQuizAttempt.attempt_count : 0
         );
+
+        // Check global daily retry count from localStorage (global across all quizzes)
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        const globalDailyRetryKey = `globalDailyRetry:${user?.email || user?.id}:${today}`;
+        const storedGlobalDailyRetries = localStorage.getItem(globalDailyRetryKey);
+        setDailyRetryCount(storedGlobalDailyRetries ? parseInt(storedGlobalDailyRetries) : 0);
+
+        // Clean up old per-quiz daily retry keys (migration cleanup)
+        const oldDailyRetryKey = `dailyRetry:${user?.email || user?.id}:${quizId}:${today}`;
+        if (localStorage.getItem(oldDailyRetryKey)) {
+          localStorage.removeItem(oldDailyRetryKey);
+        }
       } catch (err) {
         console.error("Error fetching attempts:", err);
         setAttemptCount(0);
+        setDailyRetryCount(0);
       }
     }
     fetchAttempts();
-  }, [params.slug]);
+  }, [params.slug, user]);
 
   // Submit failed attempt when all lives are lost
   useEffect(() => {
@@ -361,6 +375,13 @@ export default function LessonPage() {
   };
 
   const handleRetry = () => {
+    // Increment global daily retry count (max 1 retry per day across ALL quizzes)
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const globalDailyRetryKey = `globalDailyRetry:${user?.email || user?.id}:${today}`;
+    const newDailyRetryCount = dailyRetryCount + 1;
+    localStorage.setItem(globalDailyRetryKey, newDailyRetryCount.toString());
+    setDailyRetryCount(newDailyRetryCount);
+
     // Reset all quiz state
     setCurrentStep(0);
     setSelectedOption(null);
@@ -391,15 +412,24 @@ export default function LessonPage() {
           <h1 className="text-2xl font-bold mb-4">Out of hearts!</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             You've run out of hearts. Practice makes perfect! Try again.
+            {dailyRetryCount >= 1 && attemptCount < 2 && (
+              <span className="block mt-2 text-sm">
+                You've used your daily retry for today. Come back tomorrow for another chance!
+              </span>
+            )}
           </p>
           <div className="flex flex-col gap-3">
             <Button
               className="w-full"
               size="lg"
               onClick={handleRetry}
-              disabled={attemptCount >= 2}
+              disabled={attemptCount >= 2 || dailyRetryCount >= 1}
             >
-              {attemptCount >= 2 ? "Maximum attempts reached" : "Retry Quiz"}
+              {attemptCount >= 2 
+                ? "Maximum attempts reached" 
+                : dailyRetryCount >= 1 
+                ? "Daily retry limit reached" 
+                : "Retry Quiz"}
             </Button>
             <Button
               className="w-full"
