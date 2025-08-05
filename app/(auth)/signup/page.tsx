@@ -151,20 +151,11 @@ export default function SignupPage() {
       ? formData.password === formData.confirmPassword
       : null;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              Kira Admin
-            </span>
-          </Link>
-        </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900 dark:to-emerald-900 p-4">
+      <div className="w-full max-w-md  rounded-[8px]">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Shield className="h-5 w-5 text-purple-600" />
               <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">
                 Create Admin Account
               </CardTitle>
@@ -184,11 +175,12 @@ export default function SignupPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-2 ">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
                     name="firstName"
+                    className="rounded-[8px]"
                     required
                     value={formData.firstName}
                     onChange={handleChange}
@@ -199,6 +191,7 @@ export default function SignupPage() {
                   <Input
                     id="lastName"
                     name="lastName"
+                    className="rounded-[8px]"
                     required
                     value={formData.lastName}
                     onChange={handleChange}
@@ -212,6 +205,7 @@ export default function SignupPage() {
                   id="email"
                   name="email"
                   type="email"
+                  className="rounded-[8px]"
                   required
                   value={formData.email}
                   onChange={handleChange}
@@ -227,13 +221,13 @@ export default function SignupPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className={
+                  className={`rounded-[8px] ${
                     passwordsMatch === null
                       ? ""
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500"
-                  }
+                  }`}
                 />
               </div>
               <div className="space-y-2">
@@ -245,16 +239,16 @@ export default function SignupPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={
+                  className={`rounded-[8px] ${
                     passwordsMatch === null
                       ? ""
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500"
-                  }
+                  }`}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <Label htmlFor="schoolId">Select School</Label>
                 <Select
                   value={formData.schoolId}
@@ -283,6 +277,7 @@ export default function SignupPage() {
                   <Input
                     id="code"
                     name="code"
+                    className="rounded-[8px]"
                     required
                     value={formData.code}
                     onChange={handleChange}
@@ -307,14 +302,14 @@ export default function SignupPage() {
                   I agree to the{" "}
                   <Link
                     href="/terms"
-                    className="text-purple-600 hover:underline font-medium"
+                    className="text-green-600 hover:underline font-medium"
                   >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="text-purple-600 hover:underline font-medium"
+                    className="text-green-600 hover:underline font-medium"
                   >
                     Privacy Policy
                   </Link>
@@ -323,7 +318,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
                 disabled={isLoading || !formData.terms}
               >
                 {isLoading ? (
@@ -342,7 +337,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/admin/login"
-                className="text-purple-600 hover:underline font-medium"
+                className="text-green-600 hover:underline font-medium"
               >
                 Sign in
               </Link>
