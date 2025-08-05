@@ -44,9 +44,9 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F2FFF2] px-4">
       <div className="bg-white p-12 rounded-[8px] shadow-md w-full max-w-md text-center">
-        <h1 className="text-4xl font-bold text-[#B71C3B] mb-1">KIRA</h1>
+        <h1 className="text-4xl font-bold text-[#1B8A1B] mb-1">KIRA</h1>
         <h2 className="text-[24px] font-medium text-black mb-10">
           Forgot Password
         </h2>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
 
           <Button
             type="submit"
-            className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white font-semibold rounded-[7px]"
+            className="w-full bg-[#1B8A1B] hover:bg-[#157115] text-white font-semibold rounded-[7px]"
             disabled={isLoading || codeSent}
           >
             {codeSent
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
           <p className="text-sm text-gray-700 mt-4">
             If you haven’t heard back for a while,{" "}
             <button
-              className="text-[#B71C3B] underline"
+              className="text-[#1B8A1B] underline"
               onClick={() => {
                 setCodeSent(false);
                 setUsername("");
