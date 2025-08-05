@@ -155,7 +155,6 @@ export default function AdminDashboardPage() {
     "students"
   );
   const [passwordError, setPasswordError] = useState(false);
-  const [currentTab, setCurrentTab] = useState("students");
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -725,7 +724,7 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Left side: Branding */}
           <div className="flex items-center gap-2">
-            <span className="text-[#006400] font-semibold text-lg">Kira</span>
+            <span className="text-[#B40000] font-semibold text-lg">Kira</span>
             <span className="text-gray-700 font-medium">Admin Dashboard</span>
           </div>
 
@@ -759,7 +758,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm font-medium text-gray-900">
                 {user.first_name} {user.last_name}
               </p>
-              <p className="text-xs text-[#006400]">Administrator</p>
+              <p className="text-xs text-[#B40000]">Administrator</p>
             </div>
 
             <DropdownMenu>
@@ -785,11 +784,7 @@ export default function AdminDashboardPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabbed Content */}
-        <Tabs
-          value={currentTab}
-          onValueChange={setCurrentTab}
-          className="space-y-6"
-        >
+        <Tabs defaultValue="students" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="students" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -910,8 +905,10 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
                 <Button
-                  className="ml-2 bg-green-600 hover:bg-green-700"
-                  onClick={() => setCurrentTab("add-student")}
+                  className="ml-2 bg-rose-600 hover:bg-rose-700"
+                  onClick={() => {
+                    /* trigger add student tab */
+                  }}
                 >
                   Add a Student
                 </Button>
@@ -1532,7 +1529,7 @@ export default function AdminDashboardPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-green-600 border-green-600 hover:bg-green-50"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
                               >
                                 Edit
                               </Button>
@@ -1653,10 +1650,10 @@ export default function AdminDashboardPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className={`border-green-600 hover:bg-green-50 ${
+                                className={`border-red-600 hover:bg-red-50 ${
                                   studentQuizAttempts?.student_info.deactivated
                                     ? "text-green-600"
-                                    : "text-green-600"
+                                    : "text-red-600"
                                 }`}
                                 onClick={() => {
                                   const username = editStudent.username;

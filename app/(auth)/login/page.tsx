@@ -167,13 +167,13 @@ export default function LoginPage() {
     }
   }, [searchParams]);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F2FFF2]">
+    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6]">
       <div className="w-full max-w-md">
         <div
           className="bg-white rounded-2xl shadow-lg px-10 py-10 flex flex-col items-center"
           style={{ minWidth: 400 }}
         >
-          <span className="text-3xl font-bold text-[#1B8A1B] mb-1">KIRA</span>
+          <span className="text-3xl font-bold text-[#B71C3B] mb-1">KIRA</span>
           <span className="text-xl font-medium text-[#2D0B18] mb-11">
             Log in to your account
           </span>
@@ -181,13 +181,13 @@ export default function LoginPage() {
             Choose your account type
           </span>
           <div className="flex w-full justify-center mb-6 ">
-            <div className="flex bg-[#EDFBED] rounded-[4px] p-[2px] overflow-hidden h-10 w-full border border-[#EDFBED]">
+            <div className="flex bg-[#FDECEF] rounded-[4px] p-[2px] overflow-hidden h-10 w-full  border border-[#FDECEF]">
               <button
                 type="button"
                 className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
                   ${
                     loginType === "admin"
-                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#1B8A1B] z-10"
+                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#B71C3B] z-10"
                       : "bg-transparent border-transparent text-[#2D0B18]"
                   }
                 `}
@@ -199,7 +199,7 @@ export default function LoginPage() {
                 <Shield
                   size={18}
                   className={
-                    loginType === "admin" ? "text-[#1B8A1B]" : "text-[#A0A0A0]"
+                    loginType === "admin" ? "text-[#B71C3B]" : "text-[#A0A0A0]"
                   }
                 />
                 Administrator
@@ -209,7 +209,7 @@ export default function LoginPage() {
                 className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
                   ${
                     loginType === "student"
-                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#1B8A1B] z-10"
+                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#B71C3B] z-10"
                       : "bg-transparent border-transparent text-[#2D0B18]"
                   }
                 `}
@@ -222,7 +222,7 @@ export default function LoginPage() {
                   size={18}
                   className={
                     loginType === "student"
-                      ? "text-[#1B8A1B]"
+                      ? "text-[#B71C3B]"
                       : "text-[#A0A0A0]"
                   }
                 />
@@ -255,7 +255,7 @@ export default function LoginPage() {
                 value={formData.identifier}
                 onChange={handleChange}
                 required
-                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#1B8A1B] focus:border-[#1B8A1B]"
+                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#B71C3B] focus:border-[#B71C3B]"
                 style={{ fontSize: "1rem" }}
               />
             </div>
@@ -275,7 +275,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#1B8A1B] focus:border-[#1B8A1B]"
+                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#B71C3B] focus:border-[#B71C3B]"
                 style={{ fontSize: "1rem" }}
               />
               <a
@@ -284,7 +284,7 @@ export default function LoginPage() {
                     ? "/forgot-password"
                     : "/forgot-password-student/"
                 }
-                className="text-xs text-[#1B8A1B] hover:underline"
+                className="text-xs text-[#B71C3B] hover:underline"
               >
                 Forgot Password?
               </a>
@@ -292,7 +292,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#1B8A1B] hover:bg-[#157115] text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200"
+              className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -329,7 +329,7 @@ export default function LoginPage() {
               </span>
               <a
                 href="/signup"
-                className="text-[#1B8A1B] font-medium hover:underline text-sm"
+                className="text-[#B71C3B] font-medium hover:underline text-sm"
               >
                 Admin Sign Up
               </a>
