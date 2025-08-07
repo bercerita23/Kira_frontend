@@ -14,6 +14,7 @@ interface Topic {
   week_number: number;
   state: string;
   updated_at: string;
+  file_name: string;
 }
 
 export default function UploadContentSection() {
@@ -21,6 +22,8 @@ export default function UploadContentSection() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [weekNumber, setWeekNumber] = useState("");
+  const [state, setState] = useState("");
+  const [file_name, setFile_name] = useState("");
   const [existingTopicId, setExistingTopicId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -74,7 +77,7 @@ export default function UploadContentSection() {
 
       if (!response.ok) throw new Error(data.detail);
 
-      toast({ title: "Success", description: data.message });
+      toast({ title: "Message", description: data.message });
       setFile(null);
       setTitle("");
       setWeekNumber("");
@@ -163,6 +166,12 @@ export default function UploadContentSection() {
                 <div>
                   <p className="font-medium">
                     Week {topic.week_number}: {topic.topic_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    File: {topic.file_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Status: {topic.state}
                   </p>
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
