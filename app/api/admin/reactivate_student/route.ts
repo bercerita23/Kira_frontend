@@ -1,3 +1,4 @@
+//api/admin/reactivate_student/route.ts
 import { NextRequest } from "next/server";
 
 export async function PATCH(req: NextRequest) {

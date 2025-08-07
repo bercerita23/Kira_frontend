@@ -151,29 +151,29 @@ export default function SignupPage() {
       ? formData.password === formData.confirmPassword
       : null;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 p-4">
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: "#f5f5f5" }}
+    >
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              Kira Admin
-            </span>
-          </Link>
+        <div className="flex flex-col items-center mb-8">
+          <img
+            src="/assets/auth.png"
+            alt="Kira Auth"
+            style={{ width: 64, height: 64, objectFit: "contain" }}
+            className="mb-1"
+          />
+          <span className="text-xl font-medium text-[#2D0B18] mb-2">
+            Create Admin Account
+          </span>
         </div>
-
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Shield className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-2xl text-center text-gray-900 dark:text-white">
-                Create Admin Account
-              </CardTitle>
-            </div>
+            {/* Remove icon and duplicate title, keep only description */}
             <CardDescription className="text-center">
               Register to access the Kira admin dashboard.
             </CardDescription>
           </CardHeader>
-
           <CardContent>
             {error && (
               <Alert variant="destructive">
@@ -192,6 +192,7 @@ export default function SignupPage() {
                     required
                     value={formData.firstName}
                     onChange={handleChange}
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -202,6 +203,7 @@ export default function SignupPage() {
                     required
                     value={formData.lastName}
                     onChange={handleChange}
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
                   />
                 </div>
               </div>
@@ -215,6 +217,7 @@ export default function SignupPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
+                  className="focus:ring-[#2d7017] focus:border-[#2d7017]"
                 />
               </div>
 
@@ -228,11 +231,12 @@ export default function SignupPage() {
                   value={formData.password}
                   onChange={handleChange}
                   className={
-                    passwordsMatch === null
+                    (passwordsMatch === null
                       ? ""
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-red-500 focus-visible:ring-red-500"
+                      : "border-red-500 focus-visible:ring-red-500") +
+                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
                   }
                 />
               </div>
@@ -246,11 +250,12 @@ export default function SignupPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className={
-                    passwordsMatch === null
+                    (passwordsMatch === null
                       ? ""
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
-                      : "border-red-500 focus-visible:ring-red-500"
+                      : "border-red-500 focus-visible:ring-red-500") +
+                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
                   }
                 />
               </div>
@@ -260,10 +265,10 @@ export default function SignupPage() {
                   value={formData.schoolId}
                   onValueChange={handleSchoolChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017]">
                     <SelectValue placeholder="Choose a school" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     {schools.map((school) => (
                       <SelectItem
                         className="!bg-white !text-black hover:!bg-gray-100"
@@ -286,12 +291,14 @@ export default function SignupPage() {
                     required
                     value={formData.code}
                     onChange={handleChange}
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
                   />
                 </div>
               </div>
 
               <div className="flex items-start space-x-2">
                 <Checkbox
+                  className="focus:ring-[#2d7017] focus:border-[#2d7017] "
                   id="terms"
                   name="terms"
                   required
@@ -307,14 +314,16 @@ export default function SignupPage() {
                   I agree to the{" "}
                   <Link
                     href="/terms"
-                    className="text-purple-600 hover:underline font-medium"
+                    className="font-medium hover:underline"
+                    style={{ color: "#94b689" }}
                   >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="text-purple-600 hover:underline font-medium"
+                    className="font-medium hover:underline"
+                    style={{ color: "#94b689" }}
                   >
                     Privacy Policy
                   </Link>
@@ -323,7 +332,8 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full text-white"
+                style={{ background: "#2d7017" }}
                 disabled={isLoading || !formData.terms}
               >
                 {isLoading ? (
@@ -341,8 +351,9 @@ export default function SignupPage() {
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
-                href="/admin/login"
-                className="text-purple-600 hover:underline font-medium"
+                href="/login"
+                className="font-medium hover:underline"
+                style={{ color: "#94b689" }}
               >
                 Sign in
               </Link>

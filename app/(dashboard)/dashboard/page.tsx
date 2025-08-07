@@ -69,6 +69,7 @@ export default function DashboardPage() {
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [globalDailyRetryCount, setGlobalDailyRetryCount] = useState(0);
 
   // useEffect(() => {
   //   if (typeof window !== "undefined" && user) {
@@ -311,9 +312,18 @@ export default function DashboardPage() {
                         ? attempt.pass_count + attempt.fail_count
                         : 5;
                       const score = attempt ? attempt.pass_count : 0;
+                      // Lock quiz if:
+                      // 1. Quiz is inherently locked, OR
+                      // 2. User has reached max attempts (2) for this quiz, OR
+                      // 3. User has used their daily retry and hasn't maxed out this quiz
+                      const hasMaxedAttempts =
+                        attempt && attempt.attempt_count >= 2;
+                      const hasUsedDailyRetry = globalDailyRetryCount >= 1;
                       const shouldLock =
                         quiz.is_locked ||
                         (attempt && attempt.attempt_count === 2);
+                      hasMaxedAttempts ||
+                        (hasUsedDailyRetry && !hasMaxedAttempts);
                       const progressColor =
                         score === totalQuestions ? "green" : "primary";
                       return shouldLock ? (
