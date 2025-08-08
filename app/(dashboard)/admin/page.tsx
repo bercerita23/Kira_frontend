@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
 
   async function reactivateStudent(username: string) {
     try {
-      const response = await fetch("/api/admin/reactivate-student", {
+      const response = await fetch("/api/admin/reactivate_student/", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -727,7 +727,16 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Left side: Branding */}
           <div className="flex items-center gap-2">
-            <span className="text-[#006400] font-semibold text-lg">Kira</span>
+            <img
+              src="/assets/header.png"
+              alt="Kira Auth"
+              style={{
+                height: 40,
+                width: "auto",
+                objectFit: "contain",
+                marginBottom: 0,
+              }}
+            />
             <span className="text-gray-700 font-medium">Admin Dashboard</span>
           </div>
 
@@ -1364,7 +1373,7 @@ export default function AdminDashboardPage() {
 
                                   {/* View Details Link */}
                                   <div
-                                    className="text-right mt-2 text-sm bg-green-600 hover:bg-green-700 font-medium cursor-pointer hover:underline"
+                                    className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
                                     onClick={() =>
                                       setShowAllPointsHistory(
                                         !showAllPointsHistory
