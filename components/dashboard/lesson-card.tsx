@@ -26,10 +26,10 @@ export function LessonCard({
 }: LessonCardProps) {
   return (
     <div 
-      className={cn(
-        "lesson-card card-hover bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow",
-        completed ? "border-secondary" : active ? "border-primary" : "border-gray-200 dark:border-gray-700",
-      )}
+          className={cn(
+      "lesson-card card-hover bg-white shadow-sm hover:shadow-md transition-shadow",
+      completed ? "border-secondary" : active ? "border-primary" : "border-gray-200",
+    )}
     >
       <div className="p-6">
         <div className="flex items-start justify-between">
@@ -39,7 +39,7 @@ export function LessonCard({
                 "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl",
                 completed ? "bg-secondary/10 text-secondary" : 
                 active ? "bg-primary/10 text-primary" : 
-                "bg-gray-100 dark:bg-gray-700"
+                "bg-gray-100"
               )}
             >
               {locked ? <LockIcon className="h-7 w-7 text-muted-foreground" /> : icon}

@@ -11,7 +11,7 @@ export function DailyGoalCard({ progress }: DailyGoalCardProps) {
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-sm font-medium text-muted-foreground">Daily Goal</h3>
-          <span className="text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-medium bg-green-100 text-green-800 px-2.5 py-1 rounded-full">
             75% Complete
           </span>
         </div>

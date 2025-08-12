@@ -418,10 +418,10 @@ export default function AdminDashboardPage() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600">
             Verifying access...
           </p>
         </div>
@@ -436,12 +436,12 @@ export default function AdminDashboardPage() {
       window.location.href = "/admin/login?from=/admin";
     }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">
             Admin Authentication Required
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             Redirecting to admin login...
           </p>
           <div className="space-x-4">
@@ -457,13 +457,13 @@ export default function AdminDashboardPage() {
   // Check if user is admin
   if (user.role !== "admin" && user.role !== "super_admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-4 text-red-600">
             Access Denied
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             You don't have permission to access the admin dashboard.
           </p>
           <div className="space-x-4">
@@ -650,9 +650,8 @@ export default function AdminDashboardPage() {
 
   // Filtered students based on search
   const filteredStudents = students.filter((student) => {
-    const name = `${student.first_name || ""} ${
-      student.last_name || ""
-    }`.toLowerCase();
+    const name = `${student.first_name || ""} ${student.last_name || ""
+      }`.toLowerCase();
     const username = student.username?.toLowerCase() || "";
     const matchesSearch =
       name.includes(search.toLowerCase()) ||
@@ -722,7 +721,7 @@ export default function AdminDashboardPage() {
   // </div>
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Left side: Branding */}
@@ -743,31 +742,28 @@ export default function AdminDashboardPage() {
           {/* Middle: Tabs */}
           <div className="flex bg-[#f1f1f1] p-1 rounded-[8px] ">
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
-                activeTab === "students"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500"
-              }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "students"
+                ? "bg-white shadow text-gray-900"
+                : "text-gray-500"
+                }`}
               onClick={() => setActiveTab("students")}
             >
               My Students
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
-                activeTab === "analytics"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500"
-              }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "analytics"
+                ? "bg-white shadow text-gray-900"
+                : "text-gray-500"
+                }`}
               onClick={() => setActiveTab("analytics")}
             >
               Usage Analytics
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
-                activeTab === "upload"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500"
-              }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "upload"
+                ? "bg-white shadow text-gray-900"
+                : "text-gray-500"
+                }`}
               onClick={() => setActiveTab("upload")}
             >
               Upload Content
@@ -825,7 +821,7 @@ export default function AdminDashboardPage() {
             {/* Students Tab */}
             <TabsContent value="students" className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-gray-900">
                   {schoolName} students
                 </h2>
                 <div className="flex items-center gap-2 w-full md:w-auto">
@@ -843,9 +839,8 @@ export default function AdminDashboardPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`ml-2 ${
-                        selectedGrades.length > 0 ? "text-[#B40000]" : ""
-                      }`}
+                      className={`ml-2 ${selectedGrades.length > 0 ? "text-[#B40000]" : ""
+                        }`}
                       onClick={() => setShowFilter(!showFilter)}
                     >
                       <Filter className="h-5 w-5" />
@@ -911,11 +906,10 @@ export default function AdminDashboardPage() {
 
                   <div className="flex items-center ml-2 border rounded overflow-hidden">
                     <button
-                      className={`px-2 py-1 ${
-                        viewMode === "list"
-                          ? "bg-gray-200 dark:bg-gray-700"
-                          : ""
-                      }`}
+                      className={`px-2 py-1 ${viewMode === "list"
+                        ? "bg-gray-200"
+                        : ""
+                        }`}
                       onClick={() => setViewMode("list")}
                       aria-label="List view"
                       type="button"
@@ -923,11 +917,10 @@ export default function AdminDashboardPage() {
                       <List className="h-5 w-5" />
                     </button>
                     <button
-                      className={`px-2 py-1 ${
-                        viewMode === "grid"
-                          ? "bg-gray-200 dark:bg-gray-700"
-                          : ""
-                      }`}
+                      className={`px-2 py-1 ${viewMode === "grid"
+                        ? "bg-gray-200"
+                        : ""
+                        }`}
                       onClick={() => setViewMode("grid")}
                       aria-label="Grid view"
                       type="button"
@@ -948,7 +941,7 @@ export default function AdminDashboardPage() {
               {loadingStudents ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <span className="ml-3 text-gray-600 dark:text-gray-400">
+                  <span className="ml-3 text-gray-600">
                     Loading students...
                   </span>
                 </div>
@@ -956,10 +949,10 @@ export default function AdminDashboardPage() {
                 <Card>
                   <CardContent className="text-center py-12">
                     <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">
                       No Students Found
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400">
+                    <p className="text-gray-500">
                       There are currently no students registered in the system.
                     </p>
                   </CardContent>
@@ -970,7 +963,7 @@ export default function AdminDashboardPage() {
                     <Card
                       key={student.user_id || student.username || idx}
                       onClick={() => handleStudentClick(student)}
-                      className="hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer"
+                      className="hover:shadow-lg transition-all duration-200 border border-gray-200 cursor-pointer"
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center space-x-3">
@@ -999,11 +992,11 @@ export default function AdminDashboardPage() {
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="flex items-center gap-4 mt-2">
-                          <span className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <span className="flex items-center text-xs text-gray-600">
                             <UserIcon className="h-4 w-4 mr-1" />{" "}
                             {student.grade ? student.grade + " grade" : "-"}
                           </span>
-                          <span className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <span className="flex items-center text-xs text-gray-600">
                             <Star className="h-4 w-4 mr-1" />{" "}
                             {typeof student.points === "number"
                               ? student.points
@@ -1021,7 +1014,7 @@ export default function AdminDashboardPage() {
                     <Card
                       key={student.user_id || student.username || idx}
                       onClick={() => handleStudentClick(student)}
-                      className="hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer rounded-2xl bg-white dark:bg-gray-900 px-0"
+                      className="hover:shadow-md transition-all duration-200 border border-gray-200 cursor-pointer rounded-2xl bg-white px-0"
                     >
                       <CardContent className="flex items-center justify-between gap-x-6 py-2 px-6 min-h-[56px]">
                         {/* Avatar + Name */}
@@ -1031,21 +1024,21 @@ export default function AdminDashboardPage() {
                               {getUserInitials(student)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium text-base text-gray-900 dark:text-white whitespace-nowrap">
+                          <span className="font-medium text-base text-gray-900 whitespace-nowrap">
                             {getDisplayName(student)}
                           </span>
                         </div>
                         {/* Username */}
-                        <span className="text-gray-500 dark:text-gray-400 text-base whitespace-nowrap min-w-[120px] ml-[100px] text-center">
+                        <span className="text-gray-500 text-base whitespace-nowrap min-w-[120px] ml-[100px] text-center">
                           {student.username}
                         </span>
                         {/* Grade */}
-                        <span className="flex items-center dark:text-gray-400  text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
+                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
                           <UserIcon className="h-5 w-5 mr-1" />{" "}
                           {student.grade ? student.grade + " grade" : "-"}
                         </span>
                         {/* Points */}
-                        <span className="flex items-center dark:text-gray-400  text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
+                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
                           <Star className="h-5 w-5 mr-1" />{" "}
                           {typeof student.points === "number"
                             ? student.points
@@ -1077,7 +1070,7 @@ export default function AdminDashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                  <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="first_name">First Name *</Label>
@@ -1196,7 +1189,7 @@ export default function AdminDashboardPage() {
             {/* Password Reset Modal */}
             {showModal && selectedStudent && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md">
                   <h2 className="text-lg font-semibold mb-4">
                     Reset Password for {selectedStudent.username}
                   </h2>
@@ -1250,7 +1243,7 @@ export default function AdminDashboardPage() {
             {/* Student Edit Modal */}
             {editStudent && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
+                <div className="bg-white rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
                   {/* Header with Avatar and Name */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -1278,7 +1271,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <hr className="my-2 w-full border-t border-gray-300 mb-4" />
                   {/* Two Tab Layout */}
-                  <div className="bg-white dark:bg-gray-900 pl-1 pr-1  pb-2 rounded-xl">
+                  <div className="bg-white pl-1 pr-1  pb-2 rounded-xl">
                     <Tabs defaultValue="progress" className="w-full">
                       <TabsList className="grid w-full grid-cols-2 mb-6 rounded-md overflow-hidden ">
                         <TabsTrigger value="progress">PROGRESS</TabsTrigger>
@@ -1350,9 +1343,9 @@ export default function AdminDashboardPage() {
                                     {(showAllPointsHistory
                                       ? studentQuizAttempts?.points_history
                                       : studentQuizAttempts?.points_history.slice(
-                                          0,
-                                          3
-                                        )
+                                        0,
+                                        3
+                                      )
                                     )?.map((entry, idx) => (
                                       <div
                                         key={idx}
@@ -1411,9 +1404,9 @@ export default function AdminDashboardPage() {
                                       {(showAllQuizHistory
                                         ? studentQuizAttempts?.quiz_history
                                         : studentQuizAttempts?.quiz_history.slice(
-                                            0,
-                                            3
-                                          )
+                                          0,
+                                          3
+                                        )
                                       )?.map((quiz, idx) => (
                                         <div
                                           key={idx}
@@ -1485,9 +1478,9 @@ export default function AdminDashboardPage() {
                                       {(showAllAwards
                                         ? studentQuizAttempts?.badges
                                         : studentQuizAttempts?.badges.slice(
-                                            0,
-                                            3
-                                          )
+                                          0,
+                                          3
+                                        )
                                       )?.map((badge, idx) => (
                                         <div
                                           key={idx}
@@ -1516,9 +1509,9 @@ export default function AdminDashboardPage() {
                                       {(showAllAwards
                                         ? studentQuizAttempts?.achievements
                                         : studentQuizAttempts?.achievements.slice(
-                                            0,
-                                            3
-                                          )
+                                          0,
+                                          3
+                                        )
                                       )?.map((ach, idx) => (
                                         <div
                                           key={idx}
@@ -1562,7 +1555,7 @@ export default function AdminDashboardPage() {
                         <div className="w-full flex justify-center">
                           <div className="max-w-2xl ">
                             {/* Account Details Section */}
-                            <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-6">
+                            <div className="bg-white border rounded-lg p-6 mb-6">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold">
                                   Account Details
@@ -1627,14 +1620,14 @@ export default function AdminDashboardPage() {
                                 <Input
                                   value={editStudent.username}
                                   disabled
-                                  className="mt-1 bg-gray-100 dark:bg-gray-700"
+                                  className="mt-1 bg-gray-100"
                                 />
                               </div>
 
                               <div className="grid grid-cols-2 gap-4 mt-4">
                                 <div>
                                   <Label>School</Label>
-                                  <div className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                  <div className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900">
                                     {schoolName || "Not assigned"}
                                   </div>
                                 </div>
@@ -1648,7 +1641,7 @@ export default function AdminDashboardPage() {
                                         grade: e.target.value,
                                       }))
                                     }
-                                    className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                                   >
                                     <option value="">Not assigned</option>
                                     {GRADES.map((grade) => (
@@ -1668,7 +1661,7 @@ export default function AdminDashboardPage() {
                                     editForm.notes !== ""
                                       ? editForm.notes
                                       : studentQuizAttempts?.student_info
-                                          .notes || ""
+                                        .notes || ""
                                   }
                                   onChange={(e) =>
                                     setEditForm((f) => ({
@@ -1677,13 +1670,13 @@ export default function AdminDashboardPage() {
                                     }))
                                   }
                                   placeholder="Add notes about this student..."
-                                  className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                                  className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 resize-none"
                                 />
                               </div>
                             </div>
 
                             {/* Account Options Section */}
-                            <div className="bg-white dark:bg-gray-800 border rounded-lg p-6 mb-5">
+                            <div className="bg-white border rounded-lg p-6 mb-5">
                               <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold">
                                   Account Options
@@ -1691,12 +1684,11 @@ export default function AdminDashboardPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className={`border-green-600 hover:bg-green-50 ${
-                                    studentQuizAttempts?.student_info
-                                      .deactivated
-                                      ? "text-green-600"
-                                      : "text-green-600"
-                                  }`}
+                                  className={`border-green-600 hover:bg-green-50 ${studentQuizAttempts?.student_info
+                                    .deactivated
+                                    ? "text-green-600"
+                                    : "text-green-600"
+                                    }`}
                                   onClick={() => {
                                     const username = editStudent.username;
                                     if (

@@ -22,11 +22,11 @@ export default function UploadContentSection() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [weekNumber, setWeekNumber] = useState("");
-  const [existingTopicId, setExistingTopicId] = useState<string | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [hashes, setHashes] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
 
   // fetch contents + hash values on mount
   useEffect(() => {
@@ -78,78 +78,54 @@ export default function UploadContentSection() {
       // 1) compute hash
       const hash_value = await computeSHA256Hex(file);
 
-      // If “re-upload” mode is chosen, honor that route directly
-      if (existingTopicId) {
+      // 2) check if hash already exists
+      const exists = hashes.includes(hash_value);
+
+      if (exists) {
+        // 3a) existing → increase ref count
+        const form = new FormData();
+        form.append("title", title.trim());
+        form.append("week_number", weekNumber); // FastAPI will coerce to int
+        form.append("hash_value", hash_value);
+
+        const res = await fetch("/api/admin/increase-ref-count", {
+          method: "POST",
+          body: form, // ⚠️ do NOT set Content-Type yourself
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data?.detail || "Failed to increase ref count");
+        }
+
+        toast({
+          title: "Linked Existing File",
+          description: "Content uploaded successfully",
+        });
+      } else {
+        // 3b) new content → upload file with hash
         const form = new FormData();
         form.append("file", file);
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
-        form.append("topic_id", existingTopicId);
-        form.append("hash_value", hash_value); // included for backend if supported
+        form.append("hash_value", hash_value);
 
-        const res = await fetch("/api/admin/content-reupload", {
+        const res = await fetch("/api/admin/content-upload", {
           method: "POST",
           body: form,
         });
 
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.detail || "Re-upload failed");
+        if (!res.ok)
+          throw new Error(data?.detail || "Failed to upload content");
 
         toast({
-          title: "Message",
-          description: data.message ?? "Content replaced ✅",
+          title: "Uploaded",
+          description: "Content uploaded successfully",
         });
-      } else {
-        // 2) normal upload flow:
-        // check if hash already exists
-        const exists = hashes.includes(hash_value);
 
-        if (exists) {
-          // 3a) existing → increase ref count
-          const form = new FormData();
-          form.append("title", title.trim());
-          form.append("week_number", weekNumber); // FastAPI will coerce to int
-          form.append("hash_value", hash_value);
-
-          const res = await fetch("/api/admin/increase-ref-count", {
-            method: "POST",
-            body: form, // ⚠️ do NOT set Content-Type yourself
-          });
-
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            throw new Error(data?.detail || "Failed to increase ref count");
-          }
-
-          toast({
-            title: "Linked Existing File",
-            description: "Content uploaded successfully",
-          });
-        } else {
-          // 3b) new content → upload file with hash
-          const form = new FormData();
-          form.append("file", file);
-          form.append("title", title.trim());
-          form.append("week_number", weekNumber);
-          form.append("hash_value", hash_value);
-
-          const res = await fetch("/api/admin/content-upload", {
-            method: "POST",
-            body: form,
-          });
-
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok)
-            throw new Error(data?.detail || "Failed to upload content");
-
-          toast({
-            title: "Uploaded",
-            description: "Content uploaded successfully",
-          });
-
-          // keep the in-session hash list up to date
-          setHashes((prev) => [...prev, hash_value]);
-        }
+        // keep the in-session hash list up to date
+        setHashes((prev) => [...prev, hash_value]);
       }
 
       // refresh contents
@@ -158,13 +134,12 @@ export default function UploadContentSection() {
           cache: "no-store",
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
-      } catch {}
+      } catch { }
 
       // reset inputs
       setFile(null);
       setTitle("");
       setWeekNumber("");
-      setExistingTopicId(null);
     } catch (err: any) {
       toast({
         title: "Upload Failed",
@@ -176,10 +151,53 @@ export default function UploadContentSection() {
     }
   };
 
-  const handleReuploadAttempt = () => setShowConfirm(true);
-  const confirmReupload = () => {
-    setShowConfirm(false);
-    handleSubmit();
+  const handleDeleteClick = (topic: Topic) => {
+    setTopicToDelete(topic);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!topicToDelete) return;
+
+    setBusy(true);
+    try {
+      const form = new FormData();
+      form.append("topic_id", topicToDelete.topic_id.toString());
+
+      const res = await fetch("/api/admin/decrease-ref-count", {
+        method: "POST",
+        body: form,
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.detail || "Failed to delete content");
+      }
+
+      toast({
+        title: "Content Deleted",
+        description: "Content has been successfully deleted",
+      });
+
+      // refresh contents
+      try {
+        const refreshed = await fetch("/api/admin/contents", {
+          cache: "no-store",
+        }).then((r) => r.json());
+        setTopics(Array.isArray(refreshed) ? refreshed : []);
+      } catch { }
+
+    } catch (err: any) {
+      toast({
+        title: "Delete Failed",
+        description: err?.message || "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+      setShowDeleteConfirm(false);
+      setTopicToDelete(null);
+    }
   };
 
   return (
@@ -219,53 +237,48 @@ export default function UploadContentSection() {
         <div className="flex gap-2 ">
           <Button
             className="bg-green-600 hover:bg-green-700"
-            onClick={() => {
-              if (existingTopicId) {
-                handleReuploadAttempt();
-              } else {
-                handleSubmit();
-              }
-            }}
+            onClick={handleSubmit}
             disabled={busy}
           >
-            {busy
-              ? "Processing..."
-              : existingTopicId
-              ? "Re-upload File"
-              : "Upload Content"}
+            {busy ? "Processing..." : "Upload Content"}
           </Button>
-          {existingTopicId && (
-            <Button
-              variant="outline"
-              onClick={() => setExistingTopicId(null)}
-              disabled={busy}
-            >
-              Cancel Re-upload
-            </Button>
-          )}
         </div>
       </div>
 
       {topics.length > 0 && (
         <div className="mt-10">
-          <h3 className="text-lg font-semibold mb-2">Existing Topics</h3>
+          <h3 className="text-lg font-semibold mb-2">Existing Topics ({topics.length})</h3>
           <ul className="space-y-2">
             {topics.map((topic) => (
               <li
                 key={topic.topic_id}
-                className="flex justify-between items-center border px-4 py-2 rounded"
+                className="flex justify-between items-center border px-4 py-2 rounded bg-white shadow-sm"
               >
-                <div>
-                  <p className="font-medium">
+                <div className="flex-shrink-0 min-w-0">
+                  <p className="font-medium truncate">
                     Week {topic.week_number}: {topic.topic_name}
                   </p>
                   <p className="text-xs text-gray-500">
                     File: {topic.file_name}
                   </p>
-                  <p className="text-xs text-gray-500">Status: {topic.state}</p>
+                  <p className="text-xs text-gray-500">
+                    Status: {topic.state}
+                  </p>
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
                   </p>
+
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteClick(topic)}
+                    disabled={busy}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete
+                  </Button>
                 </div>
               </li>
             ))}
@@ -273,22 +286,22 @@ export default function UploadContentSection() {
         </div>
       )}
 
-      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
-          <DialogHeader>⚠️ Confirm Re-upload</DialogHeader>
+          <DialogHeader>⚠️ Confirm Delete</DialogHeader>
           <p className="text-sm text-gray-700 mb-4">
-            Uploading a new file will completely erase previously stored content
-            for this topic. Are you sure you want to proceed?
+            Are you sure you want to delete "{topicToDelete?.topic_name}"? This action will completely erase other content stored and cannot be undone.
           </p>
           <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={() => setShowConfirm(false)}>
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700"
-              onClick={confirmReupload}
+              onClick={confirmDelete}
+              disabled={busy}
             >
-              Yes, Replace Content
+              {busy ? "Deleting..." : "Yes, Delete"}
             </Button>
           </div>
         </DialogContent>

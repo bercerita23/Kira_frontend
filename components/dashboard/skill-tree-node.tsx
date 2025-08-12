@@ -31,11 +31,11 @@ export function SkillTreeNode({
     <div className="w-full md:max-w-md">
       <div 
         className={cn(
-          "skill-node w-full rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200 border-2",
+          "skill-node w-full rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 border-2",
           completed ? "border-green-500" : 
           active ? "border-primary" : 
-          locked ? "border-gray-200 dark:border-gray-700 opacity-70" : 
-          "border-gray-200 dark:border-gray-700"
+          locked ? "border-gray-200 opacity-70" : 
+          "border-gray-200"
         )}
       >
         <div className="p-4">
@@ -66,10 +66,10 @@ export function SkillTreeNode({
                 <div 
                   className={cn(
                     "absolute inset-0 rounded-full flex items-center justify-center text-xl md:text-2xl",
-                    locked ? "bg-gray-100 dark:bg-gray-700" : 
-                    completed ? "bg-green-50 dark:bg-green-900/20" : 
+                    locked ? "bg-gray-100" : 
+                    completed ? "bg-green-50" : 
                     active ? "bg-primary/10" : 
-                    "bg-gray-50 dark:bg-gray-800"
+                    "bg-gray-50"
                   )}
                 >
                   {locked ? (

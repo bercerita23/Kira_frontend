@@ -178,18 +178,18 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 z-40 h-12">
+    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-40 h-12">
       <div className="px-4 h-full flex items-center justify-between">
         <div className="flex items-center">
           <button
-            className="md:hidden mr-3 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+            className="md:hidden mr-3 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
             <Menu size={20} />
           </button>
           <Link href="/" className="flex items-center space-x-2">
-            <span className="font-semibold text-blue-600 dark:text-blue-400">
+            <span className="font-semibold text-blue-600">
               Kira
             </span>
           </Link>
@@ -214,7 +214,7 @@ export function DashboardHeader() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md"
+              className="w-72 bg-white border border-gray-200 shadow-lg rounded-md"
             >
               <DropdownMenuLabel className="text-xs font-medium text-gray-500">
                 Notifications
@@ -228,7 +228,7 @@ export function DashboardHeader() {
                 notifications.map((item) => (
                   <DropdownMenuItem
                     key={`${item.type}-${item.id}`}
-                    className="text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="text-sm cursor-pointer hover:bg-gray-100"
                     onClick={() => handleNotificationClick(item.id, item.type)}
                   >
                     {item.type === "badge" ? "🎖️" : "🏆"} {item.name}:{" "}
@@ -257,8 +257,8 @@ export function DashboardHeader() {
                 variant="ghost"
                 className="relative h-8 w-8 rounded-full ml-1"
               >
-                <Avatar className="h-8 w-8 border-2 border-gray-100 dark:border-gray-800">
-                  <AvatarFallback className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 text-sm font-medium">
+                <Avatar className="h-8 w-8 border-2 border-gray-100">
+                  <AvatarFallback className="bg-blue-100 text-blue-800 text-sm font-medium">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
@@ -267,7 +267,7 @@ export function DashboardHeader() {
             <DropdownMenuContent align="end" className="w-48 bg-white">
               <DropdownMenuLabel className="text-xs font-normal text-gray-500">
                 Signed in as{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
+                <span className="font-medium text-gray-700">
                   {getDisplayName()}
                 </span>
               </DropdownMenuLabel>
@@ -282,7 +282,7 @@ export function DashboardHeader() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-sm text-red-500 dark:text-red-400"
+                className="text-sm text-red-500"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />

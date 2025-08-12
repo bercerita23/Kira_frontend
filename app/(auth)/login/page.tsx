@@ -67,14 +67,14 @@ export default function LoginPage() {
       if (loginType === "student") {
         await loginStudent(credentials);
         toast({
-          title: "Login successful",
+          title: "Student Login successful",
           description: "Welcome back to Kira!",
         });
       } else {
         await loginAdmin(credentials);
         toast({
           title: "Admin login successful",
-          description: "Welcome back, Admin!",
+          description: "Welcome back to Kira!",
         });
       }
     } catch (error) {
@@ -197,10 +197,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
-                  ${
-                    loginType === "admin"
-                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
-                      : "bg-transparent border-transparent text-[#2D0B18]"
+                  ${loginType === "admin"
+                    ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
+                    : "bg-transparent border-transparent text-[#2D0B18]"
                   }
                 `}
                 style={{
@@ -219,10 +218,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
-                  ${
-                    loginType === "student"
-                      ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
-                      : "bg-transparent border-transparent text-[#2D0B18]"
+                  ${loginType === "student"
+                    ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
+                    : "bg-transparent border-transparent text-[#2D0B18]"
                   }
                 `}
                 style={{

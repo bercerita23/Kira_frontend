@@ -215,7 +215,7 @@ export default function ProgressPage() {
     <MobileMenuContext.Provider
       value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
     >
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-white">
         <DashboardHeader />
         <div className="flex flex-col md:flex-row">
           <DashboardSidebar />
@@ -224,15 +224,15 @@ export default function ProgressPage() {
               <h1 className="text-2xl font-bold mb-6">Progress</h1>
               {points && (
                 <div className="mb-6">
-                  <Card className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 border-none shadow-lg">
+                  <Card className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 border-none shadow-lg">
                     <div className="flex flex-col space-y-2">
                       <div className="flex justify-between items-center">
-                        <p className="text-lg font-semibold text-gray-800 dark:text-white">
+                        <p className="text-lg font-semibold text-gray-800">
                           {points.points} / {goalPoints} XP
                         </p>
                         <span className="text-2xl">🏁</span>
                       </div>
-                      <div className="relative w-full h-4 rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div className="relative w-full h-4 rounded-full bg-gray-200">
                         <div
                           className="absolute top-0 left-0 h-full bg-purple-500 rounded-full transition-all"
                           style={{

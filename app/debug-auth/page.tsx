@@ -45,7 +45,7 @@ export default function DebugAuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+          <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Authentication Debug Page</h1>
         
@@ -64,7 +64,7 @@ export default function DebugAuthPage() {
               </div>
               <div>
                 <strong>Cookies:</strong> 
-                <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mt-1 overflow-auto">
+                <pre className="bg-gray-100 p-2 rounded text-xs mt-1 overflow-auto">
                   {getCookies()}
                 </pre>
               </div>
