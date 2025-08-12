@@ -22,29 +22,46 @@ export default function UploadContentSection() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [weekNumber, setWeekNumber] = useState("");
-  const [state, setState] = useState("");
-  const [file_name, setFile_name] = useState("");
   const [existingTopicId, setExistingTopicId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [hashes, setHashes] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
 
+  // fetch contents + hash values on mount
   useEffect(() => {
-    async function fetchTopics() {
+    (async () => {
       try {
-        const res = await fetch("/api/admin/contents", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch topics");
-        const data = await res.json();
-        setTopics(data);
+        const [contentsRes, hashesRes] = await Promise.all([
+          fetch("/api/admin/contents", { cache: "no-store" }),
+          fetch("/api/admin/hash-values", { cache: "no-store" }),
+        ]);
+
+        if (!contentsRes.ok) throw new Error("Failed to fetch topics");
+        const contents = await contentsRes.json();
+        setTopics(Array.isArray(contents) ? contents : []);
+
+        if (!hashesRes.ok) throw new Error("Failed to fetch hash values");
+        const hashList = await hashesRes.json();
+        setHashes(Array.isArray(hashList) ? hashList : []);
       } catch (err) {
         toast({
           title: "Error",
-          description: "Could not load existing topics.",
+          description: "Could not load existing topics or hash values.",
           variant: "destructive",
         });
       }
-    }
-    fetchTopics();
+    })();
   }, [toast]);
+
+  // compute SHA-256 hex
+  async function computeSHA256Hex(f: File): Promise<string> {
+    const buf = await f.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
 
   const handleSubmit = async () => {
     if (!file || !title || !weekNumber) {
@@ -56,28 +73,94 @@ export default function UploadContentSection() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("title", title);
-    formData.append("week_number", weekNumber);
-    if (existingTopicId) formData.append("topic_id", existingTopicId);
-
+    setBusy(true);
     try {
-      const response = await fetch(
-        existingTopicId
-          ? "/api/admin/content-reupload"
-          : "/api/admin/content-upload",
-        {
+      // 1) compute hash
+      const hash_value = await computeSHA256Hex(file);
+
+      // If “re-upload” mode is chosen, honor that route directly
+      if (existingTopicId) {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("title", title.trim());
+        form.append("week_number", weekNumber);
+        form.append("topic_id", existingTopicId);
+        form.append("hash_value", hash_value); // included for backend if supported
+
+        const res = await fetch("/api/admin/content-reupload", {
           method: "POST",
-          body: formData,
+          body: form,
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data?.detail || "Re-upload failed");
+
+        toast({
+          title: "Message",
+          description: data.message ?? "Content replaced ✅",
+        });
+      } else {
+        // 2) normal upload flow:
+        // check if hash already exists
+        const exists = hashes.includes(hash_value);
+
+        if (exists) {
+          // 3a) existing → increase ref count
+          const form = new FormData();
+          form.append("title", title.trim());
+          form.append("week_number", weekNumber); // FastAPI will coerce to int
+          form.append("hash_value", hash_value);
+
+          const res = await fetch("/api/admin/increase-ref-count", {
+            method: "POST",
+            body: form, // ⚠️ do NOT set Content-Type yourself
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data?.detail || "Failed to increase ref count");
+          }
+
+          toast({
+            title: "Linked Existing File",
+            description: "Content uploaded successfully",
+          });
+        } else {
+          // 3b) new content → upload file with hash
+          const form = new FormData();
+          form.append("file", file);
+          form.append("title", title.trim());
+          form.append("week_number", weekNumber);
+          form.append("hash_value", hash_value);
+
+          const res = await fetch("/api/admin/content-upload", {
+            method: "POST",
+            body: form,
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok)
+            throw new Error(data?.detail || "Failed to upload content");
+
+          toast({
+            title: "Uploaded",
+            description: "Content uploaded successfully",
+          });
+
+          // keep the in-session hash list up to date
+          setHashes((prev) => [...prev, hash_value]);
         }
-      );
+      }
 
-      const data = await response.json();
+      // refresh contents
+      try {
+        const refreshed = await fetch("/api/admin/contents", {
+          cache: "no-store",
+        }).then((r) => r.json());
+        setTopics(Array.isArray(refreshed) ? refreshed : []);
+      } catch {}
 
-      if (!response.ok) throw new Error(data.detail);
-
-      toast({ title: "Message", description: data.message });
+      // reset inputs
       setFile(null);
       setTitle("");
       setWeekNumber("");
@@ -85,16 +168,15 @@ export default function UploadContentSection() {
     } catch (err: any) {
       toast({
         title: "Upload Failed",
-        description: err.message || "Something went wrong.",
+        description: err?.message || "Something went wrong.",
         variant: "destructive",
       });
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleReuploadAttempt = () => {
-    setShowConfirm(true);
-  };
-
+  const handleReuploadAttempt = () => setShowConfirm(true);
   const confirmReupload = () => {
     setShowConfirm(false);
     handleSubmit();
@@ -103,6 +185,7 @@ export default function UploadContentSection() {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4">Upload Quiz Content</h2>
+
       <div className="space-y-4 max-w-lg">
         <div>
           <Label>Week Number</Label>
@@ -143,11 +226,20 @@ export default function UploadContentSection() {
                 handleSubmit();
               }
             }}
+            disabled={busy}
           >
-            {existingTopicId ? "Re-upload File" : "Upload File"}
+            {busy
+              ? "Processing..."
+              : existingTopicId
+              ? "Re-upload File"
+              : "Upload Content"}
           </Button>
           {existingTopicId && (
-            <Button variant="outline" onClick={() => setExistingTopicId(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setExistingTopicId(null)}
+              disabled={busy}
+            >
               Cancel Re-upload
             </Button>
           )}
@@ -170,28 +262,11 @@ export default function UploadContentSection() {
                   <p className="text-xs text-gray-500">
                     File: {topic.file_name}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    Status: {topic.state}
-                  </p>
+                  <p className="text-xs text-gray-500">Status: {topic.state}</p>
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
                   </p>
                 </div>
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  size="sm"
-                  onClick={() => {
-                    setExistingTopicId(String(topic.topic_id));
-                    setTitle(topic.topic_name);
-                    setWeekNumber(String(topic.week_number));
-                    toast({
-                      title: "Ready to Re-upload",
-                      description: `Now replacing content for Week ${topic.week_number}`,
-                    });
-                  }}
-                >
-                  Re-upload
-                </Button>
               </li>
             ))}
           </ul>
