@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     backendForm.append("hash_value", hash_value);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/uplaod-content-lite`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/upload-content-lite`,
       {
         method: "POST",
         headers: {
