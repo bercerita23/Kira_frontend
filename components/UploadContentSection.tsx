@@ -134,7 +134,7 @@ export default function UploadContentSection() {
           cache: "no-store",
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
-      } catch {}
+      } catch { }
 
       // reset inputs
       setFile(null);
@@ -185,7 +185,7 @@ export default function UploadContentSection() {
           cache: "no-store",
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
-      } catch {}
+      } catch { }
     } catch (err: any) {
       toast({
         title: "Delete Failed",
@@ -246,9 +246,7 @@ export default function UploadContentSection() {
 
       {topics.length > 0 && (
         <div className="mt-10">
-          <h3 className="text-lg font-semibold mb-2">
-            Existing Topics ({topics.length})
-          </h3>
+          <h3 className="text-lg font-semibold mb-2">Existing Topics ({topics.length})</h3>
           <ul className="space-y-2">
             {topics.map((topic) => (
               <li
@@ -262,7 +260,9 @@ export default function UploadContentSection() {
                   <p className="text-xs text-gray-500">
                     File: {topic.file_name}
                   </p>
-                  <p className="text-xs text-gray-500">Status: {topic.state}</p>
+                  <p className="text-xs text-gray-500">
+                    Status: {topic.state}
+                  </p>
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
                   </p>
@@ -287,16 +287,11 @@ export default function UploadContentSection() {
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <DialogHeader>⚠️ Confirm Delete</DialogHeader>
-          <p className="text-sm text-gray-700 mb-4">
-            Are you sure you want to delete "{topicToDelete?.topic_name}"? This
-            action will completely erase other content stored and cannot be
-            undone.
+          <p className="text-sm text-gray-700 mb-4"> 
+            Are you sure you want to delete "{topicToDelete?.topic_name}"? This action will completely erase other content stored and cannot be undone. 
           </p>
           <div className="flex justify-end gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteConfirm(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
             <Button
