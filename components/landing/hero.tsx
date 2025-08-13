@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export function LandingHero() {
   return (
@@ -11,12 +11,11 @@ export function LandingHero() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4">
-              Learn English Through
+              Learn English Through 
               <span className="text-primary"> Large Language Models</span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-lg mx-auto md:mx-0">
-              Master English naturally with interactive lessons and engaging
-              stories at your own pace.
+              Master English naturally with interactive lessons and engaging stories at your own pace.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Button size="lg" asChild>
@@ -44,31 +43,15 @@ export function LandingHero() {
               </div>
               <div className="p-6">
                 <div className="mb-6 bg-sky-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-lg font-medium mb-4">
-                    Translate this sentence:
-                  </p>
-                  <p className="text-xl font-bold mb-4">
-                    "She reads a book every day."
-                  </p>
+                  <p className="text-lg font-medium mb-4">Translate this sentence:</p>
+                  <p className="text-xl font-bold mb-4">"She reads a book every day."</p>
                   <div className="flex flex-wrap gap-2 mt-4">
-                    <Button variant="outline" className="rounded-full">
-                      Dia
-                    </Button>
-                    <Button variant="outline" className="rounded-full">
-                      membaca
-                    </Button>
-                    <Button variant="outline" className="rounded-full">
-                      sebuah
-                    </Button>
-                    <Button variant="outline" className="rounded-full">
-                      buku
-                    </Button>
-                    <Button variant="outline" className="rounded-full">
-                      setiap
-                    </Button>
-                    <Button variant="outline" className="rounded-full">
-                      hari
-                    </Button>
+                    <Button variant="outline" className="rounded-full">Dia</Button>
+                    <Button variant="outline" className="rounded-full">membaca</Button>
+                    <Button variant="outline" className="rounded-full">sebuah</Button>
+                    <Button variant="outline" className="rounded-full">buku</Button>
+                    <Button variant="outline" className="rounded-full">setiap</Button>
+                    <Button variant="outline" className="rounded-full">hari</Button>
                   </div>
                 </div>
                 <Button className="w-full">Check Answer</Button>
