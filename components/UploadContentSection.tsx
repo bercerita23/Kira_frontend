@@ -88,7 +88,7 @@ export default function UploadContentSection() {
         form.append("week_number", weekNumber); // FastAPI will coerce to int
         form.append("hash_value", hash_value);
 
-        const res = await fetch("/api/admin/increase-ref-count", {
+        const res = await fetch("/api/admin/upload-content-lite", {
           method: "POST",
           body: form, // ⚠️ do NOT set Content-Type yourself
         });
@@ -134,7 +134,7 @@ export default function UploadContentSection() {
           cache: "no-store",
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
-      } catch { }
+      } catch {}
 
       // reset inputs
       setFile(null);
@@ -164,7 +164,7 @@ export default function UploadContentSection() {
       const form = new FormData();
       form.append("topic_id", topicToDelete.topic_id.toString());
 
-      const res = await fetch("/api/admin/decrease-ref-count", {
+      const res = await fetch("/api/admin/remove-content", {
         method: "POST",
         body: form,
       });
@@ -185,8 +185,7 @@ export default function UploadContentSection() {
           cache: "no-store",
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
-      } catch { }
-
+      } catch {}
     } catch (err: any) {
       toast({
         title: "Delete Failed",
@@ -247,7 +246,9 @@ export default function UploadContentSection() {
 
       {topics.length > 0 && (
         <div className="mt-10">
-          <h3 className="text-lg font-semibold mb-2">Existing Topics ({topics.length})</h3>
+          <h3 className="text-lg font-semibold mb-2">
+            Existing Topics ({topics.length})
+          </h3>
           <ul className="space-y-2">
             {topics.map((topic) => (
               <li
@@ -261,13 +262,10 @@ export default function UploadContentSection() {
                   <p className="text-xs text-gray-500">
                     File: {topic.file_name}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    Status: {topic.state}
-                  </p>
+                  <p className="text-xs text-gray-500">Status: {topic.state}</p>
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
                   </p>
-
                 </div>
                 <div className="ml-4 flex-shrink-0">
                   <Button
@@ -290,10 +288,15 @@ export default function UploadContentSection() {
         <DialogContent>
           <DialogHeader>⚠️ Confirm Delete</DialogHeader>
           <p className="text-sm text-gray-700 mb-4">
-            Are you sure you want to delete "{topicToDelete?.topic_name}"? This action will completely erase other content stored and cannot be undone.
+            Are you sure you want to delete "{topicToDelete?.topic_name}"? This
+            action will completely erase other content stored and cannot be
+            undone.
           </p>
           <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
               Cancel
             </Button>
             <Button
