@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     backendForm.append("hash_value", hash_value);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/increase-ref-count`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/upload-content-lite`,
       {
         method: "POST",
         headers: {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(payload, { status: response.status });
   } catch (error) {
-    console.error("❌ Failed to process increase-ref-count request:", error);
+    console.error("❌ Failed to process upload-content-lite request:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unexpected error occurred.";
     return NextResponse.json(

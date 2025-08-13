@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         backendForm.append("topic_id", topic_id);
 
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/admin/decrease-ref-count`,
+            `${process.env.NEXT_PUBLIC_API_URL}/admin/remove-content`,
             {
                 method: "POST",
                 headers: {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(payload, { status: response.status });
     } catch (error) {
-        console.error("❌ Failed to process decrease-ref-count request:", error);
+        console.error("❌ Failed to process remove-content request:", error);
         const errorMessage =
             error instanceof Error ? error.message : "An unexpected error occurred.";
         return NextResponse.json(

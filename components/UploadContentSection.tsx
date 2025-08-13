@@ -88,7 +88,7 @@ export default function UploadContentSection() {
         form.append("week_number", weekNumber); // FastAPI will coerce to int
         form.append("hash_value", hash_value);
 
-        const res = await fetch("/api/admin/increase-ref-count", {
+        const res = await fetch("/api/admin/upload-content-lite", {
           method: "POST",
           body: form, // ⚠️ do NOT set Content-Type yourself
         });
@@ -164,7 +164,7 @@ export default function UploadContentSection() {
       const form = new FormData();
       form.append("topic_id", topicToDelete.topic_id.toString());
 
-      const res = await fetch("/api/admin/decrease-ref-count", {
+      const res = await fetch("/api/admin/remove-content", {
         method: "POST",
         body: form,
       });
@@ -186,7 +186,6 @@ export default function UploadContentSection() {
         }).then((r) => r.json());
         setTopics(Array.isArray(refreshed) ? refreshed : []);
       } catch { }
-
     } catch (err: any) {
       toast({
         title: "Delete Failed",
@@ -267,7 +266,6 @@ export default function UploadContentSection() {
                   <p className="text-xs text-gray-500">
                     Updated: {new Date(topic.updated_at).toLocaleString()}
                   </p>
-
                 </div>
                 <div className="ml-4 flex-shrink-0">
                   <Button
@@ -289,8 +287,8 @@ export default function UploadContentSection() {
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <DialogHeader>⚠️ Confirm Delete</DialogHeader>
-          <p className="text-sm text-gray-700 mb-4">
-            Are you sure you want to delete "{topicToDelete?.topic_name}"? This action will completely erase other content stored and cannot be undone.
+          <p className="text-sm text-gray-700 mb-4"> 
+            Are you sure you want to delete "{topicToDelete?.topic_name}"? This action will completely erase other content stored and cannot be undone. 
           </p>
           <div className="flex justify-end gap-4">
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
