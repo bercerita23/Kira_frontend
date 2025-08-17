@@ -51,6 +51,7 @@ export default function LessonPage() {
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -96,6 +97,7 @@ export default function LessonPage() {
             questions: data.questions,
           });
           setUserAnswers(new Array(data.questions.length).fill(""));
+          setQuizStartTime(new Date()); // Set start time when quiz loads
         } else {
           setError("No questions found for this quiz");
         }
@@ -223,7 +225,43 @@ export default function LessonPage() {
         0
       );
       setScore(finalScore);
+      
+      // Submit quiz results to backend
+      submitQuizResults(finalScore);
+      
       setQuizCompleted(true);
+    }
+  };
+
+  const submitQuizResults = async (finalScore: number) => {
+    try {
+      const correctAnswers = userAnswers.filter((answer, index) => 
+        answer.toLowerCase().trim() === quiz!.questions[index].answer.toLowerCase().trim()
+      ).length;
+      
+      const submissionData = {
+        quiz_id: parseInt(quizId),
+        pass_count: correctAnswers,
+        fail_count: quiz!.questions.length - correctAnswers,
+        start_at: quizStartTime?.toISOString() || new Date().toISOString(),
+        end_at: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/users/submit-quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to submit quiz results:', await response.json());
+      } else {
+        console.log('Quiz results submitted successfully');
+      }
+    } catch (error) {
+      console.error('Error submitting quiz results:', error);
     }
   };
 
