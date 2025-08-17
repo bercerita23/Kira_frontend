@@ -1,229 +1,337 @@
-//(dashboard)/dashboard/page.tsx
+//(dashboard)/lesson/[slug]/page.tsx
 "use client";
-
+import { getS3BlobUrl, toS3Key } from "@/lib/s3-client";
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   DashboardHeader,
   MobileMenuContext,
 } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { useAuth } from "@/lib/context/auth-context";
-import Link from "next/link";
-import { ChevronRight, Star, Award, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CircularProgress } from "@/components/ui/circular-progress";
-import { useTodaysGoal } from "@/hooks/useTodaysGoal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-type Badge = {
-  badge_id: string;
-  earned_at: string;
-  is_viewed: boolean;
-  name: string;
-  description: string;
-  icon_url?: string;
+type Question = {
+  question_id: number;
+  content: string;
+  options: string[];
+  question_type: "MCQ" | "FITB" | "SA";
+  points: number;
+  answer: string;
+  image_url?: string;
 };
+
 type Quiz = {
   quiz_id: number;
-  school_id: string;
-  creator_id: string;
   name: string;
-  questions: string[];
   description: string;
-  created_at: string;
-  expired_at: string;
-  is_locked: boolean;
+  questions: Question[];
 };
 
-type Attempt = {
-  quiz_id: number;
-  attempt_count: number;
-  pass_count: number;
-  fail_count: number;
-};
-
-export default function DashboardPage() {
+export default function LessonPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
-  const [streaks, setStreaks] = useState<{
-    current_streak: number;
-    longest_streak: number;
-    last_activity: string;
-  } | null>(null);
-  const [points, setPoints] = useState<{
-    points: number;
-  } | null>(null);
-  const { minutes, goalMinutes, percent } = useTodaysGoal();
-  const topicId = "greetings";
-  const totalQuestions = 5;
+  const params = useParams();
+  const router = useRouter();
+  const quizId = params.slug as string;
+  const [imgBlobUrl, setImgBlobUrl] = useState<string | null>(null);
 
-  const weekKey = new Date().toISOString().slice(0, 10);
-
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [globalDailyRetryCount, setGlobalDailyRetryCount] = useState(0);
-
-  // useEffect(() => {
-  //   if (typeof window !== "undefined" && user) {
-  //     const storedCorrect = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
-  //     );
-  //     const storedBasic = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
-  //     );
-
-  //     setCorrectCount(Number(storedCorrect ?? 0));
-  //     setBasicPhrasesCorrect(Number(storedBasic ?? 0));
-  //   }
-  // }, [user, topicId, weekKey]);
-
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [showResult, setShowResult] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
   useEffect(() => {
-    async function fetchPoints() {
+    let alive = true;
+    async function load() {
+      const url = quiz?.questions[currentQuestionIndex]?.image_url;
+      if (!url) {
+        setImgBlobUrl(null);
+        return;
+      }
+
       try {
-        const res = await fetch("/api/users/points");
-        if (!res.ok) throw new Error("Failed to fetch points");
-        const data = await res.json();
-        setPoints(data);
-        // Log points to the console
-        // eslint-disable-next-line no-console
-        console.log("User points:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
+        const key = toS3Key(url); // handles full S3 URL or raw key
+        const blobUrl = await getS3BlobUrl(key);
+        if (alive) setImgBlobUrl(blobUrl);
+      } catch (e) {
+        console.error("S3 image fetch failed:", e);
+        // fallback to original URL (will work only if object is public)
+        if (alive) setImgBlobUrl(url);
       }
     }
-    fetchPoints();
-  }, []);
-
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [quiz, currentQuestionIndex]);
   useEffect(() => {
-    async function fetchStreaks() {
+    async function fetchQuiz() {
+      if (!quizId) return;
+
       try {
-        const res = await fetch("/api/users/streaks", {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch streaks");
+        setLoading(true);
+        const res = await fetch(`/api/users/questions/${quizId}`);
+        if (!res.ok) throw new Error("Failed to fetch quiz");
+
         const data = await res.json();
-        setStreaks(data);
-        // Log streaks to the console
-        // eslint-disable-next-line no-console
-        console.log("User streaks:", data);
+        console.log("Quiz data:", data);
+
+        if (data.questions && data.questions.length > 0) {
+          setQuiz({
+            quiz_id: parseInt(quizId),
+            name: `Quiz ${quizId}`,
+            description: "Complete this quiz to test your knowledge",
+            questions: data.questions,
+          });
+          setUserAnswers(new Array(data.questions.length).fill(""));
+        } else {
+          setError("No questions found for this quiz");
+        }
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching streaks:", err);
+        console.error("Error fetching quiz:", err);
+        setError("Failed to load quiz");
+      } finally {
+        setLoading(false);
       }
     }
-    fetchStreaks();
-  }, []);
 
-  useEffect(() => {
-    async function fetchQuizzes() {
-      try {
-        const res = await fetch("/api/users/quizzes");
-        if (!res.ok) throw new Error("Failed to fetch quizzes");
-        const data = await res.json();
-        setQuizzes(data.quizzes || []);
-        // eslint-disable-next-line no-console
-        console.log("User quizzes:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching quizzes or questions:", err);
-      }
-    }
-    fetchQuizzes();
-  }, []);
+    fetchQuiz();
+  }, [quizId]);
 
-  useEffect(() => {
-    async function fetchAttempts() {
-      try {
-        const res = await fetch("/api/users/attempts");
-        if (!res.ok) throw new Error("Failed to fetch attempts");
-        const data = await res.json();
-        setAttempts(data.attempts || []);
-      } catch (err) {
-        console.error("Error fetching attempts:", err);
-      }
-    }
-    fetchAttempts();
-  }, []);
-
-  // Show loading state while checking authentication
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading quiz...</p>
         </div>
       </div>
     );
   }
 
-  // Show simple login message if not authenticated
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Please log in to access your dashboard.
+            Please log in to access the quiz.
           </p>
-          <div className="space-x-4">
-            <Button asChild>
-              <Link href="/login">Go to Login</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link href="/login">Go to Login</Link>
+          </Button>
         </div>
       </div>
     );
   }
 
-  // Get user's display name
-  const getDisplayName = () => {
-    if (!user) return "User";
-    const firstName = user.first_name || "";
-    const lastName = user.last_name || "";
-    if (firstName || lastName) {
-      return `${firstName} ${lastName}`.trim();
+  if (error || !quiz) {
+    return (
+      <MobileMenuContext.Provider
+        value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
+      >
+        <div className="min-h-screen bg-white dark:bg-gray-950">
+          <DashboardHeader />
+          <div className="flex flex-col md:flex-row">
+            <DashboardSidebar />
+            <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
+              <div className="max-w-4xl mx-auto py-8">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold mb-4">Quiz Not Found</h1>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {error || "The quiz you're looking for doesn't exist."}
+                  </p>
+                  <Button asChild>
+                    <Link href="/dashboard">Back to Dashboard</Link>
+                  </Button>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </MobileMenuContext.Provider>
+    );
+  }
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
+    const newAnswers = [...userAnswers];
+    newAnswers[currentQuestionIndex] = answer;
+    setUserAnswers(newAnswers);
+  };
+
+  const handleNext = () => {
+    if (!selectedAnswer.trim()) return;
+
+    if (currentQuestionIndex < quiz.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(userAnswers[currentQuestionIndex + 1] || "");
+      setShowResult(false);
+    } else {
+      // Quiz completed
+      const finalScore = userAnswers.reduce(
+        (acc, answer, index) =>
+          answer.toLowerCase().trim() ===
+          quiz.questions[index].answer.toLowerCase().trim()
+            ? acc + 1
+            : acc,
+        0
+      );
+      setScore(finalScore);
+      setQuizCompleted(true);
     }
-    return user.email || "User";
   };
 
-  const level = points ? Math.floor(points.points / 100) + 1 : 1;
-  const xpForNextLevel = level * 100;
-  const xpForCurrentLevel = (level - 1) * 100;
-
-  const progressPercentage = points
-    ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((points.points - xpForCurrentLevel) /
-            (xpForNextLevel - xpForCurrentLevel)) *
-            100
-        )
-      )
-    : 0;
-
-  const xp = points?.points ?? 0;
-  // Helper to get correct count for a topic
-  const getCorrectCount = (topic: string) => {
-    // Find the quiz for the topic
-    const quiz = quizzes.find((q) => q.name.toLowerCase().includes(topic));
-    if (!quiz) return 0;
-    const attempt = attempts.find((a) => a.quiz_id === quiz.quiz_id);
-    return attempt ? attempt.pass_count : 0;
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setSelectedAnswer(userAnswers[currentQuestionIndex - 1] || "");
+      setShowResult(false);
+    }
   };
+
+  const handleSubmit = () => {
+    setShowResult(true);
+  };
+
+  const renderQuestion = () => {
+    switch (currentQuestion.question_type) {
+      case "MCQ":
+        return (
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(option)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+                  selectedAnswer === option
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex items-center">
+                  <span className="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                    {selectedAnswer === option && (
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    )}
+                  </span>
+                  {option}
+                </span>
+              </button>
+            ))}
+          </div>
+        );
+
+      case "FITB":
+        return (
+          <div className="space-y-3">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(option)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+                  selectedAnswer === option
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex items-center">
+                  <span className="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                    {selectedAnswer === option && (
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    )}
+                  </span>
+                  {option}
+                </span>
+              </button>
+            ))}
+          </div>
+        );
+
+      case "SA":
+        return (
+          <div>
+            <textarea
+              value={selectedAnswer}
+              onChange={(e) => handleAnswerSelect(e.target.value)}
+              placeholder="Type your answer here..."
+              className="w-full p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg resize-none focus:border-blue-500 focus:outline-none"
+              rows={4}
+            />
+          </div>
+        );
+
+      default:
+        return <div>Unsupported question type</div>;
+    }
+  };
+
+  if (quizCompleted) {
+    return (
+      <MobileMenuContext.Provider
+        value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
+      >
+        <div className="min-h-screen bg-white dark:bg-gray-950">
+          <DashboardHeader />
+          <div className="flex flex-col md:flex-row">
+            <DashboardSidebar />
+            <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
+              <div className="max-w-2xl mx-auto py-8">
+                <Card>
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-2xl">Quiz Completed!</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center space-y-6">
+                    <div className="text-6xl">
+                      {score === quiz.questions.length
+                        ? "🎉"
+                        : score >= quiz.questions.length / 2
+                        ? "👏"
+                        : "📚"}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Your Score</h3>
+                      <p className="text-3xl font-bold text-blue-600">
+                        {score} / {quiz.questions.length}
+                      </p>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {Math.round((score / quiz.questions.length) * 100)}%
+                        Correct
+                      </p>
+                    </div>
+                    <div className="space-x-4">
+                      <Button asChild>
+                        <Link href="/dashboard">Back to Dashboard</Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => window.location.reload()}
+                      >
+                        Retake Quiz
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </main>
+          </div>
+        </div>
+      </MobileMenuContext.Provider>
+    );
+  }
 
   return (
     <MobileMenuContext.Provider
@@ -234,295 +342,108 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row">
           <DashboardSidebar />
           <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
-            <div className="max-w-none py-4">
-              {/* Welcome Section */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Hello, {getDisplayName()}!
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                  Continue your English learning journey
-                </p>
-              </div>
-
-              {/* Stats Overview */}
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Today's Goal
-                    </p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm font-medium">
-                        {minutes}/{goalMinutes} minutes
-                      </p>
-                      <p className="text-xs font-medium text-blue-500">
-                        {percent}%
-                      </p>
-                    </div>
-                    <div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
-                      <div
-                        className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
-                        style={{ width: `${percent ?? 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center">
-                    <div className="relative mr-4">
-                      <CircularProgress
-                        value={progressPercentage}
-                        size={48}
-                        strokeWidth={4}
-                        color="primary"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Award className="h-5 w-5 text-purple-500" />
-                      </div>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Level
-                      </p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {level}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {xp}/{xpForNextLevel} XP
-                      </p>
-                    </div>
-                  </div>
+            <div className="max-w-4xl mx-auto py-8">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <Button variant="ghost" asChild>
+                  <Link href="/dashboard">
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Back to Dashboard
+                  </Link>
+                </Button>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Question {currentQuestionIndex + 1} of {quiz.questions.length}
                 </div>
               </div>
 
-              {/* Today's Activities */}
+              {/* Progress */}
               <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Today's Activities
-                </h2>
-                <div className="space-y-3">
-                  {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz) => {
-                      const attempt = attempts.find(
-                        (a) => a.quiz_id === quiz.quiz_id
-                      );
-                      const totalQuestions = attempt
-                        ? attempt.pass_count + attempt.fail_count
-                        : 5;
-                      const score = attempt ? attempt.pass_count : 0;
-                      // Lock quiz if:
-                      // 1. Quiz is inherently locked, OR
-                      // 2. User has reached max attempts (2) for this quiz, OR
-                      // 3. User has used their daily retry and hasn't maxed out this quiz
-                      const hasMaxedAttempts =
-                        attempt && attempt.attempt_count >= 2;
-                      const hasUsedDailyRetry = globalDailyRetryCount >= 1;
-                      const shouldLock =
-                        quiz.is_locked ||
-                        (attempt && attempt.attempt_count === 2);
-                      hasMaxedAttempts ||
-                        (hasUsedDailyRetry && !hasMaxedAttempts);
-                      const progressColor =
-                        score === totalQuestions ? "green" : "primary";
-                      return shouldLock ? (
-                        <div
-                          key={quiz.quiz_id}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-700 dark:text-gray-300">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-500">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-gray-400"
-                              disabled
-                            >
-                              <span>Locked</span>
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Link
-                          key={quiz.quiz_id}
-                          href={`/lesson/${quiz.quiz_id}`}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-gray-400" />
-                          </div>
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400">
-                      No quizzes available today.
-                    </p>
-                  )}
-                </div>
+                <Progress value={progress} className="h-2" />
               </div>
 
-              {/* Weekly Topics */}
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  This Week's Topics
-                </h2>
-
-                <div className="space-y-4">
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-green-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("greetings") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("greetings") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">👋</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Greetings
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {getCorrectCount("greetings")} of {totalQuestions}{" "}
-                            questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-green-500"
-                          asChild
-                        >
-                          <Link href="/lesson/greetings">
-                            <span>Review</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
+              {/* Question */}
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {currentQuestion.content}
+                  </CardTitle>
+                  {currentQuestion.image_url && (
+                    <div className="mt-4">
+                      <img
+                        src={currentQuestion.image_url} // e.g. https://kira-school-content.s3.amazonaws.com/visuals/...
+                        alt="Question image"
+                        className="rounded-lg mx-auto max-w-full h-auto"
+                      />
                     </div>
-                  </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {renderQuestion()}
 
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-blue-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("basic phrases") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("basic phrases") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">💬</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Basic Phrases
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {getCorrectCount("basic phrases")} of{" "}
-                            {totalQuestions} questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-500"
-                          asChild
-                        >
-                          <Link href="/lesson/basic-phrases">
-                            <span>Continue</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
+                  {showResult && (
+                    <div
+                      className={`mt-4 p-4 rounded-lg ${
+                        selectedAnswer.toLowerCase().trim() ===
+                        currentQuestion.answer.toLowerCase().trim()
+                          ? "bg-green-50 dark:bg-green-900/20 border border-green-200"
+                          : "bg-red-50 dark:bg-red-900/20 border border-red-200"
+                      }`}
+                    >
+                      <div className="flex items-center mb-2">
+                        {selectedAnswer.toLowerCase().trim() ===
+                        currentQuestion.answer.toLowerCase().trim() ? (
+                          <>
+                            <Check className="h-5 w-5 text-green-600 mr-2" />
+                            <span className="font-medium text-green-800 dark:text-green-200">
+                              Correct!
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-5 w-5 text-red-600 mr-2" />
+                            <span className="font-medium text-red-800 dark:text-red-200">
+                              Incorrect
+                            </span>
+                          </>
+                        )}
                       </div>
+                      <p className="text-sm">
+                        <strong>Correct answer:</strong>{" "}
+                        {currentQuestion.answer}
+                      </p>
                     </div>
-                  </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Navigation */}
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentQuestionIndex === 0}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+
+                <div className="space-x-2">
+                  {!showResult && selectedAnswer.trim() && (
+                    <Button variant="outline" onClick={handleSubmit}>
+                      Check Answer
+                    </Button>
+                  )}
+                  {(showResult || !selectedAnswer.trim()) && (
+                    <Button
+                      onClick={handleNext}
+                      disabled={!selectedAnswer.trim()}
+                    >
+                      {currentQuestionIndex === quiz.questions.length - 1
+                        ? "Finish Quiz"
+                        : "Next"}
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

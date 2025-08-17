@@ -36,11 +36,21 @@ type Quiz = {
   school_id: string;
   creator_id: string;
   name: string;
-  questions: string[];
+  questions: Question[]; // Changed from string[] to Question[]
   description: string;
   created_at: string;
   expired_at: string;
   is_locked: boolean;
+};
+
+type Question = {
+  question_id: number;
+  content: string;
+  options: string[];
+  question_type: "MCQ" | "FITB" | "SA";
+  points: number;
+  answer: string;
+  image_url?: string;
 };
 
 type Attempt = {
