@@ -185,7 +185,7 @@ export default function LessonPage() {
       const finalScore = userAnswers.reduce(
         (acc, answer, index) =>
           answer.toLowerCase().trim() ===
-          quiz.questions[index].answer.toLowerCase().trim()
+            quiz.questions[index].answer.toLowerCase().trim()
             ? acc + 1
             : acc,
         0
@@ -216,11 +216,10 @@ export default function LessonPage() {
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(option)}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                  selectedAnswer === option
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                }`}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${selectedAnswer === option
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                  }`}
               >
                 <span className="flex items-center">
                   <span className="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
@@ -236,32 +235,6 @@ export default function LessonPage() {
         );
 
       case "FITB":
-        return (
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelect(option)}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                  selectedAnswer === option
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <span className="flex items-center">
-                  <span className="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
-                    {selectedAnswer === option && (
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    )}
-                  </span>
-                  {option}
-                </span>
-              </button>
-            ))}
-          </div>
-        );
-
-      case "SA":
         return (
           <div>
             <textarea
@@ -299,8 +272,8 @@ export default function LessonPage() {
                       {score === quiz.questions.length
                         ? "🎉"
                         : score >= quiz.questions.length / 2
-                        ? "👏"
-                        : "📚"}
+                          ? "👏"
+                          : "📚"}
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Your Score</h3>
@@ -382,16 +355,15 @@ export default function LessonPage() {
 
                   {showResult && (
                     <div
-                      className={`mt-4 p-4 rounded-lg ${
-                        selectedAnswer.toLowerCase().trim() ===
+                      className={`mt-4 p-4 rounded-lg ${selectedAnswer.toLowerCase().trim() ===
                         currentQuestion.answer.toLowerCase().trim()
-                          ? "bg-green-50 dark:bg-green-900/20 border border-green-200"
-                          : "bg-red-50 dark:bg-red-900/20 border border-red-200"
-                      }`}
+                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200"
+                        : "bg-red-50 dark:bg-red-900/20 border border-red-200"
+                        }`}
                     >
                       <div className="flex items-center mb-2">
                         {selectedAnswer.toLowerCase().trim() ===
-                        currentQuestion.answer.toLowerCase().trim() ? (
+                          currentQuestion.answer.toLowerCase().trim() ? (
                           <>
                             <Check className="h-5 w-5 text-green-600 mr-2" />
                             <span className="font-medium text-green-800 dark:text-green-200">
