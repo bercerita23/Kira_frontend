@@ -1,6 +1,8 @@
 # KIRA - English Learning Platform for Indonesian Students
 
+<div align="center">
   <img src="/bercerita_logo.jpeg" alt="Bercerita Logo" width="300" />
+</div>
 
 KIRA is a comprehensive English learning platform designed specifically for Indonesian students, featuring an interactive quiz system and gamified learning experience. The platform provides a structured learning path through various quizzes and activities to help students master English language skills.
 
