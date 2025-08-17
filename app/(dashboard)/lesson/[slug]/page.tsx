@@ -444,9 +444,9 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom section with white background - Answer choices */}
-      <div className="bg-white min-h-[20vh] flex flex-col">
+      <div className="bg-white min-h-[26vh] flex flex-col">
         {/* Answer choices */}
-        <div className="flex-1 py-6 px-4">
+        <div className="flex-1 py-8 px-4">
           {renderQuestion()}
 
           {/* Result display */}
