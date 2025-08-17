@@ -1,73 +1,107 @@
 # KIRA - English Learning Platform for Indonesian Students
 
-![Kira Logo](/kira_logo.jpeg)
+  <img src="/bercerita_logo.jpeg" alt="Bercerita Logo" width="300" />
 
-KIRA is a Duolingo-inspired English learning platform specifically designed for Indonesian students. The name "Kira" reflects the platform's approach to teaching English through engaging stories and interactive activities.
+KIRA is a comprehensive English learning platform designed specifically for Indonesian students, featuring an interactive quiz system and gamified learning experience. The platform provides a structured learning path through various quizzes and activities to help students master English language skills.
 
 ## Features
 
-- **Interactive Learning**: Learn English through fun, game-like activities
-- **Daily Challenges**: Build language learning habits with daily streaks and challenges
-- **Learning Path**: Progressive learning journey from basics to advanced English
-- **User Authentication**: Secure login and registration system powered by Kira API
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Interactive Quizzes**: Learn English through engaging multiple-choice questions and fill-in-the-blank exercises
+- **Visual Learning**: Image-based questions with S3-integrated content delivery
+- **Real-time Feedback**: Instant answer validation with celebratory confetti animations
+- **Progress Tracking**: Visual progress indicators and quiz completion tracking
+- **Gamified Experience**: Point system, streaks, achievements, and badges
+- **User Management**: Comprehensive authentication system with student, admin, and super-admin roles
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Content Management**: Admin dashboard for uploading and managing educational content
 
 ## Technology Stack
 
 - **Frontend**: Next.js 15 with React 19
-- **Backend API**: Kira API (https://kira-api.com)
-- **Authentication**: OAuth2 with JWT tokens
-- **Styling**: TailwindCSS 4
+- **Backend API**: KIRA API (https://api.kiraclassroom.com)
+- **Authentication**: JWT-based authentication with secure cookie storage
+- **Styling**: TailwindCSS with custom UI components
 - **Language**: TypeScript
 - **Build Tool**: Turbopack
+- **Image Storage**: AWS S3 integration for educational content
+- **Deployment**: AWS Amplify (frontend hosting)
 
-## API Integration
+## Architecture
 
-This frontend is integrated with the Kira API backend. The following endpoints are used:
+The frontend uses a proxy architecture where API routes under `/api` act as intermediaries between the client and the actual KIRA API backend. This approach provides:
 
-- **Login**: `POST https://kira-api.com/auth/login` (OAuth2PasswordRequestForm)
-- **Register**: `POST https://kira-api.com/auth/register` (JSON)
-- **Get Users**: `GET https://kira-api.com/auth/db` (Returns list of users)
+- **Security**: Sensitive API tokens are kept server-side
+- **CORS Management**: Eliminates cross-origin request issues
+- **Request/Response Transformation**: Standardizes data formats between frontend and backend
+- **Error Handling**: Centralized error management and logging
+
+### API Integration
+
+The application integrates with the KIRA API through proxy routes:
+
+#### Authentication Routes
+
+- **Student Login**: `POST /api/auth/login-stu`
+- **Admin Login**: `POST /api/auth/login-ada`
+- **Password Reset**: `POST /api/auth/reset-pw`
+- **School Registration**: `POST /api/auth/school`
+
+#### User Routes
+
+- **Get Quizzes**: `GET /api/users/quizzes`
+- **Get Questions**: `GET /api/users/questions/[quiz_id]`
+- **Submit Quiz**: `POST /api/users/submit-quiz`
+- **User Progress**: `GET /api/users/points`, `/api/users/streaks`
+- **Achievements**: `GET /api/users/achievements`, `/api/users/badges`
+
+#### Admin Routes
+
+- **Content Management**: `POST /api/admin/content-upload`, `POST /api/admin/upload-content-lite`
+- **Student Management**: `GET /api/admin/students`, `POST /api/admin/reset-pw`
+- **Content Operations**: `DELETE /api/admin/remove-content`, `POST /api/admin/contents/content-reupload`
 
 ### Environment Configuration
 
-Create a `.env.local` file in the project root to configure the API URL:
+Create a `.env.local` file in the project root:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://kira-api.com
+NEXT_PUBLIC_API_URL=https://api.kiraclassroom.com
+NEXT_PUBLIC_WEBSITE_URL=https://kiraclassroom.com
 ```
-
-If not set, the default API URL will be used.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18.x or higher
-- npm or yarn
+- npm or yarn package manager
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
-git clone https://github.com/yourusername/KIRA_Frontend.git
-cd KIRA_Frontend
+git clone <repository-url>
+cd Kira_frontend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 # or
 yarn install
 ```
 
-3. Configure environment variables (optional):
+3. Configure environment variables:
+
 ```bash
 cp .env.example .env.local
 # Edit .env.local with your configuration
 ```
 
 4. Run the development server:
+
 ```bash
 npm run dev
 # or
@@ -76,39 +110,98 @@ yarn dev
 
 5. Open your browser and navigate to http://localhost:3000
 
-## Authentication Flow
+## User Roles & Features
 
-The application uses a JWT-based authentication system:
+### Students
 
-1. Users log in with email/password using OAuth2PasswordRequestForm
-2. Upon successful login, a JWT token is stored in cookies
-3. The token is included in subsequent API requests
-4. User information is retrieved from the users list endpoint
+- Take interactive quizzes with immediate feedback
+- Track learning progress and streaks
+- Earn achievements and badges
+- View personalized dashboard with statistics
 
-Note: Due to the Kira API structure, the application stores the user's email in cookies to identify the current user from the users list, as there is no dedicated `/auth/me` endpoint.
+### Admins
+
+- Upload and manage educational content
+- Monitor student progress and performance
+- Manage quiz questions and content
+- Reset student passwords and manage accounts
+
+### Super Admins
+
+- Invite new admins to the platform
+- Manage admin accounts and permissions
+- System-wide configuration and oversight
 
 ## Project Structure
 
 ```
-KIRA_Frontend/
-├── app/                # Next.js app directory
-│   ├── components/     # Reusable UI components
-│   ├── globals.css     # Global styles
-│   ├── layout.tsx      # Root layout component
-│   └── page.tsx        # Home page
-├── public/             # Static assets
-│   └── kira_logo.jpeg  # Logo image
+Kira_frontend/
+├── app/
+│   ├── (auth)/              # Authentication pages
+│   │   ├── login/
+│   │   ├── signup/
+│   │   └── forgot-password/
+│   ├── (dashboard)/         # Protected dashboard pages
+│   │   ├── dashboard/       # Main dashboard
+│   │   ├── lesson/[slug]/   # Quiz taking interface
+│   │   ├── progress/        # Progress tracking
+│   │   ├── admin/          # Admin management
+│   │   └── super-admin/    # Super admin features
+│   ├── api/                # Proxy API routes
+│   │   ├── auth/           # Authentication proxies
+│   │   ├── users/          # User-related proxies
+│   │   ├── admin/          # Admin-related proxies
+│   │   └── super_admin/    # Super admin proxies
+│   ├── components/         # Reusable UI components
+│   ├── lib/               # Utilities and contexts
+│   └── globals.css        # Global styles
+├── public/
+│   ├── bercerita_logo.jpeg # Application logo
+│   └── assets/            # Static assets
 └── ...config files
 ```
 
+## Key Features Implementation
+
+### Quiz System
+
+- **Dynamic Question Loading**: Questions fetched from API with image support
+- **Answer Validation**: Real-time checking with visual feedback
+- **Progress Tracking**: Visual indicators showing quiz completion
+- **Result Submission**: Automatic submission of quiz results to backend
+
+### Authentication System
+
+- **Multi-role Support**: Student, Admin, and Super Admin authentication
+- **Secure Token Management**: JWT tokens stored in HTTP-only cookies
+- **Protected Routes**: Role-based access control for different sections
+
+### Content Management
+
+- **S3 Integration**: Secure image upload and retrieval for quiz content
+- **Admin Dashboard**: Comprehensive content management interface
+- **Content Validation**: Hash-based content integrity checking
+
 ## Design Philosophy
 
-KIRA's design is inspired by Duolingo's effective learning approach, but tailored specifically for Indonesian students learning English. The UI features:
+KIRA's design focuses on creating an engaging and effective learning environment:
 
-- Bright, engaging colors similar to Duolingo's palette
-- Gamified elements to keep users motivated
-- Clear learning progression paths
-- English language interface with consideration for Indonesian learners
+- **Clean, Modern Interface**: Inspired by successful educational platforms
+- **Gamification Elements**: Points, streaks, and achievements to motivate learning
+- **Visual Learning**: Image-based questions to enhance comprehension
+- **Responsive Design**: Consistent experience across all device types
+- **Indonesian Context**: Tailored specifically for Indonesian English learners
+
+## Performance & Optimization
+
+- **Image Optimization**: S3-based content delivery with optimized loading
+- **Code Splitting**: Route-based code splitting for faster initial loads
+- **Caching Strategy**: Efficient API response caching
+- **Progressive Enhancement**: Core functionality works without JavaScript
+
+## Website
+
+Visit the live application at: [https://kiraclassroom.com](https://kiraclassroom.com)
 
 ## License
 
@@ -116,5 +209,6 @@ This project is proprietary and not licensed for public use.
 
 ## Acknowledgements
 
-- Duolingo for inspiration on effective language learning platforms
-- The Indonesian educational community for feedback and insights
+- Indonesian educational community for feedback and insights
+- Modern educational platforms for UX/UI inspiration
+- AWS services for reliable infrastructure support

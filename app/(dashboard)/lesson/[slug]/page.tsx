@@ -225,43 +225,45 @@ export default function LessonPage() {
         0
       );
       setScore(finalScore);
-      
+
       // Submit quiz results to backend
       submitQuizResults(finalScore);
-      
+
       setQuizCompleted(true);
     }
   };
 
   const submitQuizResults = async (finalScore: number) => {
     try {
-      const correctAnswers = userAnswers.filter((answer, index) => 
-        answer.toLowerCase().trim() === quiz!.questions[index].answer.toLowerCase().trim()
+      const correctAnswers = userAnswers.filter(
+        (answer, index) =>
+          answer.toLowerCase().trim() ===
+          quiz!.questions[index].answer.toLowerCase().trim()
       ).length;
-      
+
       const submissionData = {
         quiz_id: parseInt(quizId),
         pass_count: correctAnswers,
         fail_count: quiz!.questions.length - correctAnswers,
         start_at: quizStartTime?.toISOString() || new Date().toISOString(),
-        end_at: new Date().toISOString()
+        end_at: new Date().toISOString(),
       };
 
-      const response = await fetch('/api/users/submit-quiz', {
-        method: 'POST',
+      const response = await fetch("/api/users/submit-quiz", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(submissionData),
       });
 
       if (!response.ok) {
-        console.error('Failed to submit quiz results:', await response.json());
+        console.error("Failed to submit quiz results:", await response.json());
       } else {
-        console.log('Quiz results submitted successfully');
+        console.log("Quiz results submitted successfully");
       }
     } catch (error) {
-      console.error('Error submitting quiz results:', error);
+      console.error("Error submitting quiz results:", error);
     }
   };
 
