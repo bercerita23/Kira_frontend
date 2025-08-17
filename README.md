@@ -1,8 +1,17 @@
-# KIRA - English Learning Platform for Indonesian Students
+# KIRA Frontend - English Learning Platform for Indonesian Students
 
 <div align="center">
   <img src="/bercerita_logo.jpeg" alt="Bercerita Logo" width="300" />
 </div>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-TypeScript-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Framework-Next.js-black?logo=next.js&style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Styling-TailwindCSS-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/AWS-Amplify-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Maintained-Yes-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Website-Up-blue?style=for-the-badge" />
+</p>
 
 KIRA is a comprehensive English learning platform designed specifically for Indonesian students, featuring an interactive quiz system and gamified learning experience. The platform provides a structured learning path through various quizzes and activities to help students master English language skills.
 
@@ -24,7 +33,6 @@ KIRA is a comprehensive English learning platform designed specifically for Indo
 - **Authentication**: JWT-based authentication with secure cookie storage
 - **Styling**: TailwindCSS with custom UI components
 - **Language**: TypeScript
-- **Build Tool**: Turbopack
 - **Image Storage**: AWS S3 integration for educational content
 - **Deployment**: AWS Amplify (frontend hosting)
 
