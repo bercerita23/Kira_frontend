@@ -21,7 +21,7 @@ type Question = {
   question_id: number;
   content: string;
   options: string[];
-  question_type: "MCQ" | "FITB" | "SA";
+  question_type: "MCQ" | "FITB" | "SA" | "TRANS";
   points: number;
   answer: string;
   image_url?: string;
@@ -321,6 +321,68 @@ export default function LessonPage() {
         );
 
       case "FITB":
+        return (
+          <div className="max-w-xl mx-auto relative">
+            <div className="relative">
+              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                My Answer:
+              </div>
+              <div className="flex gap-3 items-center">
+                <textarea
+                  value={
+                    showResult &&
+                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
+                      currentQuestion.answer
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, " ")
+                      ? `Incorrect - Correct answer: ${currentQuestion.answer}`
+                      : selectedAnswer
+                  }
+                  onChange={(e) => {
+                    if (!showResult) {
+                      handleAnswerSelect(e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Type Here..."
+                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                    showResult
+                      ? selectedAnswer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ") ===
+                        currentQuestion.answer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ")
+                        ? "border-green-400 bg-green-50 text-green-800"
+                        : "border-red-400 bg-red-50 text-red-800"
+                      : "border-orange-400 bg-white text-gray-700"
+                  } placeholder-gray-400`}
+                  rows={1}
+                  style={{ minHeight: "50px" }}
+                  readOnly={showResult}
+                />
+                {!showResult && selectedAnswer.trim() && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
+                    style={{ minHeight: "50px" }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case "TRANS":
         return (
           <div className="max-w-xl mx-auto relative">
             <div className="relative">
