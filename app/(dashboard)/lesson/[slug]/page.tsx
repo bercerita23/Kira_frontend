@@ -294,12 +294,12 @@ export default function LessonPage() {
     switch (currentQuestion.question_type) {
       case "MCQ":
         return (
-          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
             {currentQuestion.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(option)}
-                className={`p-4 rounded-full border-2 transition-all duration-200 font-medium text-sm ${
+                className={`p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs ${
                   selectedAnswer === option
                     ? "border-orange-400 bg-orange-100 text-orange-800 shadow-md"
                     : "border-gray-300 bg-white hover:border-orange-300 hover:bg-orange-50 text-gray-700"
@@ -307,7 +307,7 @@ export default function LessonPage() {
               >
                 <span className="flex items-center justify-center">
                   <span
-                    className={`w-8 h-8 rounded-full border-2 mr-3 flex items-center justify-center text-xs font-bold ${
+                    className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
                       selectedAnswer === option
                         ? "border-orange-500 bg-orange-500 text-white"
                         : "border-gray-400 bg-white text-gray-600"
@@ -324,18 +324,18 @@ export default function LessonPage() {
 
       case "FITB":
         return (
-          <div className="max-w-2xl mx-auto relative">
+          <div className="max-w-xl mx-auto relative">
             <div className="relative">
-              <div className="absolute -top-6 left-6 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
               <textarea
                 value={selectedAnswer}
                 onChange={(e) => handleAnswerSelect(e.target.value)}
                 placeholder="Type Here..."
-                className="w-full p-6 pt-8 border-2 border-orange-400 rounded-full resize-none focus:border-orange-500 focus:outline-none bg-white text-gray-700 placeholder-gray-400"
+                className="w-full p-4 pt-6 border-2 border-orange-400 rounded-full resize-none focus:border-orange-500 focus:outline-none bg-white text-gray-700 placeholder-gray-400 text-sm"
                 rows={1}
-                style={{ minHeight: "60px" }}
+                style={{ minHeight: "50px" }}
               />
             </div>
           </div>
@@ -486,16 +486,16 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom section with white background - Answer choices */}
-      <div className="bg-white min-h-[26vh] flex flex-col">
+      <div className="bg-white min-h-[24vh] flex flex-col">
         {/* Answer choices */}
-        <div className="flex-1 py-8 px-4">
+        <div className="flex-1 py-6 px-4">
           {renderQuestion()}
 
           {/* Result display */}
           {showResult && (
-            <div className="max-w-2xl mx-auto mt-6">
+            <div className="max-w-xl mx-auto mt-4">
               <div
-                className={`p-4 rounded-2xl text-center ${
+                className={`p-3 rounded-2xl text-center ${
                   selectedAnswer.toLowerCase().trim() ===
                   currentQuestion.answer.toLowerCase().trim()
                     ? "bg-green-50 border-2 border-green-200"
@@ -506,21 +506,21 @@ export default function LessonPage() {
                   {selectedAnswer.toLowerCase().trim() ===
                   currentQuestion.answer.toLowerCase().trim() ? (
                     <>
-                      <Check className="h-6 w-6 text-green-600 mr-2" />
-                      <span className="font-bold text-green-800 text-lg">
+                      <Check className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="font-bold text-green-800 text-base">
                         Correct!
                       </span>
                     </>
                   ) : (
                     <>
-                      <X className="h-6 w-6 text-red-600 mr-2" />
-                      <span className="font-bold text-red-800 text-lg">
+                      <X className="h-5 w-5 text-red-600 mr-2" />
+                      <span className="font-bold text-red-800 text-base">
                         Incorrect
                       </span>
                     </>
                   )}
                 </div>
-                <p className="text-sm text-gray-700">
+                <p className="text-xs text-gray-700">
                   <strong>Correct answer:</strong> {currentQuestion.answer}
                 </p>
               </div>
@@ -531,10 +531,10 @@ export default function LessonPage() {
           {currentQuestion.question_type === "FITB" &&
             !showResult &&
             selectedAnswer.trim() && (
-              <div className="text-center mt-6">
+              <div className="text-center mt-4">
                 <Button
                   onClick={handleSubmit}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-medium"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium text-sm"
                 >
                   My Answer
                 </Button>
