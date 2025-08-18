@@ -307,7 +307,7 @@ export default function LessonPage() {
               >
                 <span className="flex items-center justify-center">
                   <span
-                    className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
+                    className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
                       selectedAnswer === option
                         ? "border-orange-500 bg-orange-500 text-white"
                         : "border-gray-400 bg-white text-gray-600"
