@@ -131,8 +131,8 @@ export default function UploadContentSection() {
           throw new Error(data?.detail || "Failed to link existing file");
 
         toast({
-          title: "Linked existing file",
-          description: "Upload successful",
+          title: "Success",
+          description: "Found an existing file, creating a content.",
         });
       } else {
         const form = new FormData();
@@ -150,7 +150,7 @@ export default function UploadContentSection() {
           throw new Error(data?.detail || "Failed to upload content");
 
         toast({
-          title: "Uploaded",
+          title: "Success",
           description: "Content uploaded successfully",
         });
         setHashes((prev) => [...prev, hash_value]);
@@ -256,18 +256,16 @@ export default function UploadContentSection() {
               {[1, 2].map((n) => (
                 <div
                   key={n}
-                  className={`flex items-center gap-2 rounded-full px-3 py-1 ${
-                    step === n
-                      ? "bg-white shadow-sm ring-1 ring-emerald-200"
-                      : ""
-                  }`}
+                  className={`flex items-center gap-2 rounded-full px-3 py-1 ${step === n
+                    ? "bg-white shadow-sm ring-1 ring-emerald-200"
+                    : ""
+                    }`}
                 >
                   <div
-                    className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${
-                      step >= (n as Step)
-                        ? "bg-emerald-600 text-white"
-                        : "bg-emerald-100 text-emerald-700"
-                    }`}
+                    className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${step >= (n as Step)
+                      ? "bg-emerald-600 text-white"
+                      : "bg-emerald-100 text-emerald-700"
+                      }`}
                   >
                     {n}
                   </div>
@@ -321,11 +319,11 @@ export default function UploadContentSection() {
                       canContinue
                         ? setStep(2)
                         : toast({
-                            title: "Complete the form",
-                            description:
-                              "Fill Topic, Week, and choose a file to continue.",
-                            variant: "destructive",
-                          })
+                          title: "Complete the form",
+                          description:
+                            "Fill Topic, Week, and choose a file to continue.",
+                          variant: "destructive",
+                        })
                     }
                   >
                     <UploadCloud className="h-4 w-4" />
