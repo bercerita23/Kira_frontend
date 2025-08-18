@@ -201,8 +201,8 @@ export default function LessonPage() {
 
     // Trigger confetti if current answer is correct before moving to next question
     if (
-      selectedAnswer.toLowerCase().trim() ===
-      currentQuestion.answer.toLowerCase().trim()
+      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
+      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
     ) {
       confetti({
         particleCount: 100,
@@ -237,8 +237,11 @@ export default function LessonPage() {
     try {
       const correctAnswers = userAnswers.filter(
         (answer, index) =>
-          answer.toLowerCase().trim() ===
-          quiz!.questions[index].answer.toLowerCase().trim()
+          answer.toLowerCase().trim().replace(/\s+/g, " ") ===
+          quiz!.questions[index].answer
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, " ")
       ).length;
 
       const submissionData = {
@@ -279,14 +282,9 @@ export default function LessonPage() {
     setShowResult(true);
 
     if (
-      selectedAnswer.toLowerCase().trim() ===
-      currentQuestion.answer.toLowerCase().trim()
+      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
+      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
     ) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
     }
   };
 
@@ -329,14 +327,57 @@ export default function LessonPage() {
               <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
-              <textarea
-                value={selectedAnswer}
-                onChange={(e) => handleAnswerSelect(e.target.value)}
-                placeholder="Type Here..."
-                className="w-full p-4 pt-6 border-2 border-orange-400 rounded-full resize-none focus:border-orange-500 focus:outline-none bg-white text-gray-700 placeholder-gray-400 text-sm"
-                rows={1}
-                style={{ minHeight: "50px" }}
-              />
+              <div className="flex gap-3 items-center">
+                <textarea
+                  value={
+                    showResult &&
+                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
+                      currentQuestion.answer
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, " ")
+                      ? `Incorrect - Correct answer: ${currentQuestion.answer}`
+                      : selectedAnswer
+                  }
+                  onChange={(e) => {
+                    if (!showResult) {
+                      handleAnswerSelect(e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Type Here..."
+                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                    showResult
+                      ? selectedAnswer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ") ===
+                        currentQuestion.answer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ")
+                        ? "border-green-400 bg-green-50 text-green-800"
+                        : "border-red-400 bg-red-50 text-red-800"
+                      : "border-orange-400 bg-white text-gray-700"
+                  } placeholder-gray-400`}
+                  rows={1}
+                  style={{ minHeight: "50px" }}
+                  readOnly={showResult}
+                />
+                {!showResult && selectedAnswer.trim() && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
+                    style={{ minHeight: "50px" }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -492,54 +533,7 @@ export default function LessonPage() {
           {renderQuestion()}
 
           {/* Result display */}
-          {showResult && (
-            <div className="max-w-xl mx-auto mt-4">
-              <div
-                className={`p-3 rounded-2xl text-center ${
-                  selectedAnswer.toLowerCase().trim() ===
-                  currentQuestion.answer.toLowerCase().trim()
-                    ? "bg-green-50 border-2 border-green-200"
-                    : "bg-red-50 border-2 border-red-200"
-                }`}
-              >
-                <div className="flex items-center justify-center mb-2">
-                  {selectedAnswer.toLowerCase().trim() ===
-                  currentQuestion.answer.toLowerCase().trim() ? (
-                    <>
-                      <Check className="h-5 w-5 text-green-600 mr-2" />
-                      <span className="font-bold text-green-800 text-base">
-                        Correct!
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <X className="h-5 w-5 text-red-600 mr-2" />
-                      <span className="font-bold text-red-800 text-base">
-                        Incorrect
-                      </span>
-                    </>
-                  )}
-                </div>
-                <p className="text-xs text-gray-700">
-                  <strong>Correct answer:</strong> {currentQuestion.answer}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Answer button for FITB or when showing results for MCQ */}
-          {currentQuestion.question_type === "FITB" &&
-            !showResult &&
-            selectedAnswer.trim() && (
-              <div className="text-center mt-4">
-                <Button
-                  onClick={handleSubmit}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium text-sm"
-                >
-                  My Answer
-                </Button>
-              </div>
-            )}
+          {showResult && <div className="max-w-xl mx-auto mt-4"></div>}
         </div>
 
         {/* Navigation buttons */}
