@@ -76,7 +76,6 @@ Create a `.env.local` file in the project root:
 
 ```bash
 NEXT_PUBLIC_API_URL=https://api.kiraclassroom.com
-NEXT_PUBLIC_WEBSITE_URL=https://kiraclassroom.com
 ```
 
 ## Getting Started
@@ -106,8 +105,7 @@ yarn install
 3. Configure environment variables:
 
 ```bash
-cp .env.example .env.local
-# Edit .env.local with your configuration
+cp .env.local
 ```
 
 4. Run the development server:
@@ -166,7 +164,6 @@ Kira_frontend/
 │   ├── lib/               # Utilities and contexts
 │   └── globals.css        # Global styles
 ├── public/
-│   ├── bercerita_logo.jpeg # Application logo
 │   └── assets/            # Static assets
 └── ...config files
 ```

@@ -401,46 +401,23 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top section with green background - Question and Image */}
-      <div
-        className="flex-1 relative min-h-[60vh]"
-        style={{
-          backgroundImage: "url('/assets/quiz/background.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        {/* Green overlay */}
-        <div className="absolute inset-0 bg-green-200/60"></div>
+      {/* Navbar with white background */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
+          {/* Help button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+          >
+            <Link href="/dashboard">
+              <HelpCircle className="h-4 w-4 mr-1" />
+              Help
+            </Link>
+          </Button>
 
-        {/* Header with Help and Exit */}
-        <div className="relative z-10 p-4">
-          <div className="flex items-center justify-between max-w-6xl mx-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="text-gray-700 hover:text-gray-900 bg-white/80 backdrop-blur-sm rounded-full"
-            >
-              <Link href="/dashboard">
-                <HelpCircle className="h-4 w-4 mr-1" />
-                Help
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-700 hover:text-gray-900 bg-white/80 backdrop-blur-sm rounded-full"
-              onClick={() => router.push("/dashboard")}
-            >
-              Exit
-            </Button>
-          </div>
-        </div>
-
-        {/* Progress indicators */}
-        <div className="relative z-10 flex justify-center mb-8">
+          {/* Question number indicators */}
           <div className="flex space-x-2">
             {quiz.questions.map((_, index) => (
               <div
@@ -457,10 +434,35 @@ export default function LessonPage() {
               </div>
             ))}
           </div>
+
+          {/* Exit button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            onClick={() => router.push("/dashboard")}
+          >
+            Exit
+            <X className="h-4 w-4 ml-1" />
+          </Button>
         </div>
+      </div>
+
+      {/* Top section with green background - Question and Image */}
+      <div
+        className="flex-1 relative min-h-[60vh]"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Green overlay */}
+        <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 space-y-6">
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14">
           {/* Question text in white card at top */}
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full mx-4">
             <div className="text-center">
@@ -472,11 +474,11 @@ export default function LessonPage() {
 
           {/* Image directly on green background - larger 16:9 size */}
           {currentQuestion.image_url && (
-            <div className="mb-4">
+            <div className="mb-3">
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-xl mx-auto shadow-lg w-[60rem] h-[34rem] object-cover"
+                className="rounded-xl mx-auto shadow-lg w-[40rem] h-[27rem] object-cover"
               />
             </div>
           )}
