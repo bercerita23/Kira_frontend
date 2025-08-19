@@ -38,8 +38,9 @@ interface Topic {
 
 type SortDir = "asc" | "desc";
 type Step = 1 | 2;
-
-export default function UploadContentSection() {
+type OnReviewArg = { topic_id: number; topic_name: string };
+type Props = { onReview?: (topic: OnReviewArg) => void };
+export default function UploadContentSection({ onReview }: Props) {
   const { toast } = useToast();
 
   // form
@@ -183,6 +184,21 @@ export default function UploadContentSection() {
     setTopicToDelete(topic);
     setShowDeleteConfirm(true);
   };
+  const handleReviewClick = (topic: Topic) => {
+    if (onReview) {
+      onReview({ topic_id: topic.topic_id, topic_name: topic.topic_name });
+      return;
+    }
+    if (topic.file_name) {
+      window.open(`/uploads/${topic.file_name}`, "_blank");
+    } else {
+      toast({
+        title: "File not found",
+        description: "This topic does not have a file to review.",
+        variant: "destructive",
+      });
+    }
+  };
   const confirmDelete = async () => {
     if (!topicToDelete) return;
     setBusy(true);
@@ -256,16 +272,18 @@ export default function UploadContentSection() {
               {[1, 2].map((n) => (
                 <div
                   key={n}
-                  className={`flex items-center gap-2 rounded-full px-3 py-1 ${step === n
-                    ? "bg-white shadow-sm ring-1 ring-emerald-200"
-                    : ""
-                    }`}
+                  className={`flex items-center gap-2 rounded-full px-3 py-1 ${
+                    step === n
+                      ? "bg-white shadow-sm ring-1 ring-emerald-200"
+                      : ""
+                  }`}
                 >
                   <div
-                    className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${step >= (n as Step)
-                      ? "bg-emerald-600 text-white"
-                      : "bg-emerald-100 text-emerald-700"
-                      }`}
+                    className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${
+                      step >= (n as Step)
+                        ? "bg-emerald-600 text-white"
+                        : "bg-emerald-100 text-emerald-700"
+                    }`}
                   >
                     {n}
                   </div>
@@ -319,11 +337,11 @@ export default function UploadContentSection() {
                       canContinue
                         ? setStep(2)
                         : toast({
-                          title: "Complete the form",
-                          description:
-                            "Fill Topic, Week, and choose a file to continue.",
-                          variant: "destructive",
-                        })
+                            title: "Complete the form",
+                            description:
+                              "Fill Topic, Week, and choose a file to continue.",
+                            variant: "destructive",
+                          })
                     }
                   >
                     <UploadCloud className="h-4 w-4" />
@@ -451,7 +469,10 @@ export default function UploadContentSection() {
                         <span className="sr-only">Row actions</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="bg-white">
+                      <DropdownMenuItem onClick={() => handleReviewClick(t)}>
+                        Review
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteClick(t)}>
                         Delete
                       </DropdownMenuItem>
