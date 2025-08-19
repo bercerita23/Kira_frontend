@@ -42,12 +42,12 @@ export function DashboardSidebar() {
     // Conditionally add Admin Dashboard for admin users
     ...(user?.role === "admin" || user?.role === "adm"
       ? [
-          {
-            name: "Admin Dashboard",
-            href: "/admin",
-            icon: <Crown className="h-5 w-5" />,
-          },
-        ]
+        {
+          name: "Admin Dashboard",
+          href: "/admin",
+          icon: <Crown className="h-5 w-5" />,
+        },
+      ]
       : []),
     {
       name: "(Coming Soon)",
@@ -100,19 +100,17 @@ export function DashboardSidebar() {
                   href={item.href}
                   className={`
                     flex items-center px-3 py-2 text-sm rounded-md font-medium transition-colors
-                    ${
-                      isActive
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ${isActive
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }
                   `}
                 >
                   <span
-                    className={`mr-3 ${
-                      isActive
+                    className={`mr-3 ${isActive
                         ? "text-blue-600"
                         : "text-gray-400"
-                    }`}
+                      }`}
                   >
                     {item.icon}
                   </span>
@@ -156,10 +154,9 @@ export function DashboardSidebar() {
                     href={item.href}
                     className={`
                       flex items-center px-3 py-2 text-sm rounded-md
-                      ${
-                        isActive
-                          ? "text-blue-600"
-                          : "text-gray-500 hover:text-gray-700"
+                      ${isActive
+                        ? "text-blue-600"
+                        : "text-gray-500 hover:text-gray-700"
                       }
                     `}
                   >
@@ -177,18 +174,16 @@ export function DashboardSidebar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-200 ease-in-out ${
-          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/30 z-40 md:hidden transition-opacity duration-200 ease-in-out ${isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Mobile Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 w-64 bg-white z-50 transform transition-transform duration-200 ease-in-out shadow-lg md:hidden
-                    ${
-                      isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-                    }`}
+                    ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex items-center justify-between h-12 px-4 border-b border-gray-100">
           <span className="font-semibold text-blue-600">
@@ -214,25 +209,23 @@ export function DashboardSidebar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`
                     flex items-center px-3 py-2 text-sm rounded-md font-medium transition-colors
-                    ${
-                      isActive
-                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-200"
+                    ${isActive
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }
                   `}
                 >
                   <span
-                    className={`mr-3 ${
-                      isActive
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-400 dark:text-gray-500"
-                    }`}
+                    className={`mr-3 ${isActive
+                        ? "text-blue-600"
+                        : "text-gray-400"
+                      }`}
                   >
                     {item.icon}
                   </span>
                   {item.name}
                   {item.name === "Achievements" && (
-                    <span className="ml-auto text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-full">
+                    <span className="ml-auto text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
                       New
                     </span>
                   )}
@@ -242,17 +235,17 @@ export function DashboardSidebar() {
           </nav>
 
           <div className="mt-6 px-3">
-            <div className="rounded-lg p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-100 dark:border-blue-900/30">
+            <div className="rounded-lg p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100">
               <div className="flex items-center">
-                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-800/40 flex items-center justify-center">
-                  <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Award className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="ml-3">
-                  <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                    Premium Badges
+                  <h4 className="text-xs font-medium text-gray-900">
+                    Pro Plan Available!
                   </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    Unlock special rewards
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Unlock all features
                   </p>
                 </div>
               </div>
@@ -268,9 +261,9 @@ export function DashboardSidebar() {
                 key={`mobile-${item.name}`}
                 href={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-sm rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                className="flex items-center px-3 py-2 text-sm rounded-md text-gray-500 hover:text-gray-700"
               >
-                <span className="mr-3 text-gray-400 dark:text-gray-500">
+                <span className="mr-3 text-gray-400">
                   {item.icon}
                 </span>
                 {item.name}

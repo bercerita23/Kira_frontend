@@ -35,7 +35,7 @@ export function LandingFeatures() {
   ];
 
   return (
-    <section className="py-20 bg-white dark:bg-background">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Learn With Kira?</h2>
@@ -46,9 +46,9 @@ export function LandingFeatures() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <div 
-              key={index} 
-              className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl transition-all duration-300 hover:shadow-md border border-gray-100 dark:border-gray-700"
+            <div
+              key={index}
+              className="bg-gray-50 p-8 rounded-xl transition-all duration-300 hover:shadow-md border border-gray-100"
             >
               <div className="mb-4">{feature.icon}</div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
