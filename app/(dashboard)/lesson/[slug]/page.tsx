@@ -567,21 +567,21 @@ export default function LessonPage() {
         {/* Question content - question above image */}
         <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14">
           {/* Question text in white card at top */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl w-full mx-4">
+          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
                 {currentQuestion.content}
               </h1>
             </div>
           </div>
 
-          {/* Image directly on green background - larger 16:9 size */}
+          {/* Image directly on green background - responsive size */}
           {currentQuestion.image_url && (
-            <div className="mb-3">
+            <div className="mb-4">
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-xl mx-auto shadow-lg w-[40rem] h-[27rem] object-cover"
+                className="rounded-xl mx-auto shadow-lg w-full max-w-[25rem] h-[20rem] sm:max-w-[30rem] sm:h-[20rem] md:max-w-[35rem] md:h-[24rem] lg:max-w-[38rem] lg:h-[25rem] object-cover"
               />
             </div>
           )}
