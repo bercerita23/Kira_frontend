@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
+import ReviewQuestions from "@/components/ReviewQuestions";
 import { parseISO, isThisWeek } from "date-fns";
 import {
   DropdownMenu,
@@ -107,6 +108,11 @@ type StudentQuizData = {
 
 export default function AdminDashboardPage() {
   const GRADES = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
+  const [reviewTopic, setReviewTopic] = useState<{
+    topic_id: number;
+    topic_name: string;
+  } | null>(null);
+
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
 
@@ -421,9 +427,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            Verifying access...
-          </p>
+          <p className="text-gray-600">Verifying access...</p>
         </div>
       </div>
     );
@@ -441,9 +445,7 @@ export default function AdminDashboardPage() {
           <h1 className="text-2xl font-bold mb-4">
             Admin Authentication Required
           </h1>
-          <p className="text-gray-600 mb-6">
-            Redirecting to admin login...
-          </p>
+          <p className="text-gray-600 mb-6">Redirecting to admin login...</p>
           <div className="space-x-4">
             <Button asChild>
               <Link href="/admin/login">Go to Admin Login</Link>
@@ -650,8 +652,9 @@ export default function AdminDashboardPage() {
 
   // Filtered students based on search
   const filteredStudents = students.filter((student) => {
-    const name = `${student.first_name || ""} ${student.last_name || ""
-      }`.toLowerCase();
+    const name = `${student.first_name || ""} ${
+      student.last_name || ""
+    }`.toLowerCase();
     const username = student.username?.toLowerCase() || "";
     const matchesSearch =
       name.includes(search.toLowerCase()) ||
@@ -742,28 +745,31 @@ export default function AdminDashboardPage() {
           {/* Middle: Tabs */}
           <div className="flex bg-[#f1f1f1] p-1 rounded-[8px] ">
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "students"
-                ? "bg-white shadow text-gray-900"
-                : "text-gray-500"
-                }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "students"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
               onClick={() => setActiveTab("students")}
             >
               My Students
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "analytics"
-                ? "bg-white shadow text-gray-900"
-                : "text-gray-500"
-                }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "analytics"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
               onClick={() => setActiveTab("analytics")}
             >
               Usage Analytics
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${activeTab === "upload"
-                ? "bg-white shadow text-gray-900"
-                : "text-gray-500"
-                }`}
+              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+                activeTab === "upload"
+                  ? "bg-white shadow text-gray-900"
+                  : "text-gray-500"
+              }`}
               onClick={() => setActiveTab("upload")}
             >
               Upload Content
@@ -839,8 +845,9 @@ export default function AdminDashboardPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`ml-2 ${selectedGrades.length > 0 ? "text-[#B40000]" : ""
-                        }`}
+                      className={`ml-2 ${
+                        selectedGrades.length > 0 ? "text-[#B40000]" : ""
+                      }`}
                       onClick={() => setShowFilter(!showFilter)}
                     >
                       <Filter className="h-5 w-5" />
@@ -906,10 +913,9 @@ export default function AdminDashboardPage() {
 
                   <div className="flex items-center ml-2 border rounded overflow-hidden">
                     <button
-                      className={`px-2 py-1 ${viewMode === "list"
-                        ? "bg-gray-200"
-                        : ""
-                        }`}
+                      className={`px-2 py-1 ${
+                        viewMode === "list" ? "bg-gray-200" : ""
+                      }`}
                       onClick={() => setViewMode("list")}
                       aria-label="List view"
                       type="button"
@@ -917,10 +923,9 @@ export default function AdminDashboardPage() {
                       <List className="h-5 w-5" />
                     </button>
                     <button
-                      className={`px-2 py-1 ${viewMode === "grid"
-                        ? "bg-gray-200"
-                        : ""
-                        }`}
+                      className={`px-2 py-1 ${
+                        viewMode === "grid" ? "bg-gray-200" : ""
+                      }`}
                       onClick={() => setViewMode("grid")}
                       aria-label="Grid view"
                       type="button"
@@ -1343,9 +1348,9 @@ export default function AdminDashboardPage() {
                                     {(showAllPointsHistory
                                       ? studentQuizAttempts?.points_history
                                       : studentQuizAttempts?.points_history.slice(
-                                        0,
-                                        3
-                                      )
+                                          0,
+                                          3
+                                        )
                                     )?.map((entry, idx) => (
                                       <div
                                         key={idx}
@@ -1404,9 +1409,9 @@ export default function AdminDashboardPage() {
                                       {(showAllQuizHistory
                                         ? studentQuizAttempts?.quiz_history
                                         : studentQuizAttempts?.quiz_history.slice(
-                                          0,
-                                          3
-                                        )
+                                            0,
+                                            3
+                                          )
                                       )?.map((quiz, idx) => (
                                         <div
                                           key={idx}
@@ -1478,9 +1483,9 @@ export default function AdminDashboardPage() {
                                       {(showAllAwards
                                         ? studentQuizAttempts?.badges
                                         : studentQuizAttempts?.badges.slice(
-                                          0,
-                                          3
-                                        )
+                                            0,
+                                            3
+                                          )
                                       )?.map((badge, idx) => (
                                         <div
                                           key={idx}
@@ -1509,9 +1514,9 @@ export default function AdminDashboardPage() {
                                       {(showAllAwards
                                         ? studentQuizAttempts?.achievements
                                         : studentQuizAttempts?.achievements.slice(
-                                          0,
-                                          3
-                                        )
+                                            0,
+                                            3
+                                          )
                                       )?.map((ach, idx) => (
                                         <div
                                           key={idx}
@@ -1661,7 +1666,7 @@ export default function AdminDashboardPage() {
                                     editForm.notes !== ""
                                       ? editForm.notes
                                       : studentQuizAttempts?.student_info
-                                        .notes || ""
+                                          .notes || ""
                                   }
                                   onChange={(e) =>
                                     setEditForm((f) => ({
@@ -1684,11 +1689,12 @@ export default function AdminDashboardPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className={`border-green-600 hover:bg-green-50 ${studentQuizAttempts?.student_info
-                                    .deactivated
-                                    ? "text-green-600"
-                                    : "text-green-600"
-                                    }`}
+                                  className={`border-green-600 hover:bg-green-50 ${
+                                    studentQuizAttempts?.student_info
+                                      .deactivated
+                                      ? "text-green-600"
+                                      : "text-green-600"
+                                  }`}
                                   onClick={() => {
                                     const username = editStudent.username;
                                     if (
@@ -1743,8 +1749,16 @@ export default function AdminDashboardPage() {
         )}
 
         {activeTab === "upload" && (
-          <div>
-            <UploadContentSection />
+          <div className="space-y-6">
+            {reviewTopic ? (
+              <ReviewQuestions
+                topicLabel={`#${reviewTopic.topic_id} - ${reviewTopic.topic_name}`}
+                onApprove={() => setReviewTopic(null)}
+                onCancel={() => setReviewTopic(null)}
+              />
+            ) : (
+              <UploadContentSection onReview={(t) => setReviewTopic(t)} />
+            )}
           </div>
         )}
       </div>
