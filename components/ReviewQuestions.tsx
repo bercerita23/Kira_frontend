@@ -26,6 +26,12 @@ type Question = {
   image_url?: string;
 };
 
+type QuizData = {
+  quiz_name: string;
+  quiz_description: string;
+  questions: Question[];
+};
+
 export default function ReviewQuestions({
   topicId,
   topicLabel,
@@ -43,6 +49,10 @@ export default function ReviewQuestions({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  // Quiz metadata states
+  const [quizName, setQuizName] = useState<string>("");
+  const [quizDescription, setQuizDescription] = useState<string>("");
 
   // Editing states
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -76,8 +86,10 @@ export default function ReviewQuestions({
           throw new Error(`Failed to fetch questions: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data: QuizData = await response.json();
         console.log("Questions data received:", data);
+        console.log("Quiz name:", data.quiz_name);
+        console.log("Quiz description:", data.quiz_description);
         console.log("Questions count:", data.questions?.length || 0);
 
         if (data.questions && Array.isArray(data.questions)) {
@@ -87,6 +99,14 @@ export default function ReviewQuestions({
           console.warn("No questions array in response");
           setQuestions([]);
         }
+
+        // Set quiz metadata from API response, with fallback to topic-based defaults
+        setQuizName(
+          data.quiz_name ||
+            topicLabel?.replace(/^Week \d+ - /, "") ||
+            `Topic ${topicId}`
+        );
+        setQuizDescription(data.quiz_description || "");
       } catch (err) {
         console.error("Error fetching questions:", err);
         setError(
@@ -98,7 +118,7 @@ export default function ReviewQuestions({
     }
 
     fetchQuestions();
-  }, [topicId]);
+  }, [topicId, topicLabel]);
 
   const startEdit = (q: Question) => {
     setEditingId(q.question_id);
@@ -164,17 +184,59 @@ export default function ReviewQuestions({
   };
 
   const approve = async () => {
+    if (!quizName.trim()) {
+      toast({
+        title: "Error",
+        description: "Quiz name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/admin/approve/${topicId}`, {
+      // Structure data to match the expected API format (quiz metadata first)
+      const approvalData = {
+        quiz_name: quizName.trim(),
+        quiz_description: quizDescription.trim() || "",
+        questions,
+      };
+
+      console.log("=== APPROVE FUNCTION DEBUG ===");
+      console.log("Current quiz name state:", quizName);
+      console.log("Current quiz description state:", quizDescription);
+      console.log("Quiz name after trim:", quizName.trim());
+      console.log("Quiz description after trim:", quizDescription.trim());
+      console.log(
+        "Final quiz_description value:",
+        quizDescription.trim() || ""
+      );
+      console.log("Number of questions:", questions.length);
+      console.log(
+        "Complete approval data being sent:",
+        JSON.stringify(approvalData, null, 2)
+      );
+      console.log("Topic ID for API call:", topicId);
+
+      const apiUrl = `/api/admin/approve/${topicId}`;
+      console.log("Making POST request to:", apiUrl);
+
+      const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questions }),
+        body: JSON.stringify(approvalData),
       });
+
+      console.log("Response status:", res.status);
+      console.log("Response ok:", res.ok);
 
       if (!res.ok) {
         const errText = await res.text();
+        console.error("API Error Response:", errText);
         throw new Error(errText || "Failed to approve questions");
       }
+
+      const responseData = await res.json();
+      console.log("Success response from API:", responseData);
 
       toast({
         title: "Approved",
@@ -183,6 +245,11 @@ export default function ReviewQuestions({
       onApprove();
     } catch (err) {
       console.error("Error approving questions:", err);
+      console.error("Error details:", {
+        name: err instanceof Error ? err.name : "Unknown",
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : "No stack trace",
+      });
       toast({
         title: "Error",
         description:
@@ -253,6 +320,34 @@ export default function ReviewQuestions({
             <XCircle className="mr-2 h-4 w-4" />
             Cancel
           </Button>
+        </div>
+      </div>
+
+      {/* Quiz Metadata Section */}
+      <div className="rounded-2xl border bg-white p-6 shadow-sm mb-6">
+        <h2 className="text-lg font-semibold mb-4">Quiz Information</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <Label htmlFor="quiz-name">Quiz Name *</Label>
+            <Input
+              id="quiz-name"
+              value={quizName}
+              onChange={(e) => setQuizName(e.target.value)}
+              placeholder="Enter quiz name"
+              className="mt-1"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="quiz-description">Quiz Description</Label>
+            <Input
+              id="quiz-description"
+              value={quizDescription}
+              onChange={(e) => setQuizDescription(e.target.value)}
+              placeholder="Enter quiz description (optional)"
+              className="mt-1"
+            />
+          </div>
         </div>
       </div>
 
@@ -444,9 +539,10 @@ export default function ReviewQuestions({
             <Button
               className="bg-[#0FA958] hover:bg-[#0c8b4a]"
               onClick={approve}
+              disabled={!quizName.trim()}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
-              Approve
+              Approve Quiz
             </Button>
           </div>
         </div>

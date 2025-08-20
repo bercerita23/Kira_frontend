@@ -42,7 +42,7 @@ export async function GET(
     try {
       data = JSON.parse(rawData);
     } catch (e) {
-      data = {};
+      data = { quiz_name: "", quiz_description: "", questions: [] };
     }
 
     if (!response.ok) {
@@ -52,13 +52,26 @@ export async function GET(
       });
     }
 
-    return new Response(JSON.stringify(data), {
+    // Ensure the response has the expected structure with quiz metadata
+    const responseData = {
+      quiz_name: data.quiz_name || "",
+      quiz_description: data.quiz_description || "",
+      questions: data.questions || [],
+    };
+
+    return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: noCacheHeaders,
     });
   } catch (error) {
     return new Response(
-      JSON.stringify({ message: "Proxy error", error: String(error) }),
+      JSON.stringify({
+        message: "Proxy error",
+        error: String(error),
+        quiz_name: "",
+        quiz_description: "",
+        questions: [],
+      }),
       {
         status: 500,
         headers: noCacheHeaders,
