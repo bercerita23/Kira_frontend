@@ -26,6 +26,7 @@ import {
   UploadCloud,
   FileText,
 } from "lucide-react";
+import ReviewQuestions from "./ReviewQuestions";
 
 interface Topic {
   topic_id: number;
@@ -56,6 +57,12 @@ export default function UploadContentSection({ onReview }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // review states
+  const [showReview, setShowReview] = useState(false);
+  const [reviewData, setReviewData] = useState<any>(null);
+  const [reviewTopicName, setReviewTopicName] = useState("");
+  const [loadingReview, setLoadingReview] = useState(false);
 
   // fetch contents + hash values on mount
   useEffect(() => {
@@ -184,20 +191,15 @@ export default function UploadContentSection({ onReview }: Props) {
     setTopicToDelete(topic);
     setShowDeleteConfirm(true);
   };
-  const handleReviewClick = (topic: Topic) => {
-    if (onReview) {
-      onReview({ topic_id: topic.topic_id, topic_name: topic.topic_name });
-      return;
-    }
-    if (topic.file_name) {
-      window.open(`/uploads/${topic.file_name}`, "_blank");
-    } else {
-      toast({
-        title: "File not found",
-        description: "This topic does not have a file to review.",
-        variant: "destructive",
-      });
-    }
+  const handleReviewClick = async (topic: Topic) => {
+    console.log("=== HANDLE REVIEW CLICK START ===");
+    console.log("handleReviewClick called with topic:", topic);
+    console.log("Setting up review with topic ID:", topic.topic_id);
+
+    // Set review data immediately to show ReviewQuestions component
+    setReviewData({ topic_id: topic.topic_id }); // Just pass the topic_id
+    setReviewTopicName(topic.topic_name);
+    setShowReview(true);
   };
   const confirmDelete = async () => {
     if (!topicToDelete) return;
@@ -254,8 +256,50 @@ export default function UploadContentSection({ onReview }: Props) {
   const canContinue =
     title.trim().length > 0 && weekNumber.trim().length > 0 && !!file;
 
+  const handleReviewApprove = () => {
+    setShowReview(false);
+    setReviewData(null);
+    setReviewTopicName("");
+    toast({
+      title: "Questions Approved",
+      description: "The questions have been approved successfully.",
+    });
+  };
+
+  const handleReviewCancel = () => {
+    setShowReview(false);
+    setReviewData(null);
+    setReviewTopicName("");
+  };
+
+  // Show review section if in review mode
+  if (showReview && reviewData) {
+    console.log("=== SHOWING REVIEW SECTION ===");
+    console.log("showReview:", showReview);
+    console.log("reviewData:", reviewData);
+    console.log("Rendering ReviewQuestions with topicId:", reviewData.topic_id);
+    return (
+      <ReviewQuestions
+        topicId={reviewData.topic_id}
+        topicLabel={`${reviewTopicName}`}
+        onApprove={handleReviewApprove}
+        onCancel={handleReviewCancel}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto mt-6 max-w-5xl">
+      {/* Loading overlay for review */}
+      {loadingReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="rounded-lg bg-white p-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p>Loading questions...</p>
+          </div>
+        </div>
+      )}
+
       {/* Upload a file (accordion) */}
       <Accordion type="single" collapsible defaultValue="upload">
         <AccordionItem
@@ -470,7 +514,12 @@ export default function UploadContentSection({ onReview }: Props) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem onClick={() => handleReviewClick(t)}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          console.log("Review button clicked for topic:", t);
+                          handleReviewClick(t);
+                        }}
+                      >
                         Review
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteClick(t)}>
