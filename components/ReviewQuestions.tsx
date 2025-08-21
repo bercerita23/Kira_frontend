@@ -194,11 +194,16 @@ export default function ReviewQuestions({
     }
 
     try {
+      // Remove image_url from questions before sending
+      const questionsWithoutImageUrl = questions.map(
+        ({ image_url, ...question }) => question
+      );
+
       // Structure data to match the expected API format (quiz metadata first)
       const approvalData = {
         quiz_name: quizName.trim(),
         quiz_description: quizDescription.trim() || "",
-        questions,
+        questions: questionsWithoutImageUrl,
       };
 
       console.log("=== APPROVE FUNCTION DEBUG ===");
@@ -210,7 +215,7 @@ export default function ReviewQuestions({
         "Final quiz_description value:",
         quizDescription.trim() || ""
       );
-      console.log("Number of questions:", questions.length);
+      console.log("Number of questions:", questionsWithoutImageUrl.length);
       console.log(
         "Complete approval data being sent:",
         JSON.stringify(approvalData, null, 2)
@@ -441,7 +446,7 @@ export default function ReviewQuestions({
                   <img
                     src={view.image_url}
                     alt={`q${q.question_id}`}
-                    className="mb-3 h-48 w-96 rounded-lg border bg-gray-50 object-contain"
+                    className="mb-3 h-48 w-92 max-w-[300px] rounded-lg border bg-gray-50 object-contain"
                   />
                 )}
 
