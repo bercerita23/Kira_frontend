@@ -1752,6 +1752,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-6">
             {reviewTopic ? (
               <ReviewQuestions
+                topicId={reviewTopic.topic_id}
                 topicLabel={`#${reviewTopic.topic_id} - ${reviewTopic.topic_name}`}
                 onApprove={() => setReviewTopic(null)}
                 onCancel={() => setReviewTopic(null)}
