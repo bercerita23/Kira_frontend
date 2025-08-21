@@ -36,11 +36,21 @@ type Quiz = {
   school_id: string;
   creator_id: string;
   name: string;
-  questions: string[];
+  questions: Question[]; // Changed from string[] to Question[]
   description: string;
   created_at: string;
   expired_at: string;
   is_locked: boolean;
+};
+
+type Question = {
+  question_id: number;
+  content: string;
+  options: string[];
+  question_type: "MCQ" | "FITB" | "SA";
+  points: number;
+  answer: string;
+  image_url?: string;
 };
 
 type Attempt = {
@@ -157,10 +167,10 @@ export default function DashboardPage() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -169,10 +179,10 @@ export default function DashboardPage() {
   // Show simple login message if not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             Please log in to access your dashboard.
           </p>
           <div className="space-x-4">
@@ -205,14 +215,14 @@ export default function DashboardPage() {
 
   const progressPercentage = points
     ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((points.points - xpForCurrentLevel) /
-            (xpForNextLevel - xpForCurrentLevel)) *
-            100
-        )
+      100,
+      Math.max(
+        0,
+        ((points.points - xpForCurrentLevel) /
+          (xpForNextLevel - xpForCurrentLevel)) *
+        100
       )
+    )
     : 0;
 
   const xp = points?.points ?? 0;
@@ -229,7 +239,7 @@ export default function DashboardPage() {
     <MobileMenuContext.Provider
       value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
     >
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-white">
         <DashboardHeader />
         <div className="flex flex-col md:flex-row">
           <DashboardSidebar />
@@ -237,19 +247,19 @@ export default function DashboardPage() {
             <div className="max-w-none py-4">
               {/* Welcome Section */}
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl font-bold text-gray-900 ">
                   Hello, {getDisplayName()}!
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                <p className="text-gray-500 text-sm mt-1">
                   Continue your English learning journey
                 </p>
               </div>
 
               {/* Stats Overview */}
               <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Today's Goal
                     </p>
                     <div className="flex items-center justify-between mt-1">
@@ -269,7 +279,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex items-center">
                     <div className="relative mr-4">
                       <CircularProgress
@@ -283,13 +293,13 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500">
                         Level
                       </p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                      <p className="text-xl font-semibold text-gray-900">
                         {level}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {xp}/{xpForNextLevel} XP
                       </p>
                     </div>
@@ -299,7 +309,7 @@ export default function DashboardPage() {
 
               {/* Today's Activities */}
               <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   Today's Activities
                 </h2>
                 <div className="space-y-3">
@@ -329,7 +339,7 @@ export default function DashboardPage() {
                       return shouldLock ? (
                         <div
                           key={quiz.quiz_id}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed mb-2"
+                          className="block bg-white rounded-lg p-4 shadow-sm border border-gray-200 opacity-60 cursor-not-allowed mb-2"
                         >
                           <div className="flex items-center">
                             <div className="relative mr-4">
@@ -348,10 +358,10 @@ export default function DashboardPage() {
                               </div>
                             </div>
                             <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-700 dark:text-gray-300">
+                              <p className="font-medium text-gray-700">
                                 {quiz.name}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-500">
+                              <p className="text-sm text-gray-500">
                                 {quiz.description}
                               </p>
                               <p className="text-xs text-gray-400">
@@ -373,7 +383,7 @@ export default function DashboardPage() {
                         <Link
                           key={quiz.quiz_id}
                           href={`/lesson/${quiz.quiz_id}`}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors mb-2"
+                          className="block bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:border-blue-200 transition-colors mb-2"
                         >
                           <div className="flex items-center">
                             <div className="relative mr-4">
@@ -392,10 +402,10 @@ export default function DashboardPage() {
                               </div>
                             </div>
                             <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className="font-medium text-gray-900">
                                 {quiz.name}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="text-sm text-gray-500">
                                 {quiz.description}
                               </p>
                               <p className="text-xs text-gray-400">
@@ -408,7 +418,7 @@ export default function DashboardPage() {
                       );
                     })
                   ) : (
-                    <p className="text-gray-500 dark:text-gray-400">
+                    <p className="text-gray-500">
                       No quizzes available today.
                     </p>
                   )}
@@ -417,13 +427,13 @@ export default function DashboardPage() {
 
               {/* Weekly Topics */}
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   This Week's Topics
                 </h2>
 
                 <div className="space-y-4">
                   <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-green-500">
+                    <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-green-500">
                       <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
                       <div className="flex items-center">
                         <div className="relative mr-4">
@@ -431,10 +441,10 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                    (getCorrectCount("greetings") /
-                                      totalQuestions) *
-                                      100
-                                  )
+                                  (getCorrectCount("greetings") /
+                                    totalQuestions) *
+                                  100
+                                )
                                 : 0
                             }
                             size={48}
@@ -450,10 +460,10 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
+                          <h3 className="font-medium text-gray-900">
                             Greetings
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500">
                             {getCorrectCount("greetings")} of {totalQuestions}{" "}
                             questions correct
                           </p>
@@ -474,7 +484,7 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-blue-500">
+                    <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-blue-500">
                       <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
                       <div className="flex items-center">
                         <div className="relative mr-4">
@@ -482,10 +492,10 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                    (getCorrectCount("basic phrases") /
-                                      totalQuestions) *
-                                      100
-                                  )
+                                  (getCorrectCount("basic phrases") /
+                                    totalQuestions) *
+                                  100
+                                )
                                 : 0
                             }
                             size={48}
@@ -501,10 +511,10 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
+                          <h3 className="font-medium text-gray-900">
                             Basic Phrases
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500">
                             {getCorrectCount("basic phrases")} of{" "}
                             {totalQuestions} questions correct
                           </p>

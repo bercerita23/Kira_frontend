@@ -1,534 +1,628 @@
-//(dashboard)/dashboard/page.tsx
+//(dashboard)/lesson/[slug]/page.tsx
 "use client";
-
+import { getS3BlobUrl, toS3Key } from "@/lib/s3-client";
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   DashboardHeader,
   MobileMenuContext,
 } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { useAuth } from "@/lib/context/auth-context";
-import Link from "next/link";
-import { ChevronRight, Star, Award, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CircularProgress } from "@/components/ui/circular-progress";
-import { useTodaysGoal } from "@/hooks/useTodaysGoal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, Check, X, HelpCircle } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import confetti from "canvas-confetti";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-type Badge = {
-  badge_id: string;
-  earned_at: string;
-  is_viewed: boolean;
-  name: string;
-  description: string;
-  icon_url?: string;
+type Question = {
+  question_id: number;
+  content: string;
+  options: string[];
+  question_type: "MCQ" | "FITB" | "SA" | "TRANS";
+  points: number;
+  answer: string;
+  image_url?: string;
 };
+
 type Quiz = {
   quiz_id: number;
-  school_id: string;
-  creator_id: string;
   name: string;
-  questions: string[];
   description: string;
-  created_at: string;
-  expired_at: string;
-  is_locked: boolean;
+  questions: Question[];
 };
 
-type Attempt = {
-  quiz_id: number;
-  attempt_count: number;
-  pass_count: number;
-  fail_count: number;
-};
-
-export default function DashboardPage() {
+export default function LessonPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
-  const [streaks, setStreaks] = useState<{
-    current_streak: number;
-    longest_streak: number;
-    last_activity: string;
-  } | null>(null);
-  const [points, setPoints] = useState<{
-    points: number;
-  } | null>(null);
-  const { minutes, goalMinutes, percent } = useTodaysGoal();
-  const topicId = "greetings";
-  const totalQuestions = 5;
+  const params = useParams();
+  const router = useRouter();
+  const quizId = params.slug as string;
+  const [imgBlobUrl, setImgBlobUrl] = useState<string | null>(null);
 
-  const weekKey = new Date().toISOString().slice(0, 10);
-
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [globalDailyRetryCount, setGlobalDailyRetryCount] = useState(0);
-
-  // useEffect(() => {
-  //   if (typeof window !== "undefined" && user) {
-  //     const storedCorrect = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
-  //     );
-  //     const storedBasic = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
-  //     );
-
-  //     setCorrectCount(Number(storedCorrect ?? 0));
-  //     setBasicPhrasesCorrect(Number(storedBasic ?? 0));
-  //   }
-  // }, [user, topicId, weekKey]);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [showResult, setShowResult] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+  const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    async function fetchPoints() {
+    let alive = true;
+    async function load() {
+      const url = quiz?.questions[currentQuestionIndex]?.image_url;
+      if (!url) {
+        setImgBlobUrl(null);
+        return;
+      }
+
       try {
-        const res = await fetch("/api/users/points");
-        if (!res.ok) throw new Error("Failed to fetch points");
-        const data = await res.json();
-        setPoints(data);
-        // Log points to the console
-        // eslint-disable-next-line no-console
-        console.log("User points:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
+        const key = toS3Key(url);
+        const blobUrl = await getS3BlobUrl(key);
+        if (alive) setImgBlobUrl(blobUrl);
+      } catch (e) {
+        console.error("S3 image fetch failed:", e);
+        if (alive) setImgBlobUrl(url);
       }
     }
-    fetchPoints();
-  }, []);
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [quiz, currentQuestionIndex]);
 
   useEffect(() => {
-    async function fetchStreaks() {
+    async function fetchQuiz() {
+      if (!quizId) return;
+
       try {
-        const res = await fetch("/api/users/streaks", {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch streaks");
+        setLoading(true);
+        const res = await fetch(`/api/users/questions/${quizId}`);
+        if (!res.ok) throw new Error("Failed to fetch quiz");
+
         const data = await res.json();
-        setStreaks(data);
-        // Log streaks to the console
-        // eslint-disable-next-line no-console
-        console.log("User streaks:", data);
+        console.log("Quiz data:", data);
+
+        if (data.questions && data.questions.length > 0) {
+          setQuiz({
+            quiz_id: parseInt(quizId),
+            name: `Quiz ${quizId}`,
+            description: "Complete this quiz to test your knowledge",
+            questions: data.questions,
+          });
+          setUserAnswers(new Array(data.questions.length).fill(""));
+          setQuizStartTime(new Date()); // Set start time when quiz loads
+        } else {
+          setError("No questions found for this quiz");
+        }
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching streaks:", err);
+        console.error("Error fetching quiz:", err);
+        setError("Failed to load quiz");
+      } finally {
+        setLoading(false);
       }
     }
-    fetchStreaks();
-  }, []);
 
-  useEffect(() => {
-    async function fetchQuizzes() {
-      try {
-        const res = await fetch("/api/users/quizzes");
-        if (!res.ok) throw new Error("Failed to fetch quizzes");
-        const data = await res.json();
-        setQuizzes(data.quizzes || []);
-        // eslint-disable-next-line no-console
-        console.log("User quizzes:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching quizzes or questions:", err);
-      }
-    }
-    fetchQuizzes();
-  }, []);
+    fetchQuiz();
+  }, [quizId]);
 
-  useEffect(() => {
-    async function fetchAttempts() {
-      try {
-        const res = await fetch("/api/users/attempts");
-        if (!res.ok) throw new Error("Failed to fetch attempts");
-        const data = await res.json();
-        setAttempts(data.attempts || []);
-      } catch (err) {
-        console.error("Error fetching attempts:", err);
-      }
-    }
-    fetchAttempts();
-  }, []);
-
-  // Show loading state while checking authentication
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <div
+        className="min-h-screen flex items-center justify-center relative"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="absolute inset-0 bg-green-200/60"></div>
+        <div className="text-center relative z-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-green-800 font-medium">Loading quiz...</p>
         </div>
       </div>
     );
   }
 
-  // Show simple login message if not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Please log in to access your dashboard.
+      <div
+        className="min-h-screen flex items-center justify-center relative"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="absolute inset-0 bg-green-200/60"></div>
+        <div className="text-center relative z-10 bg-white rounded-2xl p-8 shadow-lg max-w-md mx-4">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800">
+            Authentication Required
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Please log in to access the quiz.
           </p>
-          <div className="space-x-4">
-            <Button asChild>
-              <Link href="/login">Go to Login</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
+          <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Link href="/login">Go to Login</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !quiz) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center relative"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="absolute inset-0 bg-green-200/60"></div>
+        <div className="text-center relative z-10 bg-white rounded-2xl p-8 shadow-lg max-w-md mx-4">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800">
+            Quiz Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {error || "The quiz you're looking for doesn't exist."}
+          </p>
+          <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Link href="/dashboard">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer);
+    const newAnswers = [...userAnswers];
+    newAnswers[currentQuestionIndex] = answer;
+    setUserAnswers(newAnswers);
+  };
+
+  const handleNext = () => {
+    if (!selectedAnswer.trim()) return;
+
+    // Trigger confetti if current answer is correct before moving to next question
+    if (
+      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
+      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
+    ) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
+
+    if (currentQuestionIndex < quiz.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(userAnswers[currentQuestionIndex + 1] || "");
+      setShowResult(false);
+    } else {
+      const finalScore = userAnswers.reduce(
+        (acc, answer, index) =>
+          answer.toLowerCase().trim() ===
+          quiz.questions[index].answer.toLowerCase().trim()
+            ? acc + 1
+            : acc,
+        0
+      );
+      setScore(finalScore);
+
+      // Submit quiz results to backend
+      submitQuizResults(finalScore);
+
+      setQuizCompleted(true);
+    }
+  };
+
+  const submitQuizResults = async (finalScore: number) => {
+    try {
+      const correctAnswers = userAnswers.filter(
+        (answer, index) =>
+          answer.toLowerCase().trim().replace(/\s+/g, " ") ===
+          quiz!.questions[index].answer
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, " ")
+      ).length;
+
+      const submissionData = {
+        quiz_id: parseInt(quizId),
+        pass_count: correctAnswers,
+        fail_count: quiz!.questions.length - correctAnswers,
+        start_at: quizStartTime?.toISOString() || new Date().toISOString(),
+        end_at: new Date().toISOString(),
+      };
+
+      const response = await fetch("/api/users/submit-quiz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to submit quiz results:", await response.json());
+      } else {
+        console.log("Quiz results submitted successfully");
+      }
+    } catch (error) {
+      console.error("Error submitting quiz results:", error);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setSelectedAnswer(userAnswers[currentQuestionIndex - 1] || "");
+      setShowResult(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    setShowResult(true);
+
+    if (
+      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
+      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
+    ) {
+    }
+  };
+
+  const renderQuestion = () => {
+    switch (currentQuestion.question_type) {
+      case "MCQ":
+        return (
+          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+            {currentQuestion.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(option)}
+                className={`p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs ${
+                  selectedAnswer === option
+                    ? "border-orange-400 bg-orange-100 text-orange-800 shadow-md"
+                    : "border-gray-300 bg-white hover:border-orange-300 hover:bg-orange-50 text-gray-700"
+                }`}
+              >
+                <span className="flex items-center justify-center">
+                  <span
+                    className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
+                      selectedAnswer === option
+                        ? "border-orange-500 bg-orange-500 text-white"
+                        : "border-gray-400 bg-white text-gray-600"
+                    }`}
+                  >
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  {option}
+                </span>
+              </button>
+            ))}
+          </div>
+        );
+
+      case "FITB":
+        return (
+          <div className="max-w-xl mx-auto relative">
+            <div className="relative">
+              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                My Answer:
+              </div>
+              <div className="flex gap-3 items-center">
+                <textarea
+                  value={
+                    showResult &&
+                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
+                      currentQuestion.answer
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, " ")
+                      ? `Incorrect - Correct answer: ${currentQuestion.answer}`
+                      : selectedAnswer
+                  }
+                  onChange={(e) => {
+                    if (!showResult) {
+                      handleAnswerSelect(e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Type Here..."
+                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                    showResult
+                      ? selectedAnswer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ") ===
+                        currentQuestion.answer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ")
+                        ? "border-green-400 bg-green-50 text-green-800"
+                        : "border-red-400 bg-red-50 text-red-800"
+                      : "border-orange-400 bg-white text-gray-700"
+                  } placeholder-gray-400`}
+                  rows={1}
+                  style={{ minHeight: "50px" }}
+                  readOnly={showResult}
+                />
+                {!showResult && selectedAnswer.trim() && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
+                    style={{ minHeight: "50px" }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case "TRANS":
+        return (
+          <div className="max-w-xl mx-auto relative">
+            <div className="relative">
+              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                My Answer:
+              </div>
+              <div className="flex gap-3 items-center">
+                <textarea
+                  value={
+                    showResult &&
+                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
+                      currentQuestion.answer
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, " ")
+                      ? `Incorrect - Correct answer: ${currentQuestion.answer}`
+                      : selectedAnswer
+                  }
+                  onChange={(e) => {
+                    if (!showResult) {
+                      handleAnswerSelect(e.target.value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                    }
+                  }}
+                  placeholder="Type Here..."
+                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                    showResult
+                      ? selectedAnswer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ") ===
+                        currentQuestion.answer
+                          .toLowerCase()
+                          .trim()
+                          .replace(/\s+/g, " ")
+                        ? "border-green-400 bg-green-50 text-green-800"
+                        : "border-red-400 bg-red-50 text-red-800"
+                      : "border-orange-400 bg-white text-gray-700"
+                  } placeholder-gray-400`}
+                  rows={1}
+                  style={{ minHeight: "50px" }}
+                  readOnly={showResult}
+                />
+                {!showResult && selectedAnswer.trim() && (
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
+                    style={{ minHeight: "50px" }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return <div>Unsupported question type</div>;
+    }
+  };
+
+  if (quizCompleted) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center relative"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="absolute inset-0 bg-green-200/60"></div>
+        <div className="relative z-10 bg-white rounded-2xl p-8 shadow-xl max-w-lg mx-4">
+          <div className="text-center space-y-6">
+            <h1 className="text-3xl font-bold text-gray-800">
+              Quiz Completed!
+            </h1>
+            <div className="text-6xl">
+              {score === quiz.questions.length
+                ? "🎉"
+                : score >= quiz.questions.length / 2
+                ? "👍"
+                : "📚"}
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2 text-gray-700">
+                Your Score
+              </h3>
+              <p className="text-4xl font-bold text-green-600">
+                {score} / {quiz.questions.length}
+              </p>
+              <p className="text-gray-600">
+                {Math.round((score / quiz.questions.length) * 100)}% Correct
+              </p>
+            </div>
+            <div className="flex gap-4 justify-center">
+              <Button asChild className="bg-green-600 hover:bg-green-700">
+                <Link href="/dashboard">Back to Dashboard</Link>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="border-green-600 text-green-600 hover:bg-green-50"
+              >
+                Retake Quiz
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Get user's display name
-  const getDisplayName = () => {
-    if (!user) return "User";
-    const firstName = user.first_name || "";
-    const lastName = user.last_name || "";
-    if (firstName || lastName) {
-      return `${firstName} ${lastName}`.trim();
-    }
-    return user.email || "User";
-  };
-
-  const level = points ? Math.floor(points.points / 100) + 1 : 1;
-  const xpForNextLevel = level * 100;
-  const xpForCurrentLevel = (level - 1) * 100;
-
-  const progressPercentage = points
-    ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((points.points - xpForCurrentLevel) /
-            (xpForNextLevel - xpForCurrentLevel)) *
-            100
-        )
-      )
-    : 0;
-
-  const xp = points?.points ?? 0;
-  // Helper to get correct count for a topic
-  const getCorrectCount = (topic: string) => {
-    // Find the quiz for the topic
-    const quiz = quizzes.find((q) => q.name.toLowerCase().includes(topic));
-    if (!quiz) return 0;
-    const attempt = attempts.find((a) => a.quiz_id === quiz.quiz_id);
-    return attempt ? attempt.pass_count : 0;
-  };
-
   return (
-    <MobileMenuContext.Provider
-      value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
-    >
-      <div className="min-h-screen bg-white dark:bg-gray-950">
-        <DashboardHeader />
-        <div className="flex flex-col md:flex-row">
-          <DashboardSidebar />
-          <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
-            <div className="max-w-none py-4">
-              {/* Welcome Section */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Hello, {getDisplayName()}!
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                  Continue your English learning journey
-                </p>
+    <div className="min-h-screen flex flex-col">
+      {/* Navbar with white background */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
+          {/* Help button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+          >
+            <Link href="/dashboard">
+              <HelpCircle className="h-4 w-4 mr-1" />
+              Help
+            </Link>
+          </Button>
+
+          {/* Question number indicators */}
+          <div className="flex space-x-2">
+            {quiz.questions.map((_, index) => (
+              <div
+                key={index}
+                className={`w-10 h-10 rounded-full border-3 flex items-center justify-center text-sm font-bold ${
+                  index < currentQuestionIndex
+                    ? "bg-green-500 border-green-600 text-white"
+                    : index === currentQuestionIndex
+                    ? "bg-green-400 border-green-500 text-white"
+                    : "bg-white border-gray-300 text-gray-600"
+                }`}
+              >
+                {index + 1}
               </div>
+            ))}
+          </div>
 
-              {/* Stats Overview */}
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Today's Goal
-                    </p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm font-medium">
-                        {minutes}/{goalMinutes} minutes
-                      </p>
-                      <p className="text-xs font-medium text-blue-500">
-                        {percent}%
-                      </p>
-                    </div>
-                    <div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
-                      <div
-                        className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
-                        style={{ width: `${percent ?? 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center">
-                    <div className="relative mr-4">
-                      <CircularProgress
-                        value={progressPercentage}
-                        size={48}
-                        strokeWidth={4}
-                        color="primary"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Award className="h-5 w-5 text-purple-500" />
-                      </div>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Level
-                      </p>
-                      <p className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {level}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {xp}/{xpForNextLevel} XP
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Today's Activities */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Today's Activities
-                </h2>
-                <div className="space-y-3">
-                  {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz) => {
-                      const attempt = attempts.find(
-                        (a) => a.quiz_id === quiz.quiz_id
-                      );
-                      const totalQuestions = attempt
-                        ? attempt.pass_count + attempt.fail_count
-                        : 5;
-                      const score = attempt ? attempt.pass_count : 0;
-                      // Lock quiz if:
-                      // 1. Quiz is inherently locked, OR
-                      // 2. User has reached max attempts (2) for this quiz, OR
-                      // 3. User has used their daily retry and hasn't maxed out this quiz
-                      const hasMaxedAttempts =
-                        attempt && attempt.attempt_count >= 2;
-                      const hasUsedDailyRetry = globalDailyRetryCount >= 1;
-                      const shouldLock =
-                        quiz.is_locked ||
-                        (attempt && attempt.attempt_count === 2);
-                      hasMaxedAttempts ||
-                        (hasUsedDailyRetry && !hasMaxedAttempts);
-                      const progressColor =
-                        score === totalQuestions ? "green" : "primary";
-                      return shouldLock ? (
-                        <div
-                          key={quiz.quiz_id}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-700 dark:text-gray-300">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-500">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-gray-400"
-                              disabled
-                            >
-                              <span>Locked</span>
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Link
-                          key={quiz.quiz_id}
-                          href={`/lesson/${quiz.quiz_id}`}
-                          className="block bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-colors mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-gray-400" />
-                          </div>
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400">
-                      No quizzes available today.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Weekly Topics */}
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  This Week's Topics
-                </h2>
-
-                <div className="space-y-4">
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-green-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("greetings") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("greetings") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">👋</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Greetings
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {getCorrectCount("greetings")} of {totalQuestions}{" "}
-                            questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-green-500"
-                          asChild
-                        >
-                          <Link href="/lesson/greetings">
-                            <span>Review</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border-2 border-blue-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("basic phrases") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("basic phrases") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">💬</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Basic Phrases
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {getCorrectCount("basic phrases")} of{" "}
-                            {totalQuestions} questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-500"
-                          asChild
-                        >
-                          <Link href="/lesson/basic-phrases">
-                            <span>Continue</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
+          {/* Exit button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            onClick={() => router.push("/dashboard")}
+          >
+            Exit
+            <X className="h-4 w-4 ml-1" />
+          </Button>
         </div>
       </div>
-    </MobileMenuContext.Provider>
+
+      {/* Top section with green background - Question and Image */}
+      <div
+        className="flex-1 relative min-h-[60vh]"
+        style={{
+          backgroundImage: "url('/assets/quiz/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Green overlay */}
+        <div className="absolute inset-0 bg-green-200/60"></div>
+
+        {/* Question content - question above image */}
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14">
+          {/* Question text in white card at top */}
+          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
+            <div className="text-center">
+              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
+                {currentQuestion.content}
+              </h1>
+            </div>
+          </div>
+
+          {/* Image directly on green background - responsive size */}
+          {currentQuestion.image_url && (
+            <div className="mb-4">
+              <img
+                src={imgBlobUrl || currentQuestion.image_url}
+                alt="Question image"
+                className="rounded-xl mx-auto shadow-lg w-full max-w-[25rem] h-[20rem] sm:max-w-[30rem] sm:h-[20rem] md:max-w-[35rem] md:h-[24rem] lg:max-w-[38rem] lg:h-[25rem] object-cover"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom section with white background - Answer choices */}
+      <div className="bg-white min-h-[24vh] flex flex-col">
+        {/* Answer choices */}
+        <div className="flex-1 py-6 px-4">
+          {renderQuestion()}
+
+          {/* Result display */}
+          {showResult && <div className="max-w-xl mx-auto mt-4"></div>}
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="flex justify-between items-center p-4 border-t border-gray-100">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentQuestionIndex === 0}
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-6 py-2"
+          >
+            ← Back
+          </Button>
+
+          <Button
+            onClick={handleNext}
+            disabled={
+              !selectedAnswer.trim() ||
+              (currentQuestion.question_type === "FITB" && !showResult)
+            }
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {currentQuestionIndex === quiz.questions.length - 1
+              ? "Finish Quiz"
+              : "Next Question →"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

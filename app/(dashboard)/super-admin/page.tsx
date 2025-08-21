@@ -155,10 +155,10 @@ export default function SuperAdminDashboardPage() {
   if (isLoading) {
     console.log("⏳ Super Admin page: Showing loading state");
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600">
             Verifying super admin access...
           </p>
         </div>
@@ -173,12 +173,12 @@ export default function SuperAdminDashboardPage() {
       window.location.href = "/admin/login?from=/super-admin";
     }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">
             Super Admin Authentication Required
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             Redirecting to admin login...
           </p>
           <div className="space-x-4">
@@ -200,13 +200,13 @@ export default function SuperAdminDashboardPage() {
       }
     );
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-4 text-red-600">
             Super Admin Access Required
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 mb-6">
             You don't have permission to access the super admin dashboard.
           </p>
           <div className="space-x-4">
@@ -258,14 +258,14 @@ export default function SuperAdminDashboardPage() {
   const getUserRoleBadge = (user: DbUser) => {
     if (user.is_super_admin) {
       return (
-        <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+        <Badge className="bg-purple-100 text-purple-800">
           Super Admin
         </Badge>
       );
     }
     if (user.is_admin) {
       return (
-        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+        <Badge className="bg-blue-100 text-blue-800">
           Admin
         </Badge>
       );
@@ -274,7 +274,7 @@ export default function SuperAdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Super Admin Header - Fixed at top */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 border-b border-purple-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -394,7 +394,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-gray-600">
                       Loading students...
                     </p>
                   </div>
@@ -405,23 +405,23 @@ export default function SuperAdminDashboardPage() {
                       .map((user) => (
                         <div
                           key={user.user_id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 transition-colors"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar>
-                              <AvatarFallback className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                              <AvatarFallback className="bg-green-100 text-green-700">
                                 {getUserInitials(user)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className="font-medium text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="text-sm text-gray-500">
                                 {user.email}
                               </p>
                               {user.school_id && (
-                                <p className="text-xs text-gray-400 dark:text-gray-500">
+                                <p className="text-xs text-gray-400">
                                   School ID: {user.school_id}
                                 </p>
                               )}
@@ -430,18 +430,18 @@ export default function SuperAdminDashboardPage() {
                           <div className="flex items-center gap-3">
                             <Badge
                               variant="secondary"
-                              className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                              className="bg-green-100 text-green-800"
                             >
                               Student
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -452,24 +452,24 @@ export default function SuperAdminDashboardPage() {
                     {allUsers.filter(
                       (user) => !user.is_admin && !user.is_super_admin
                     ).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No students found</p>
-                        <p className="text-xs mt-2">
-                          Total users loaded: {allUsers.length}
-                        </p>
-                        {allUsers.length > 0 && (
-                          <details className="mt-4 text-left">
-                            <summary className="cursor-pointer text-sm">
-                              Debug: Show raw user data
-                            </summary>
-                            <pre className="text-xs mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded overflow-auto max-h-40">
-                              {JSON.stringify(allUsers, null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                      </div>
-                    )}
+                        <div className="text-center py-8 text-gray-500">
+                          <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No students found</p>
+                          <p className="text-xs mt-2">
+                            Total users loaded: {allUsers.length}
+                          </p>
+                          {allUsers.length > 0 && (
+                            <details className="mt-4 text-left">
+                              <summary className="cursor-pointer text-sm">
+                                Debug: Show raw user data
+                              </summary>
+                              <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+                                {JSON.stringify(allUsers, null, 2)}
+                              </pre>
+                            </details>
+                          )}
+                        </div>
+                      )}
                   </div>
                 )}
               </CardContent>
@@ -490,7 +490,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-gray-600">
                       Loading admins...
                     </p>
                   </div>
@@ -501,40 +501,40 @@ export default function SuperAdminDashboardPage() {
                       .map((user) => (
                         <div
                           key={user.user_id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-blue-50 transition-colors"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar>
-                              <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                              <AvatarFallback className="bg-blue-100 text-blue-700">
                                 {getUserInitials(user)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className="font-medium text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="text-sm text-gray-500">
                                 {user.email}
                               </p>
                               {user.school_id && (
-                                <p className="text-xs text-gray-400 dark:text-gray-500">
+                                <p className="text-xs text-gray-400">
                                   School ID: {user.school_id}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                            <Badge className="bg-blue-100 text-blue-800">
                               Admin
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -545,11 +545,11 @@ export default function SuperAdminDashboardPage() {
                     {allUsers.filter(
                       (user) => user.is_admin && !user.is_super_admin
                     ).length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No admins found</p>
-                      </div>
-                    )}
+                        <div className="text-center py-8 text-gray-500">
+                          <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No admins found</p>
+                        </div>
+                      )}
                   </div>
                 )}
               </CardContent>
@@ -570,7 +570,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-gray-600">
                       Loading super admins...
                     </p>
                   </div>
@@ -581,40 +581,40 @@ export default function SuperAdminDashboardPage() {
                       .map((user) => (
                         <div
                           key={user.user_id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-purple-50 transition-colors"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar>
-                              <AvatarFallback className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                              <AvatarFallback className="bg-purple-100 text-purple-700">
                                 {getUserInitials(user)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className="font-medium text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="text-sm text-gray-500">
                                 {user.email}
                               </p>
                               {user.school_id && (
-                                <p className="text-xs text-gray-400 dark:text-gray-500">
+                                <p className="text-xs text-gray-400">
                                   School ID: {user.school_id}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                            <Badge className="bg-purple-100 text-purple-800">
                               Super Admin
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -624,11 +624,11 @@ export default function SuperAdminDashboardPage() {
                       ))}
                     {allUsers.filter((user) => user.is_super_admin).length ===
                       0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No super admins found</p>
-                      </div>
-                    )}
+                        <div className="text-center py-8 text-gray-500">
+                          <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No super admins found</p>
+                        </div>
+                      )}
                   </div>
                 )}
               </CardContent>
@@ -655,7 +655,7 @@ export default function SuperAdminDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="text-center py-8 text-gray-500">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Advanced analytics dashboard coming soon...</p>
                   <p className="text-sm">
@@ -678,7 +678,7 @@ export default function SuperAdminDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="text-center py-8 text-gray-500">
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>System management tools coming soon...</p>
                   <p className="text-sm">
@@ -724,9 +724,8 @@ function InviteAdminsTab() {
         const response = await fetch("/api/auth/school", {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${
-              document.cookie.match(/token=([^;]+)/)?.[1] || ""
-            }`,
+            Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
+              }`,
           },
         });
         if (response.ok) {
@@ -840,12 +839,12 @@ function InviteAdminsTab() {
       invitationList.length > 0
         ? invitationList
         : [invitationForm].filter(
-            (inv) =>
-              inv.email.trim() &&
-              inv.first_name.trim() &&
-              inv.last_name.trim() &&
-              inv.school_id.trim()
-          );
+          (inv) =>
+            inv.email.trim() &&
+            inv.first_name.trim() &&
+            inv.last_name.trim() &&
+            inv.school_id.trim()
+        );
 
     if (fullList.length === 0) {
       toast({
@@ -866,9 +865,8 @@ function InviteAdminsTab() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie.match(/token=([^;]+)/)?.[1] || ""
-          }`,
+          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
         },
         body: JSON.stringify({ invitations: fullList }),
       });
@@ -947,7 +945,7 @@ function InviteAdminsTab() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Invitation Form */}
-          <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
             <Label className="text-base font-medium">Add New Invitation</Label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1025,7 +1023,7 @@ function InviteAdminsTab() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-gray-500">
                 {schools.length > 0 && (
                   <p className="mt-1">
                     <strong>Available schools:</strong>{" "}
@@ -1056,7 +1054,7 @@ function InviteAdminsTab() {
                 {invitationList.map((invitation, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-md border"
+                    className="flex items-center justify-between p-3 bg-white rounded-md border"
                   >
                     <div className="flex items-center gap-3">
                       <UserPlus className="h-4 w-4 text-blue-500" />
@@ -1064,10 +1062,10 @@ function InviteAdminsTab() {
                         <p className="text-sm font-medium">
                           {invitation.first_name} {invitation.last_name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500">
                           {invitation.email}
                         </p>
-                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                        <p className="text-xs text-blue-600">
                           School: {invitation.school_id}
                         </p>
                       </div>
@@ -1126,7 +1124,7 @@ function InviteAdminsTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
               <p>
@@ -1190,9 +1188,8 @@ function ManageSchoolsTab({
         const response = await fetch("/api/auth/school", {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${
-              document.cookie.match(/token=([^;]+)/)?.[1] || ""
-            }`,
+            Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
+              }`,
           },
         });
         if (response.ok) {
@@ -1341,9 +1338,8 @@ function ManageSchoolsTab({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie.match(/token=([^;]+)/)?.[1] || ""
-          }`,
+          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
         },
         body: JSON.stringify({ invitations }),
       });
@@ -1353,9 +1349,8 @@ function ManageSchoolsTab({
       if (response.ok) {
         toast({
           title: "School Approved",
-          description: `Invitation sent to ${admin_email.trim()} for ${
-            schools.find((s) => s.school_id === school_id.trim())?.name
-          }`,
+          description: `Invitation sent to ${admin_email.trim()} for ${schools.find((s) => s.school_id === school_id.trim())?.name
+            }`,
         });
 
         // Reset form
@@ -1390,9 +1385,8 @@ function ManageSchoolsTab({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie.match(/token=([^;]+)/)?.[1] || ""
-          }`,
+          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
         },
         body: JSON.stringify({ admin_email: adminEmail }),
       });
@@ -1435,7 +1429,7 @@ function ManageSchoolsTab({
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600">
           Loading schools and administrators...
         </p>
       </div>
@@ -1461,7 +1455,7 @@ function ManageSchoolsTab({
               <Label htmlFor="school-select">School *</Label>
               <select
                 id="school-select"
-                className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"
+                className="w-full p-2 border rounded-md"
                 value={approvalForm.school_id}
                 onChange={(e) =>
                   setApprovalForm({
@@ -1589,7 +1583,7 @@ function ManageSchoolsTab({
           </div>
 
           {filteredSchools.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-gray-500">
               <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No approved schools found</p>
               <p className="text-sm">
@@ -1601,7 +1595,7 @@ function ManageSchoolsTab({
               {filteredSchools.map(({ school, admins }) => (
                 <div
                   key={school.school_id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -1612,17 +1606,17 @@ function ManageSchoolsTab({
 
                       {admins.length > 0 ? (
                         <div className="space-y-2">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-gray-600">
                             Administrators ({admins.length}):
                           </p>
                           {admins.map((admin: DbUser) => (
                             <div
                               key={admin.user_id}
-                              className="flex items-center justify-between bg-white dark:bg-gray-900 rounded p-3 border"
+                              className="flex items-center justify-between bg-white rounded p-3 border"
                             >
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
                                     {admin.first_name?.[0]}
                                     {admin.last_name?.[0]}
                                   </AvatarFallback>
@@ -1631,11 +1625,11 @@ function ManageSchoolsTab({
                                   <p className="font-medium text-sm">
                                     {admin.first_name} {admin.last_name}
                                   </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-gray-500">
                                     {admin.email}
                                   </p>
                                   {admin.last_login_time && (
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                                    <p className="text-xs text-gray-400">
                                       Last login:{" "}
                                       {new Date(
                                         admin.last_login_time
@@ -1658,7 +1652,7 @@ function ManageSchoolsTab({
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
+                        <div className="text-center py-4 text-gray-500">
                           <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
                           <p className="text-sm">No administrator assigned</p>
                           <p className="text-xs">

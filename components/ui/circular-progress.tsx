@@ -19,7 +19,7 @@ export function CircularProgress({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (value / 100) * circumference;
-  
+
   const colorClasses = {
     primary: 'stroke-primary',
     secondary: 'stroke-secondary',
@@ -27,7 +27,7 @@ export function CircularProgress({
     red: 'stroke-red-500',
     yellow: 'stroke-yellow-500',
   };
-  
+
   return (
     <div
       className={cn('relative inline-flex shrink-0 items-center justify-center', className)}
@@ -39,14 +39,14 @@ export function CircularProgress({
         viewBox={`0 0 ${size} ${size}`}
       >
         <circle
-          className="stroke-gray-200 dark:stroke-gray-700 fill-none"
+          className="stroke-gray-200 fill-none"
           cx={size / 2}
           cy={size / 2}
           r={radius}
           strokeWidth={strokeWidth}
         />
       </svg>
-      
+
       {/* Progress circle */}
       <svg
         className="absolute inset-0 h-full w-full rotate-[-90deg]"
