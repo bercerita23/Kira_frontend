@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import {
   Trash2,
   Save,
   Undo2,
+  Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,6 +58,20 @@ export default function ReviewQuestions({
   // Editing states
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState<Question | null>(null);
+
+  // Image upload states
+  const [uploadingImageFor, setUploadingImageFor] = useState<number | null>(
+    null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(
+    null
+  );
+
+  // Image cache state for uploaded images
+  const [imageCacheUrls, setImageCacheUrls] = useState<Record<number, string>>(
+    {}
+  );
 
   console.log("ReviewQuestions component mounted with topicId:", topicId);
 
@@ -269,6 +284,247 @@ export default function ReviewQuestions({
     onCancel();
   };
 
+  // Image compression function
+  const compressImage = (
+    file: File,
+    maxSizeBytes: number = 5 * 1024 * 1024
+  ): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        let { width, height } = img;
+        const maxDimension = 1920; // Max width/height
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Try different quality levels until we get under the size limit
+        const tryCompress = (quality: number): void => {
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                if (blob.size <= maxSizeBytes || quality <= 0.1) {
+                  // Convert blob back to File
+                  const compressedFile = new File([blob], file.name, {
+                    type: file.type,
+                    lastModified: Date.now(),
+                  });
+                  resolve(compressedFile);
+                } else {
+                  // Try with lower quality
+                  tryCompress(quality - 0.1);
+                }
+              }
+            },
+            file.type,
+            quality
+          );
+        };
+
+        tryCompress(0.8); // Start with 80% quality
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Image upload handler
+  const handleImageUpload = async (file: File, questionId: number) => {
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a JPG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    let fileToUpload = file;
+
+    // Compress if file is too large
+    if (file.size > maxSize) {
+      toast({
+        title: "Compressing image",
+        description: "Image is large, compressing to reduce size...",
+      });
+
+      try {
+        fileToUpload = await compressImage(file, maxSize);
+        console.log("Image compressed:", {
+          originalSize: (file.size / 1024 / 1024).toFixed(2) + "MB",
+          compressedSize: (fileToUpload.size / 1024 / 1024).toFixed(2) + "MB",
+        });
+
+        toast({
+          title: "Image compressed",
+          description: `Reduced from ${(file.size / 1024 / 1024).toFixed(
+            1
+          )}MB to ${(fileToUpload.size / 1024 / 1024).toFixed(1)}MB`,
+        });
+      } catch (error) {
+        console.error("Compression failed:", error);
+        toast({
+          title: "Compression failed",
+          description: "Please try with a smaller image.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Create object URL for immediate display
+    const objectUrl = URL.createObjectURL(fileToUpload);
+
+    // Cache the new image URL immediately
+    setImageCacheUrls((prev) => {
+      // Clean up old URL if exists
+      if (prev[questionId]) {
+        URL.revokeObjectURL(prev[questionId]);
+      }
+      return {
+        ...prev,
+        [questionId]: objectUrl,
+      };
+    });
+
+    // Update the image URL in local state immediately for display
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.question_id === questionId ? { ...q, image_url: objectUrl } : q
+      )
+    );
+
+    // If currently editing this question, update draft too
+    if (draft && draft.question_id === questionId) {
+      setDraft((prev) => (prev ? { ...prev, image_url: objectUrl } : prev));
+    }
+
+    try {
+      setUploadingImageFor(questionId);
+
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+
+      console.log("=== IMAGE UPLOAD DEBUG ===");
+      console.log(
+        "Question ID:",
+        questionId,
+        "Original file:",
+        file.name,
+        file.type,
+        ((file.size / 1024) | 0) + "KB"
+      );
+      console.log(
+        "Upload file:",
+        fileToUpload.name,
+        fileToUpload.type,
+        ((fileToUpload.size / 1024) | 0) + "KB"
+      );
+
+      const response = await fetch(`/api/admin/replace-img/${questionId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Upload error:", errorText);
+
+        // Revert the local state if upload failed
+        setQuestions((prev) =>
+          prev.map((q) =>
+            q.question_id === questionId
+              ? { ...q, image_url: q.image_url } // Keep original or remove if new
+              : q
+          )
+        );
+
+        if (draft && draft.question_id === questionId) {
+          setDraft((prev) =>
+            prev ? { ...prev, image_url: prev.image_url } : prev
+          );
+        }
+
+        // Clean up failed upload cache
+        setImageCacheUrls((prev) => {
+          URL.revokeObjectURL(prev[questionId]);
+          const { [questionId]: removed, ...rest } = prev;
+          return rest;
+        });
+
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Upload success:", result);
+
+      toast({
+        title: "Image updated",
+        description: "Question image has been replaced successfully.",
+      });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      toast({
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImageFor(null);
+      setSelectedQuestionId(null);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const triggerImageUpload = (questionId: number) => {
+    setSelectedQuestionId(questionId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file && selectedQuestionId) {
+      handleImageUpload(file, selectedQuestionId);
+    }
+  };
+
+  // Cleanup cached URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(imageCacheUrls).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [imageCacheUrls]);
+
   // Loading state
   if (loading) {
     return (
@@ -303,6 +559,15 @@ export default function ReviewQuestions({
 
   return (
     <div className="mx-auto max-w-5xl">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        onChange={handleFileInputChange}
+        style={{ display: "none" }}
+      />
+
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Review Questions</h1>
@@ -369,6 +634,7 @@ export default function ReviewQuestions({
             console.log("Rendering question:", q.question_id, q.question_type);
             const isEditing = editingId === q.question_id;
             const view = isEditing && draft ? draft : q;
+            const isUploading = uploadingImageFor === q.question_id;
 
             return (
               <div
@@ -440,14 +706,37 @@ export default function ReviewQuestions({
                   </div>
                 </div>
 
-                {/* Image (view-only for now) */}
+                {/* Image with upload functionality */}
                 {view.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={view.image_url}
-                    alt={`q${q.question_id}`}
-                    className="mb-3 h-48 w-92 max-w-[300px] rounded-lg border bg-gray-50 object-contain"
-                  />
+                  <div className="mb-3 relative group inline-block">
+                    <div
+                      className="relative cursor-pointer"
+                      onClick={() => triggerImageUpload(q.question_id)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageCacheUrls[q.question_id] || view.image_url}
+                        alt={`q${q.question_id}`}
+                        className="h-48 w-92 max-w-[300px] rounded-lg border bg-gray-50 object-contain transition-opacity group-hover:opacity-75"
+                      />
+
+                      {/* Upload overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
+                        {isUploading ? (
+                          <div className="flex flex-col items-center text-white">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mb-2"></div>
+                            <span className="text-sm">Uploading...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-white">
+                            <Upload className="h-6 w-6 mb-2" />
+                            <span className="text-sm">Click to replace</span>
+                            <span className="text-xs">JPG, PNG, WebP</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Answer/Options section */}
