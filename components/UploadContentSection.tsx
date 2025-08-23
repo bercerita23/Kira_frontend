@@ -281,10 +281,19 @@ export default function UploadContentSection({ onReview }: Props) {
       if (!res.ok) throw new Error(data?.detail || "Failed to delete");
 
       toast({ title: "Content deleted", description: "Item removed" });
-      const refreshed = await fetch("/api/admin/contents", {
-        cache: "no-store",
-      }).then((r) => r.json());
-      setTopics(Array.isArray(refreshed) ? refreshed : []);
+
+      // Refresh both topics AND hashes after deletion
+      const [refreshedTopics, refreshedHashes] = await Promise.all([
+        fetch("/api/admin/contents", { cache: "no-store" }).then((r) =>
+          r.json()
+        ),
+        fetch("/api/admin/hash-values", { cache: "no-store" }).then((r) =>
+          r.json()
+        ),
+      ]);
+
+      setTopics(Array.isArray(refreshedTopics) ? refreshedTopics : []);
+      setHashes(Array.isArray(refreshedHashes) ? refreshedHashes : []);
     } catch (err: any) {
       toast({
         title: "Delete failed",
