@@ -27,6 +27,12 @@ import {
   FileText,
 } from "lucide-react";
 import ReviewQuestions from "./ReviewQuestions";
+import * as pdfjsLib from "pdfjs-dist";
+
+// PDF.js worker setup
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+}
 
 interface Topic {
   topic_id: number;
@@ -49,6 +55,7 @@ export default function UploadContentSection({ onReview }: Props) {
   const [title, setTitle] = useState("");
   const [weekNumber, setWeekNumber] = useState("");
   const [step, setStep] = useState<Step>(1);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // data
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -107,7 +114,143 @@ export default function UploadContentSection({ onReview }: Props) {
       .join("");
   }
 
-  // submit
+  // PDF compression function
+  const compressPDF = async (
+    file: File,
+    maxSizeBytes: number = 5 * 1024 * 1024
+  ): Promise<File> => {
+    try {
+      console.log("=== PDF COMPRESSION START ===");
+      console.log(
+        "Original PDF size:",
+        (file.size / 1024 / 1024).toFixed(2) + "MB"
+      );
+
+      if (file.size <= maxSizeBytes) {
+        console.log("PDF already under size limit, no compression needed");
+        return file;
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const { jsPDF } = await import("jspdf");
+
+      const newPdf = new jsPDF();
+      let first = true;
+
+      console.log("Processing", pdf.numPages, "pages...");
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 1.2 });
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d")!;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({
+          canvasContext: ctx,
+          viewport,
+          canvas,
+        }).promise;
+        const imgData = canvas.toDataURL("image/jpeg", 0.6);
+
+        if (!first) newPdf.addPage();
+        newPdf.addImage(
+          imgData,
+          "JPEG",
+          0,
+          0,
+          newPdf.internal.pageSize.getWidth(),
+          newPdf.internal.pageSize.getHeight()
+        );
+
+        first = false;
+      }
+
+      const blob = newPdf.output("blob");
+      const compressedFile = new File([blob], file.name, {
+        type: "application/pdf",
+      });
+
+      console.log("=== PDF COMPRESSION COMPLETE ===");
+      console.log(
+        "Original size:",
+        (file.size / 1024 / 1024).toFixed(2) + "MB"
+      );
+      console.log(
+        "Compressed size:",
+        (compressedFile.size / 1024 / 1024).toFixed(2) + "MB"
+      );
+      console.log(
+        "Compression ratio:",
+        ((1 - compressedFile.size / file.size) * 100).toFixed(1) + "% reduction"
+      );
+
+      return compressedFile;
+    } catch (err) {
+      console.error("PDF compression failed:", err);
+      throw new Error("Failed to compress PDF");
+    }
+  };
+
+  // Handle file selection with compression
+  const handleFileChange = async (selectedFile: File | null) => {
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    const isPDF = selectedFile.type === "application/pdf";
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (isPDF && selectedFile.size > maxSize) {
+      setIsCompressing(true);
+      toast({
+        title: "Compressing PDF",
+        description: "Optimizing PDF file size before processing...",
+      });
+
+      try {
+        const compressedFile = await compressPDF(selectedFile, maxSize);
+        setFile(compressedFile);
+
+        toast({
+          title: "PDF compressed",
+          description: `Reduced from ${(
+            selectedFile.size /
+            1024 /
+            1024
+          ).toFixed(1)}MB to ${(compressedFile.size / 1024 / 1024).toFixed(
+            1
+          )}MB`,
+        });
+      } catch (error) {
+        console.error("PDF compression failed:", error);
+        toast({
+          title: "Compression failed",
+          description: "Using original file. Upload may be slower.",
+          variant: "destructive",
+        });
+        setFile(selectedFile);
+      } finally {
+        setIsCompressing(false);
+      }
+    } else {
+      setFile(selectedFile);
+    }
+  };
+
+  // Get token from cookies
+  const getToken = () => {
+    const tokenCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="));
+    return tokenCookie ? tokenCookie.split("=")[1] : null;
+  };
+
+  // submit - call backend API directly
   const handleSubmit = async () => {
     if (!file || !title || !weekNumber) {
       toast({
@@ -119,43 +262,80 @@ export default function UploadContentSection({ onReview }: Props) {
       return;
     }
 
+    const token = getToken();
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setBusy(true);
     try {
       const hash_value = await computeSHA256Hex(file);
       const exists = hashes.includes(hash_value);
 
       if (exists) {
+        // Use upload-content-lite endpoint for existing files
         const form = new FormData();
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
         form.append("hash_value", hash_value);
 
-        const res = await fetch("/api/admin/upload-content-lite", {
-          method: "POST",
-          body: form,
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok)
-          throw new Error(data?.detail || "Failed to link existing file");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin/upload-content-lite`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: form,
+          }
+        );
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData?.detail || "Failed to link existing file");
+        }
 
         toast({
           title: "Success",
           description: "Found an existing file, creating a content.",
         });
       } else {
+        // Use content-upload endpoint for new files
         const form = new FormData();
         form.append("file", file);
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
         form.append("hash_value", hash_value);
 
-        const res = await fetch("/api/admin/content-upload", {
-          method: "POST",
-          body: form,
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok)
-          throw new Error(data?.detail || "Failed to upload content");
+        console.log("📝 Uploading content directly to backend...");
+        console.log("📑 Form data fields:", Array.from(form.keys()));
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/admin/content-upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: form,
+          }
+        );
+
+        console.log(`🔗 Backend response status: ${res.status}`);
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          console.log("❌ Backend error:", errorData);
+          throw new Error(errorData?.detail || "Failed to upload content");
+        }
+
+        const data = await res.json();
+        console.log("✅ Content uploaded successfully:", data);
 
         toast({
           title: "Success",
@@ -365,13 +545,28 @@ export default function UploadContentSection({ onReview }: Props) {
                 </div>
                 <div className="sm:col-span-3">
                   <Label htmlFor="file">File</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="mt-1"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="file"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) =>
+                        handleFileChange(e.target.files?.[0] || null)
+                      }
+                      className="mt-1"
+                      disabled={isCompressing}
+                    />
+                    {isCompressing && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                      </div>
+                    )}
+                  </div>
+                  {isCompressing && (
+                    <p className="mt-1 text-xs text-emerald-600">
+                      Compressing PDF file...
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:col-span-3 mt-2 flex items-center justify-end gap-3">
@@ -387,9 +582,10 @@ export default function UploadContentSection({ onReview }: Props) {
                             variant: "destructive",
                           })
                     }
+                    disabled={isCompressing}
                   >
                     <UploadCloud className="h-4 w-4" />
-                    Continue
+                    {isCompressing ? "Processing..." : "Continue"}
                   </Button>
                 </div>
               </div>
