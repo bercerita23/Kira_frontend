@@ -215,14 +215,14 @@ export default function DashboardPage() {
 
   const progressPercentage = points
     ? Math.min(
-      100,
-      Math.max(
-        0,
-        ((points.points - xpForCurrentLevel) /
-          (xpForNextLevel - xpForCurrentLevel)) *
-        100
+        100,
+        Math.max(
+          0,
+          ((points.points - xpForCurrentLevel) /
+            (xpForNextLevel - xpForCurrentLevel)) *
+            100
+        )
       )
-    )
     : 0;
 
   const xp = points?.points ?? 0;
@@ -259,9 +259,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex flex-col">
-                    <p className="text-xs text-gray-500">
-                      Today's Goal
-                    </p>
+                    <p className="text-xs text-gray-500">Today's Goal</p>
                     <div className="flex items-center justify-between mt-1">
                       <p className="text-sm font-medium">
                         {minutes}/{goalMinutes} minutes
@@ -293,9 +291,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="ml-3">
-                      <p className="text-xs text-gray-500">
-                        Level
-                      </p>
+                      <p className="text-xs text-gray-500">Level</p>
                       <p className="text-xl font-semibold text-gray-900">
                         {level}
                       </p>
@@ -318,9 +314,7 @@ export default function DashboardPage() {
                       const attempt = attempts.find(
                         (a) => a.quiz_id === quiz.quiz_id
                       );
-                      const totalQuestions = attempt
-                        ? attempt.pass_count + attempt.fail_count
-                        : 5;
+                      const totalQuestions = quiz.questions?.length || 10; // Use actual quiz length instead of hardcoded 5
                       const score = attempt ? attempt.pass_count : 0;
                       // Lock quiz if:
                       // 1. Quiz is inherently locked, OR
@@ -418,9 +412,7 @@ export default function DashboardPage() {
                       );
                     })
                   ) : (
-                    <p className="text-gray-500">
-                      No quizzes available today.
-                    </p>
+                    <p className="text-gray-500">No quizzes available today.</p>
                   )}
                 </div>
               </div>
@@ -441,10 +433,10 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                  (getCorrectCount("greetings") /
-                                    totalQuestions) *
-                                  100
-                                )
+                                    (getCorrectCount("greetings") /
+                                      totalQuestions) *
+                                      100
+                                  )
                                 : 0
                             }
                             size={48}
@@ -492,10 +484,10 @@ export default function DashboardPage() {
                             value={
                               totalQuestions > 0
                                 ? Math.round(
-                                  (getCorrectCount("basic phrases") /
-                                    totalQuestions) *
-                                  100
-                                )
+                                    (getCorrectCount("basic phrases") /
+                                      totalQuestions) *
+                                      100
+                                  )
                                 : 0
                             }
                             size={48}
