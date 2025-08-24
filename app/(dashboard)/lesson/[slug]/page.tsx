@@ -450,6 +450,9 @@ export default function LessonPage() {
   };
 
   if (quizCompleted) {
+    const scorePercentage = Math.round((score / quiz.questions.length) * 100);
+    const isHighScore = scorePercentage >= 80;
+
     return (
       <div
         className="min-h-screen flex items-center justify-center relative"
@@ -461,40 +464,102 @@ export default function LessonPage() {
         }}
       >
         <div className="absolute inset-0 bg-green-200/60"></div>
-        <div className="relative z-10 bg-white rounded-2xl p-8 shadow-xl max-w-lg mx-4">
-          <div className="text-center space-y-6">
-            <h1 className="text-3xl font-bold text-gray-800">
-              Quiz Completed!
-            </h1>
-            <div className="text-6xl">
-              {score === quiz.questions.length
-                ? "🎉"
-                : score >= quiz.questions.length / 2
-                ? "👍"
-                : "📚"}
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-700">
-                Your Score
-              </h3>
-              <p className="text-4xl font-bold text-green-600">
-                {score} / {quiz.questions.length}
-              </p>
-              <p className="text-gray-600">
-                {Math.round((score / quiz.questions.length) * 100)}% Correct
-              </p>
-            </div>
-            <div className="flex gap-4 justify-center">
-              <Button asChild className="bg-green-600 hover:bg-green-700">
-                <Link href="/dashboard">Back to Dashboard</Link>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="border-green-600 text-green-600 hover:bg-green-50"
-              >
-                Retake Quiz
-              </Button>
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Kira Monkey Image on top of white card - Made larger */}
+          <div className="mb-[-20px] z-20 ">
+            <Image
+              src={
+                isHighScore
+                  ? "/assets/quiz/excited.png"
+                  : "/assets/quiz/happy.png"
+              }
+              alt="Kira Monkey"
+              width={160}
+              height={160}
+            />
+          </div>
+
+          {/* White card with content */}
+          <div className="bg-white rounded-2xl p-8  shadow-xl max-w-[400px] mx-4">
+            <div className="text-center space-y-6">
+              {/* Title with line break */}
+              <div>
+                <h1 className="text-3xl font-bold text-green-600">
+                  {isHighScore ? "Great Job!" : "Awesome effort!"}
+                </h1>
+                <div className="mt-2 h-px bg-gray-200 mx-8"></div>
+              </div>
+
+              {/* Score Circle and Text */}
+              <div className="flex items-center justify-center space-x-6">
+                {/* Circular Progress - Made even larger */}
+                <div className="relative w-40 h-40">
+                  <svg
+                    className="w-40 h-40 transform -rotate-90"
+                    viewBox="0 0 100 100"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                      fill="transparent"
+                      className="opacity-20"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#10b981"
+                      strokeWidth="8"
+                      fill="transparent"
+                      strokeDasharray={`${scorePercentage * 2.51} 251`}
+                      className="transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-4xl font-bold text-gray-800">
+                      {scorePercentage}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Score Details - Made smaller */}
+                <div className="text-left">
+                  <div className="text-3xl font-bold text-gray-800 mb-1">
+                    {score}/{quiz.questions.length}
+                  </div>
+                  <div className="text-xs text-gray-600">answers correct</div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3 pt-4">
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0"
+                  onClick={() => {
+                    // Placeholder for Talk to Kira Monkey functionality
+                    console.log("Talk to Kira Monkey clicked");
+                  }}
+                >
+                  Talk to Kira Monkey
+                </Button>
+
+                <Button
+                  className="w-full bg-white hover:bg-gray-50 text-green-600 rounded-full py-4 font-semibold text-lg border-2 border-green-600"
+                  onClick={() => window.location.reload()}
+                >
+                  Retake Quiz
+                </Button>
+
+                <Button
+                  className="w-full bg-white hover:bg-gray-50 text-green-600 rounded-full py-4 font-semibold text-lg border-2 border-green-600"
+                  asChild
+                >
+                  <Link href="/dashboard">Exit to Dashboard</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -542,7 +607,7 @@ export default function LessonPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            className="text-gray-700  hover:text-gray-900 hover:bg-gray-100 rounded-full"
             onClick={() => router.push("/dashboard")}
           >
             Exit
