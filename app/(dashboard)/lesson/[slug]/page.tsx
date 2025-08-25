@@ -519,32 +519,29 @@ export default function LessonPage() {
           <div className="relative z-10 w-full max-w-md mx-4">
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px]">
               {/* Header */}
-              <div className="bg-white border-b border-gray-200 p-4">
-                <div className="flex items-center justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowChatbot(false)}
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    Exit <X className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
+              <div className="bg-white border-b border-gray-200 p-4 relative">
+                {/* Exit button top-right */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowChatbot(false)}
+                  className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
+                >
+                  Exit <X className="h-4 w-4 ml-1" />
+                </Button>
 
-              {/* Kira Monkey Header */}
-              <div className="bg-white border-b border-gray-200 p-6 text-center">
-                <div className="flex flex-col items-center space-y-3">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
+                {/* Centered Icon + Title */}
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                     <Image
                       src="/assets/quiz/kiragpt.png"
                       alt="Kira Monkey"
-                      width={40}
-                      height={40}
+                      width={32}
+                      height={32}
                       className="rounded"
                     />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-800">
+                  <h2 className=" font-semibold text-gray-800 text-base">
                     Kira Monkey
                   </h2>
                 </div>
@@ -555,11 +552,11 @@ export default function LessonPage() {
                 {chatMessages.map((msg) => (
                   <div key={msg.id} className="flex flex-col">
                     {msg.isBot ? (
-                      <div className="bg-orange-100 border-2 border-orange-300 rounded-full px-6 py-3 max-w-[280px]">
+                      <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
                         <p className="text-sm text-gray-800">{msg.text}</p>
                       </div>
                     ) : (
-                      <div className="self-end bg-orange-500 text-white rounded-full px-6 py-3 max-w-[280px]">
+                      <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[280px]">
                         <p className="text-sm">{msg.text}</p>
                       </div>
                     )}
@@ -568,12 +565,12 @@ export default function LessonPage() {
               </div>
 
               {/* Input Area */}
-              <div className="bg-white border-t border-gray-200 p-4">
+              <div className="bg-white border-t border-gray-200 p-6">
                 <div className="flex items-center space-x-3">
                   {/* Input Field with Mic inside */}
-                  <div className="flex-1 relative flex items-center border-2 border-orange-400 rounded-full px-1">
-                    <button className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                      <Mic className="h-5 w-5 text-white" />
+                  <div className="flex-1 relative flex items-center border-2 border-red-400 rounded-full px-2 py-1 overflow-hidden">
+                    <button className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                      <Mic className="h-5 w-5 text-black" />
                     </button>
                     <input
                       type="text"
@@ -581,7 +578,8 @@ export default function LessonPage() {
                       onChange={(e) => setChatMessage(e.target.value)}
                       onKeyPress={handleChatKeyPress}
                       placeholder="Type Here..."
-                      className="flex-1 px-3 py-2 focus:outline-none text-sm placeholder-gray-500"
+                      className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-500"
+                      style={{ minHeight: "44px" }}
                     />
                   </div>
 
@@ -590,7 +588,7 @@ export default function LessonPage() {
                     onClick={handleChatSendMessage}
                     disabled={!chatMessage.trim()}
                     size="sm"
-                    className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white p-0 flex-shrink-0 disabled:bg-gray-400"
+                    className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white p-0 flex-shrink-0 disabled:bg-gray-400"
                   >
                     <ArrowRight className="h-5 w-5" />
                   </Button>
