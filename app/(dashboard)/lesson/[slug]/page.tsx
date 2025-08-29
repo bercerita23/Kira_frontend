@@ -18,7 +18,8 @@ import Image from "next/image";
 import confetti from "canvas-confetti";
 import { Mic, Send, ArrowRight } from "lucide-react";
 import KiraGpt from "@/components/Kira-gpt";
-
+import { Toast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 type Question = {
   question_id: number;
   content: string;
@@ -36,7 +37,18 @@ type Quiz = {
   questions: Question[];
 };
 
+type Attempt = {
+  attempt_id: number;
+  quiz_id: number;
+  user_id: number;
+  score: number;
+  max_score: number;
+  created_at: string;
+  attempt_count: number;
+};
+
 export default function LessonPage() {
+  const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
   const params = useParams();
@@ -55,6 +67,7 @@ export default function LessonPage() {
   const [error, setError] = useState<string>("");
   const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
   const [showChatbot, setShowChatbot] = useState(false);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
 
   useEffect(() => {
     let alive = true;
@@ -114,6 +127,23 @@ export default function LessonPage() {
 
     fetchQuiz();
   }, [quizId]);
+
+  useEffect(() => {
+    async function fetchAttempts() {
+      try {
+        const res = await fetch("/api/users/attempts");
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+        const data = await res.json();
+        setAttempts(data.attempts || []);
+      } catch (err) {
+        console.error("Error fetching attempts:", err);
+      }
+    }
+    fetchAttempts();
+  }, []);
+
+  const currentAttempt = attempts.find((a) => a.quiz_id === parseInt(quizId));
+  const attemptCount = currentAttempt ? currentAttempt.attempt_count : 0;
 
   if (isLoading || loading) {
     return (
@@ -456,6 +486,9 @@ export default function LessonPage() {
     const scorePercentage = Math.round((score / quiz.questions.length) * 100);
     const isHighScore = scorePercentage >= 80;
 
+    // Lock quiz retry if max attempts reached
+    const hasMaxedAttempts = attemptCount >= 1;
+
     // Show chatbot component if showChatbot is true
     if (showChatbot) {
       return (
@@ -480,24 +513,8 @@ export default function LessonPage() {
       >
         <div className="absolute inset-0 bg-green-200/60"></div>
         <div className="relative z-10 flex flex-col items-center">
-          {/* Kira Monkey Image on top of white card - Made larger */}
-          <div className="mb-[-20px] z-20 ">
-            <Image
-              src={
-                isHighScore
-                  ? "/assets/quiz/excited.png"
-                  : "/assets/quiz/happy.png"
-              }
-              alt="Kira Monkey"
-              width={160}
-              height={160}
-            />
-          </div>
-
-          {/* White card with content */}
           <div className="bg-white rounded-2xl p-8  shadow-xl max-w-[400px] mx-4">
             <div className="text-center space-y-6">
-              {/* Title with line break */}
               <div>
                 <h1 className="text-3xl font-bold text-green-600">
                   {isHighScore ? "Great Job!" : "Awesome effort!"}
@@ -505,9 +522,7 @@ export default function LessonPage() {
                 <div className="mt-2 h-px bg-gray-200 mx-8"></div>
               </div>
 
-              {/* Score Circle and Text */}
               <div className="flex items-center justify-center space-x-6">
-                {/* Circular Progress - Made even larger */}
                 <div className="relative w-40 h-40">
                   <svg
                     className="w-40 h-40 transform -rotate-90"
@@ -540,7 +555,6 @@ export default function LessonPage() {
                   </div>
                 </div>
 
-                {/* Score Details - Made smaller */}
                 <div className="text-left">
                   <div className="text-3xl font-bold text-gray-800 mb-1">
                     {score}/{quiz.questions.length}
@@ -549,7 +563,6 @@ export default function LessonPage() {
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="space-y-3 pt-4">
                 <Button
                   className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0"
@@ -559,10 +572,26 @@ export default function LessonPage() {
                 </Button>
 
                 <Button
-                  className="w-full bg-white hover:bg-gray-50 text-green-600 rounded-full py-4 font-semibold text-lg border-2 border-green-600"
-                  onClick={() => window.location.reload()}
+                  className={`w-full rounded-full py-4 font-semibold text-lg border-2 ${
+                    hasMaxedAttempts
+                      ? "bg-green-100 text-green-400 border-green-200 cursor-not-allowed"
+                      : "bg-white hover:bg-green-50 text-green-600 border-green-600"
+                  }`}
+                  onClick={() => {
+                    if (hasMaxedAttempts) {
+                      toast({
+                        title: "Maximum Attempts",
+                        description:
+                          "You have reached the maximum number of attempts for this quiz.",
+                        variant: "destructive",
+                      });
+                    } else {
+                      window.location.reload();
+                    }
+                  }}
+                  disabled={hasMaxedAttempts}
                 >
-                  Retake Quiz
+                  Retry Quiz
                 </Button>
 
                 <Button

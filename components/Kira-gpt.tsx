@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Mic, ArrowRight, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -30,6 +30,7 @@ export default function KiraGpt({
   const [chatMessage, setChatMessage] = useState("");
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [recordingStartTime, setRecordingStartTime] = useState<number>(0);
+  const [sessionId, setSessionId] = useState<number | null>(null);
 
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
@@ -235,10 +236,62 @@ export default function KiraGpt({
     }
   };
 
-  const handleChatSendMessage = () => {
-    if (!chatMessage.trim()) return;
+  // Start a chat session when the component opens
+  useEffect(() => {
+    const startSession = async () => {
+      try {
+        console.log("Starting chat session with initialTopic:", initialTopic);
 
-    // Add user message
+        // Extract quiz ID from initialTopic, e.g. "Quiz 98 topics"
+        const match = initialTopic.match(/Quiz (\d+)/);
+        const quizId = match ? parseInt(match[1], 10) : null;
+
+        if (!quizId) {
+          console.error(
+            "Could not extract quiz_id from initialTopic:",
+            initialTopic
+          );
+          return;
+        }
+
+        const requestBody = { quiz_id: quizId };
+        console.log(
+          "Request body being sent to /start API:",
+          JSON.stringify(requestBody, null, 2)
+        );
+
+        const res = await fetch("/api/users/chat/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        const data = await res.json();
+        console.log("Frontend: Response status:", res.status);
+        console.log("Frontend: Response data:", data);
+
+        if (res.ok) {
+          setSessionId(data.session_id);
+          console.log("Chat session started successfully:", data);
+        } else {
+          console.error("Failed to start chat:", data);
+        }
+      } catch (err) {
+        console.error("Error starting chat session:", err);
+      }
+    };
+
+    if (isOpen) {
+      startSession();
+    }
+  }, [isOpen, initialTopic]);
+
+  const handleChatSendMessage = async () => {
+    if (!chatMessage.trim() || !sessionId) return;
+
+    // Add user message to UI immediately
     setChatMessages((prev) => [
       ...prev,
       {
@@ -249,20 +302,54 @@ export default function KiraGpt({
       },
     ]);
 
+    const userMessage = chatMessage;
     setChatMessage("");
 
-    // Simulate bot response (placeholder - you can integrate with actual AI service)
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/users/chat/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ session_id: sessionId, message: userMessage }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: data.reply,
+            isBot: true,
+            timestamp: new Date(),
+          },
+        ]);
+      } else {
+        console.error("Chat send error:", data);
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "Sorry, I encountered an error. Please try again.",
+            isBot: true,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch (err) {
+      console.error("Error sending chat:", err);
       setChatMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
-          text: "Thanks for your question! I'm here to help with your learning.",
+          text: "Sorry, I'm having trouble connecting. Please try again.",
           isBot: true,
           timestamp: new Date(),
         },
       ]);
-    }, 1000);
+    }
   };
 
   const handleChatKeyPress = (e: React.KeyboardEvent) => {
