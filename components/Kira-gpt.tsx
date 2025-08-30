@@ -359,6 +359,36 @@ export default function KiraGpt({
     }
   };
 
+  const TIMER_DURATION = 5 * 60; // 5 minutes in seconds
+  const [timer, setTimer] = useState(TIMER_DURATION);
+  const [locked, setLocked] = useState(false);
+
+  // Helper to format seconds as MM:SS
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (!isOpen) return;
+    setTimer(TIMER_DURATION); // reset timer when opened
+    setLocked(false);
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          setLocked(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -378,6 +408,12 @@ export default function KiraGpt({
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px]">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 p-4 relative">
+            {/* Timer top-left */}
+            <div className="absolute top-6 left-4 flex items-center">
+              <span className="text-sm font-semibold text-orange-600">
+                {formatTime(timer)}
+              </span>
+            </div>
             {/* Exit button top-right */}
             <Button
               variant="ghost"
@@ -394,8 +430,8 @@ export default function KiraGpt({
                 <Image
                   src="/assets/quiz/kiragpt.png"
                   alt="Kira Monkey"
-                  width={32}
-                  height={32}
+                  width={42}
+                  height={42}
                   className="rounded"
                 />
               </div>
@@ -420,14 +456,6 @@ export default function KiraGpt({
                 )}
               </div>
             ))}
-            {transcribing && (
-              <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <p className="text-sm text-gray-800">Transcribing...</p>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Input Area */}
@@ -437,16 +465,20 @@ export default function KiraGpt({
               <div className="flex-1 relative flex items-center border-2 border-red-400 rounded-full px-2 py-1 overflow-hidden">
                 <button
                   onClick={handleMicClick}
-                  disabled={transcribing}
+                  disabled={transcribing || locked}
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    transcribing
+                    locked
+                      ? "bg-gray-400"
+                      : transcribing
                       ? "bg-gray-400"
                       : recording
                       ? "bg-green-500 animate-pulse"
                       : "bg-red-500"
                   }`}
                 >
-                  {transcribing ? (
+                  {locked ? (
+                    <X className="h-5 w-5 text-white" />
+                  ) : transcribing ? (
                     <Loader2 className="h-5 w-5 text-white animate-spin" />
                   ) : recording ? (
                     <span className="w-3 h-3 bg-white"></span>
@@ -459,10 +491,8 @@ export default function KiraGpt({
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyPress={handleChatKeyPress}
-                  placeholder={
-                    transcribing ? "Transcribing..." : "Type Here..."
-                  }
-                  disabled={transcribing}
+                  placeholder={locked ? "Session locked" : "Type Here..."}
+                  disabled={transcribing || locked}
                   className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-500 disabled:bg-gray-50"
                   style={{ minHeight: "44px" }}
                 />
@@ -471,13 +501,22 @@ export default function KiraGpt({
               {/* Send Button */}
               <Button
                 onClick={handleChatSendMessage}
-                disabled={!chatMessage.trim() || transcribing}
+                disabled={!chatMessage.trim() || transcribing || locked}
                 size="sm"
-                className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white p-0 flex-shrink-0 disabled:bg-gray-400"
+                className={`w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white p-0 flex-shrink-0 ${
+                  !chatMessage.trim() || transcribing || locked
+                    ? "disabled:bg-gray-400"
+                    : ""
+                }`}
               >
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
+            {locked && (
+              <div className="mt-2 text-center text-sm text-red-600 font-semibold">
+                Session locked. Please refresh to start again.
+              </div>
+            )}
           </div>
         </div>
       </div>
