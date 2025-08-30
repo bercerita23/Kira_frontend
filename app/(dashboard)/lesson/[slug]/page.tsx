@@ -513,6 +513,19 @@ export default function LessonPage() {
       >
         <div className="absolute inset-0 bg-green-200/60"></div>
         <div className="relative z-10 flex flex-col items-center">
+          {/* Kira Monkey Image on top of white card - Made larger */}
+          <div className="mb-[-20px] z-20 ">
+            <Image
+              src={
+                isHighScore
+                  ? "/assets/quiz/excited.png"
+                  : "/assets/quiz/happy.png"
+              }
+              alt="Kira Monkey"
+              width={160}
+              height={160}
+            />
+          </div>
           <div className="bg-white rounded-2xl p-8  shadow-xl max-w-[400px] mx-4">
             <div className="text-center space-y-6">
               <div>
