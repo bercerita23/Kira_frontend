@@ -6,9 +6,9 @@ import {
 } from "@aws-sdk/client-transcribe";
 import { randomUUID } from "crypto";
 
-const s3 = new S3Client({ region: process.env.AWS_DEFAULT_REGION });
+const s3 = new S3Client({ region: process.env.KIRA_AWS_DEFAULT_REGION });
 const transcribe = new TranscribeClient({
-  region: process.env.AWS_DEFAULT_REGION,
+  region: process.env.KIRA_AWS_DEFAULT_REGION,
 });
 
 export async function POST(req: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Upload audio to S3
     await s3.send(
       new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Bucket: process.env.KIRA_AWS_S3_BUCKET_NAME,
         Key: key,
         Body: buffer,
       })
@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
       TranscriptionJobName: jobName,
       LanguageCode: "en-US",
       Media: {
-        MediaFileUri: `s3://${process.env.AWS_S3_BUCKET_NAME}/${key}`,
+        MediaFileUri: `s3://${process.env.KIRA_AWS_S3_BUCKET_NAME}/${key}`,
       },
-      OutputBucketName: process.env.AWS_S3_BUCKET_NAME,
+      OutputBucketName: process.env.KIRA_AWS_S3_BUCKET_NAME,
       OutputKey: `transcribe/${jobName}-result.json`,
     });
 

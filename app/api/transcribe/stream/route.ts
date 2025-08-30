@@ -29,10 +29,10 @@ export async function POST(req: NextRequest) {
     }
 
     const client = new TranscribeStreamingClient({
-      region: process.env.AWS_DEFAULT_REGION!,
+      region: process.env.KIRA_AWS_DEFAULT_REGION!,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        accessKeyId: process.env.KIRA_AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.KIRA_AWS_SECRET_ACCESS_KEY!,
       },
     });
 

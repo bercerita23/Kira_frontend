@@ -12,9 +12,9 @@ import {
 import { Readable } from "stream";
 
 const transcribe = new TranscribeClient({
-  region: process.env.AWS_DEFAULT_REGION,
+  region: process.env.KIRA_AWS_DEFAULT_REGION,
 });
-const s3 = new S3Client({ region: process.env.AWS_DEFAULT_REGION });
+const s3 = new S3Client({ region: process.env.KIRA_AWS_DEFAULT_REGION });
 
 async function streamToString(stream: any): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -41,7 +41,7 @@ export async function GET(
     }
 
     if (job.TranscriptionJobStatus === "COMPLETED") {
-      const bucket = process.env.AWS_S3_BUCKET_NAME!;
+      const bucket = process.env.KIRA_AWS_S3_BUCKET_NAME!;
       const jsonKey = `transcribe/${params.jobName}-result.json`;
 
       // 1. Get transcript JSON from S3
