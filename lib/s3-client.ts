@@ -2,16 +2,16 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 export const s3 = new S3Client({
-  region: process.env.NEXT_PUBLIC_AWS_DEFAULT_REGION!,
+  region: process.env.NEXT_PUBLIC_KIRA_AWS_DEFAULT_REGION!,
   credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.KIRA_AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.KIRA_AWS_SECRET_ACCESS_KEY!,
   },
 });
 
 // Get a blob URL from a bucket key like: "visuals/SCH001/1/t36/q16.png"
 export async function getS3BlobUrl(key: string): Promise<string> {
-  const bucket = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME!;
+  const bucket = process.env.NEXT_PUBLIC_KIRA_AWS_S3_BUCKET_NAME!;
   const out = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 
   // In browsers, Body is ReadableStream<Uint8Array>

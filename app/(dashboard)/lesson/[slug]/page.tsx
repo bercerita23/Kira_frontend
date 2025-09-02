@@ -68,6 +68,12 @@ export default function LessonPage() {
   const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
   const [showChatbot, setShowChatbot] = useState(false);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [chatEligibility, setChatEligibility] = useState<{
+    chat_unlocked: boolean;
+    quizzes_needed?: number;
+    minutes_used?: number;
+    minutes_remaining?: number;
+  } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -144,6 +150,18 @@ export default function LessonPage() {
 
   const currentAttempt = attempts.find((a) => a.quiz_id === parseInt(quizId));
   const attemptCount = currentAttempt ? currentAttempt.attempt_count : 0;
+
+  useEffect(() => {
+    if (quizCompleted && chatEligibility === null) {
+      fetch("/api/users/chat/eligibility")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Chat eligibility result:", data);
+          setChatEligibility(data);
+        })
+        .catch(() => setChatEligibility(null));
+    }
+  }, [quizCompleted, chatEligibility]);
 
   if (isLoading || loading) {
     return (
@@ -485,12 +503,10 @@ export default function LessonPage() {
   if (quizCompleted) {
     const scorePercentage = Math.round((score / quiz.questions.length) * 100);
     const isHighScore = scorePercentage >= 80;
-
-    // Lock quiz retry if max attempts reached
     const hasMaxedAttempts = attemptCount >= 1;
 
-    // Show chatbot component if showChatbot is true
-    if (showChatbot) {
+    // Show chatbot component if showChatbot is true and chat is unlocked
+    if (showChatbot && chatEligibility?.chat_unlocked) {
       return (
         <KiraGpt
           isOpen={showChatbot}
@@ -578,10 +594,58 @@ export default function LessonPage() {
 
               <div className="space-y-3 pt-4">
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0"
-                  onClick={() => setShowChatbot(true)}
+                  className={`w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0 flex items-center justify-center ${
+                    chatEligibility && !chatEligibility.chat_unlocked
+                      ? "bg-green-100 text-green-400 cursor-not-allowed"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (chatEligibility && !chatEligibility.chat_unlocked) {
+                      toast({
+                        title: "Chat Locked",
+                        description: `Complete ${
+                          chatEligibility.quizzes_needed ?? 0
+                        } more quiz${
+                          (chatEligibility.quizzes_needed ?? 0) > 1 ? "zes" : ""
+                        } to unlock chat.`,
+                        variant: "destructive",
+                      });
+                    } else {
+                      setShowChatbot(true);
+                    }
+                  }}
+                  disabled={
+                    !!(chatEligibility && !chatEligibility.chat_unlocked)
+                  }
                 >
                   Talk to Kira Monkey
+                  {chatEligibility && !chatEligibility.chat_unlocked && (
+                    <span className="ml-2">
+                      {/* Lock icon */}
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="#888"
+                          strokeWidth="2"
+                          d="M7 10V7a5 5 0 0110 0v3"
+                        />
+                        <rect
+                          x="5"
+                          y="10"
+                          width="14"
+                          height="10"
+                          rx="2"
+                          stroke="#888"
+                          strokeWidth="2"
+                        />
+                        <circle cx="12" cy="15" r="1.5" fill="#888" />
+                      </svg>
+                    </span>
+                  )}
                 </Button>
 
                 <Button

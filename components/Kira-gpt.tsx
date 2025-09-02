@@ -352,6 +352,23 @@ export default function KiraGpt({
     }
   };
 
+  const endChatSession = async () => {
+    if (!sessionId) return;
+    try {
+      await fetch("/api/users/chat/end", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+      console.log("Chat session ended.");
+    } catch (err) {
+      console.error("Error ending chat session:", err);
+    }
+  };
+  const handleExit = async () => {
+    await endChatSession();
+    onClose();
+  };
   const handleChatKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -381,6 +398,7 @@ export default function KiraGpt({
       setTimer((prev) => {
         if (prev <= 1) {
           setLocked(true);
+          endChatSession(); // End session when timer locks
           return 0;
         }
         return prev - 1;
@@ -418,7 +436,7 @@ export default function KiraGpt({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={handleExit}
               className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
             >
               Exit <X className="h-4 w-4 ml-1" />
