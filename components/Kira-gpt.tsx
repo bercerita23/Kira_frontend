@@ -288,10 +288,12 @@ export default function KiraGpt({
     }
   }, [isOpen, initialTopic]);
 
+  const [typingBotMessage, setTypingBotMessage] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+
   const handleChatSendMessage = async () => {
     if (!chatMessage.trim() || !sessionId) return;
 
-    // Add user message to UI immediately
     setChatMessages((prev) => [
       ...prev,
       {
@@ -317,15 +319,32 @@ export default function KiraGpt({
       const data = await res.json();
 
       if (res.ok) {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            text: data.reply,
-            isBot: true,
-            timestamp: new Date(),
-          },
-        ]);
+        // Typer animation for bot reply
+        setIsTyping(true);
+        setTypingBotMessage("");
+        const reply = data.reply || "";
+        let i = 0;
+        const typeInterval = 18; // ms per character
+        const type = () => {
+          setTypingBotMessage(reply.slice(0, i + 1));
+          i++;
+          if (i < reply.length) {
+            setTimeout(type, typeInterval);
+          } else {
+            setIsTyping(false);
+            setTypingBotMessage(null);
+            setChatMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now() + 1,
+                text: reply,
+                isBot: true,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        };
+        type();
       } else {
         console.error("Chat send error:", data);
         setChatMessages((prev) => [
@@ -461,11 +480,20 @@ export default function KiraGpt({
 
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
-            {chatMessages.map((msg) => (
+            {chatMessages.map((msg, idx) => (
               <div key={msg.id} className="flex flex-col">
                 {msg.isBot ? (
                   <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
-                    <p className="text-sm text-gray-800">{msg.text}</p>
+                    <p className="text-sm text-gray-800">
+                      {/* Show typer animation for the last bot message if typing */}
+                      {isTyping && idx === chatMessages.length - 1 && typingBotMessage !== null
+                        ? typingBotMessage
+                        : msg.text}
+                      {/* Blinking cursor */}
+                      {isTyping && idx === chatMessages.length - 1 && typingBotMessage !== null && (
+                        <span className="animate-pulse">|</span>
+                      )}
+                    </p>
                   </div>
                 ) : (
                   <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[280px]">
@@ -474,6 +502,19 @@ export default function KiraGpt({
                 )}
               </div>
             ))}
+            {/* If typing and no bot message yet, show the typing message separately */}
+            {isTyping && typingBotMessage !== null && chatMessages.length > 0 &&
+              chatMessages[chatMessages.length - 1].isBot === false && (
+                <div className="flex flex-col">
+                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
+                    <p className="text-sm text-gray-800">
+                      {typingBotMessage}
+                      <span className="animate-pulse">|</span>
+                    </p>
+                  </div>
+                </div>
+              )
+            }
           </div>
 
           {/* Input Area */}
