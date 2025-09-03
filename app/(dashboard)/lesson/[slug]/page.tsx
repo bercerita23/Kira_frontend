@@ -618,7 +618,7 @@ export default function LessonPage() {
                     !!(chatEligibility && !chatEligibility.chat_unlocked)
                   }
                 >
-                  Talk to Kira Monkey
+                  Ask Bintang
                   {chatEligibility && !chatEligibility.chat_unlocked && (
                     <span className="ml-2">
                       {/* Lock icon */}
