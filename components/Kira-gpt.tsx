@@ -473,7 +473,7 @@ export default function KiraGpt({
                 />
               </div>
               <h2 className="font-semibold text-gray-800 text-base">
-                Kira Monkey
+                Bintang 
               </h2>
             </div>
           </div>
