@@ -20,6 +20,7 @@ import { Mic, Send, ArrowRight } from "lucide-react";
 import KiraGpt from "@/components/Kira-gpt";
 import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
+import LessonNavbar from "@/components/LessonNavbar"; // Add this import
 type Question = {
   question_id: number;
   content: string;
@@ -74,6 +75,10 @@ export default function LessonPage() {
     minutes_used?: number;
     minutes_remaining?: number;
   } | null>(null);
+
+  // Add state for chat timer (sync with KiraGpt timer duration)
+  const CHAT_SESSION_LIMIT_MINUTES = 5;
+  const [chatTimer, setChatTimer] = useState(CHAT_SESSION_LIMIT_MINUTES * 60);
 
   useEffect(() => {
     let alive = true;
@@ -162,6 +167,16 @@ export default function LessonPage() {
         .catch(() => setChatEligibility(null));
     }
   }, [quizCompleted, chatEligibility]);
+
+  // When chatbot is shown, start the timer countdown
+  useEffect(() => {
+    if (!showChatbot) return;
+    setChatTimer(CHAT_SESSION_LIMIT_MINUTES * 60);
+    const interval = setInterval(() => {
+      setChatTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showChatbot]);
 
   if (isLoading || loading) {
     return (
@@ -507,12 +522,21 @@ export default function LessonPage() {
 
     // Show chatbot component if showChatbot is true and chat is unlocked
     if (showChatbot && chatEligibility?.chat_unlocked) {
+      // Show the navbar with timer bar above the chatbot
       return (
-        <KiraGpt
-          isOpen={showChatbot}
-          onClose={() => setShowChatbot(false)}
-          initialTopic={`${quiz.name} topics`}
-        />
+        <div className="min-h-screen flex flex-col">
+          <LessonNavbar
+            timer={chatTimer}
+            timerMax={CHAT_SESSION_LIMIT_MINUTES * 60}
+            showProgressBar={true}
+            onExit={() => setShowChatbot(false)}
+          />
+          <KiraGpt
+            isOpen={showChatbot}
+            onClose={() => setShowChatbot(false)}
+            initialTopic={`${quiz.name} topics`}
+          />
+        </div>
       );
     }
 
@@ -542,7 +566,7 @@ export default function LessonPage() {
               height={160}
             />
           </div>
-          <div className="bg-white rounded-2xl p-8  shadow-xl max-w-[400px] mx-4">
+          <div className="bg-white rounded-2xl p-8 shadow-xl max-w-3xl w-full mx-auto">
             <div className="text-center space-y-6">
               <div>
                 <h1 className="text-3xl font-bold text-green-600">
@@ -562,7 +586,7 @@ export default function LessonPage() {
                       cy="50"
                       r="40"
                       stroke="#e5e7eb"
-                      strokeWidth="8"
+                      strokeWidth="5"
                       fill="transparent"
                       className="opacity-20"
                     />
@@ -571,14 +595,14 @@ export default function LessonPage() {
                       cy="50"
                       r="40"
                       stroke="#10b981"
-                      strokeWidth="8"
+                      strokeWidth="5"
                       fill="transparent"
                       strokeDasharray={`${scorePercentage * 2.51} 251`}
                       className="transition-all duration-1000 ease-out"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-gray-800">
+                    <span className="text-3xl font-bold text-gray-800">
                       {scorePercentage}%
                     </span>
                   </div>
@@ -593,6 +617,19 @@ export default function LessonPage() {
               </div>
 
               <div className="space-y-3 pt-4">
+                {/* Only show Retry Quiz and break line if not locked */}
+                {!hasMaxedAttempts && (
+                  <>
+                    <Button
+                      className="w-full rounded-full py-4 font-semibold text-lg border-2 bg-white hover:bg-green-50 text-green-600 border-green-600"
+                      onClick={() => window.location.reload()}
+                    >
+                      Retry Quiz
+                    </Button>
+                    {/* Light green break line */}
+                    <div className="w-full h-[2px] bg-green-300 my-6 rounded"></div>
+                  </>
+                )}
                 <Button
                   className={`w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0 flex items-center justify-center ${
                     chatEligibility && !chatEligibility.chat_unlocked
@@ -649,29 +686,6 @@ export default function LessonPage() {
                 </Button>
 
                 <Button
-                  className={`w-full rounded-full py-4 font-semibold text-lg border-2 ${
-                    hasMaxedAttempts
-                      ? "bg-green-100 text-green-400 border-green-200 cursor-not-allowed"
-                      : "bg-white hover:bg-green-50 text-green-600 border-green-600"
-                  }`}
-                  onClick={() => {
-                    if (hasMaxedAttempts) {
-                      toast({
-                        title: "Maximum Attempts",
-                        description:
-                          "You have reached the maximum number of attempts for this quiz.",
-                        variant: "destructive",
-                      });
-                    } else {
-                      window.location.reload();
-                    }
-                  }}
-                  disabled={hasMaxedAttempts}
-                >
-                  Retry Quiz
-                </Button>
-
-                <Button
                   className="w-full bg-white hover:bg-gray-50 text-green-600 rounded-full py-4 font-semibold text-lg border-2 border-green-600"
                   asChild
                 >
@@ -688,52 +702,12 @@ export default function LessonPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar with white background */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
-          {/* Help button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
-          >
-            <Link href="/dashboard">
-              <HelpCircle className="h-4 w-4 mr-1" />
-              Help
-            </Link>
-          </Button>
-
-          {/* Question number indicators */}
-          <div className="flex space-x-2">
-            {quiz.questions.map((_, index) => (
-              <div
-                key={index}
-                className={`w-10 h-10 rounded-full border-3 flex items-center justify-center text-sm font-bold ${
-                  index < currentQuestionIndex
-                    ? "bg-green-500 border-green-600 text-white"
-                    : index === currentQuestionIndex
-                    ? "bg-green-400 border-green-500 text-white"
-                    : "bg-white border-gray-300 text-gray-600"
-                }`}
-              >
-                {index + 1}
-              </div>
-            ))}
-          </div>
-
-          {/* Exit button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-700  hover:text-gray-900 hover:bg-gray-100 rounded-full"
-            onClick={() => router.push("/dashboard")}
-          >
-            Exit
-            <X className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      </div>
-
+      <LessonNavbar
+        current={currentQuestionIndex + 1}
+        total={quiz.questions.length}
+        showProgressBar={false}
+        onExit={() => router.push("/dashboard")}
+      />
       {/* Top section with green background - Question and Image */}
       <div
         className="flex-1 relative min-h-[60vh]"
@@ -748,7 +722,7 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14">
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14 mt-[80px]">
           {/* Question text in white card at top */}
           <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
             <div className="text-center">
