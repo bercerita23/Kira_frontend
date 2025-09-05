@@ -269,7 +269,7 @@ export default function KiraGpt({
         if (res.ok) {
           setSessionId(data.session_id);
           // Immediately send introduction message after session starts
-          const introPrompt = `Introduce yourself as Bintang, the helpful AI assistant. Briefly explain who you are and mention the topic .`;
+          const introPrompt = `Introduce yourself as Kira, the helpful AI assistant. Briefly explain who you are and mention the topic .`;
           try {
             const sendRes = await fetch("/api/users/chat/send", {
               method: "POST",
@@ -498,7 +498,7 @@ export default function KiraGpt({
                   className="rounded"
                 />
               </div>
-              <h2 className="font-semibold text-gray-800 text-base">Bintang</h2>
+              <h2 className="font-semibold text-gray-800 text-base">Kira</h2>
             </div>
           </div>
 

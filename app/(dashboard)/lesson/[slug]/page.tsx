@@ -655,7 +655,7 @@ export default function LessonPage() {
                     !!(chatEligibility && !chatEligibility.chat_unlocked)
                   }
                 >
-                  Ask Bintang
+                  Ask Kira
                   {chatEligibility && !chatEligibility.chat_unlocked && (
                     <span className="ml-2">
                       {/* Lock icon */}

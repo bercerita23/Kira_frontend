@@ -30,7 +30,10 @@ export default function LessonNavbar({
   };
 
   // Progress bar percent
-  const percent = timer && timerMax ? Math.max(0, Math.min(100, (timer / timerMax) * 100)) : 100;
+  const percent =
+    timer && timerMax
+      ? Math.max(0, Math.min(100, (timer / timerMax) * 100))
+      : 100;
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 w-full z-50">
@@ -67,7 +70,10 @@ export default function LessonNavbar({
                 }}
               ></div>
               {/* Dots */}
-              <div className="absolute left-0 top-0 w-full h-4 flex items-center justify-between px-10" style={{ zIndex: 2 }}>
+              <div
+                className="absolute left-0 top-0 w-full h-4 flex items-center justify-between px-10"
+                style={{ zIndex: 2 }}
+              >
                 {[...Array(6)].map((_, i) => (
                   <span
                     key={i}
