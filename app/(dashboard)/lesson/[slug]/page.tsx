@@ -732,7 +732,9 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14">
+        <div
+          className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14 mt-[80px]"
+        >
           {/* Question text in white card at top */}
           <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
             <div className="text-center">
