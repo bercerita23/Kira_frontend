@@ -31,17 +31,13 @@ export default function KiraGpt({
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [recordingStartTime, setRecordingStartTime] = useState<number>(0);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: 1,
-      text: `Ask KIRA! I love questions about ${initialTopic}!`,
-      isBot: true,
-      timestamp: new Date(),
-    },
+
   ]);
   const createWAVFile = (audioData: Float32Array, sampleRate: number) => {
     const length = audioData.length;
@@ -274,7 +270,34 @@ export default function KiraGpt({
 
         if (res.ok) {
           setSessionId(data.session_id);
-          console.log("Chat session started successfully:", data);
+          // Immediately send introduction message after session starts
+          const introPrompt = `Introduce yourself as Bintang, the helpful AI assistant. Briefly explain who you are and mention the topic .`;
+          try {
+            const sendRes = await fetch("/api/users/chat/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                session_id: data.session_id,
+                message: introPrompt,
+              }),
+            });
+            const sendData = await sendRes.json();
+            if (sendRes.ok && sendData.reply) {
+              setChatMessages((prev) => [
+                ...prev,
+                {
+                  id: Date.now() + 1,
+                  text: sendData.reply,
+                  isBot: true,
+                  timestamp: new Date(),
+                },
+              ]);
+            }
+          } catch (err) {
+            // If introduction fails, do nothing
+          }
         } else {
           console.error("Failed to start chat:", data);
         }
@@ -372,20 +395,24 @@ export default function KiraGpt({
   };
 
   const endChatSession = async () => {
-    if (!sessionId) return;
+    if (!sessionId || sessionEnded) return;
     try {
       await fetch("/api/users/chat/end", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId }),
       });
+      setSessionEnded(true); // Mark session as ended
       console.log("Chat session ended.");
     } catch (err) {
       console.error("Error ending chat session:", err);
     }
   };
+
   const handleExit = async () => {
-    await endChatSession();
+    if (!sessionEnded) {
+      await endChatSession();
+    }
     onClose();
   };
   const handleChatKeyPress = (e: React.KeyboardEvent) => {
@@ -413,6 +440,7 @@ export default function KiraGpt({
     if (!isOpen) return;
     setTimer(TIMER_DURATION); // reset timer when opened
     setLocked(false);
+    setSessionEnded(false); // Reset sessionEnded when opened
     const interval = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
@@ -441,8 +469,8 @@ export default function KiraGpt({
       <div className="absolute inset-0 bg-green-200/60"></div>
 
       {/* Chatbot Interface */}
-      <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px]">
+      <div className="relative z-10 w-full max-w-[800px] mx-4 mt-20">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[760px]">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 p-4 relative">
             {/* Timer top-left */}
@@ -483,7 +511,7 @@ export default function KiraGpt({
             {chatMessages.map((msg, idx) => (
               <div key={msg.id} className="flex flex-col">
                 {msg.isBot ? (
-                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
+                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]">
                     <p className="text-sm text-gray-800">
                       {/* Show typer animation for the last bot message if typing */}
                       {isTyping && idx === chatMessages.length - 1 && typingBotMessage !== null
