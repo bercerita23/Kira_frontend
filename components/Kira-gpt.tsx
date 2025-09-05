@@ -36,9 +36,7 @@ export default function KiraGpt({
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const createWAVFile = (audioData: Float32Array, sampleRate: number) => {
     const length = audioData.length;
     const buffer = new ArrayBuffer(44 + length * 2);
@@ -500,9 +498,7 @@ export default function KiraGpt({
                   className="rounded"
                 />
               </div>
-              <h2 className="font-semibold text-gray-800 text-base">
-                Bintang 
-              </h2>
+              <h2 className="font-semibold text-gray-800 text-base">Bintang</h2>
             </div>
           </div>
 
@@ -514,35 +510,40 @@ export default function KiraGpt({
                   <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]">
                     <p className="text-sm text-gray-800">
                       {/* Show typer animation for the last bot message if typing */}
-                      {isTyping && idx === chatMessages.length - 1 && typingBotMessage !== null
+                      {isTyping &&
+                      idx === chatMessages.length - 1 &&
+                      typingBotMessage !== null
                         ? typingBotMessage
                         : msg.text}
                       {/* Blinking cursor */}
-                      {isTyping && idx === chatMessages.length - 1 && typingBotMessage !== null && (
-                        <span className="animate-pulse">|</span>
-                      )}
+                      {isTyping &&
+                        idx === chatMessages.length - 1 &&
+                        typingBotMessage !== null && (
+                          <span className="animate-pulse">|</span>
+                        )}
                     </p>
                   </div>
                 ) : (
-                  <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[280px]">
+                  <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[620px]">
                     <p className="text-sm">{msg.text}</p>
                   </div>
                 )}
               </div>
             ))}
             {/* If typing and no bot message yet, show the typing message separately */}
-            {isTyping && typingBotMessage !== null && chatMessages.length > 0 &&
+            {isTyping &&
+              typingBotMessage !== null &&
+              chatMessages.length > 0 &&
               chatMessages[chatMessages.length - 1].isBot === false && (
                 <div className="flex flex-col">
-                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[320px]">
+                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]">
                     <p className="text-sm text-gray-800">
                       {typingBotMessage}
                       <span className="animate-pulse">|</span>
                     </p>
                   </div>
                 </div>
-              )
-            }
+              )}
           </div>
 
           {/* Input Area */}
