@@ -373,7 +373,7 @@ export default function DashboardPage() {
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
         initialTopic={`Quiz ${mostRecentQuizId} topics`}
-        remainingTime={isBintangAvailable!.minutes_remaining * 60}
+        remainingTime={60} //isBintangAvailable!.minutes_remaining * 60}
       />
     );
   }
