@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('here')
     const body = await request.json();
-
+    
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/login-stu`,
       {

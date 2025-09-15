@@ -1,19 +1,21 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 interface CircularProgressProps {
   value: number;
   size?: number;
   strokeWidth?: number;
-  color?: 'primary' | 'secondary' | 'green' | 'red' | 'yellow';
+  color?: "primary" | "secondary" | "green" | "red" | "yellow";
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function CircularProgress({
   value,
   size = 40,
   strokeWidth = 4,
-  color = 'primary',
+  color = "primary",
+  children,
   className,
 }: CircularProgressProps) {
   const radius = (size - strokeWidth) / 2;
@@ -21,16 +23,19 @@ export function CircularProgress({
   const strokeDashoffset = circumference - (value / 100) * circumference;
 
   const colorClasses = {
-    primary: 'stroke-primary',
-    secondary: 'stroke-secondary',
-    green: 'stroke-green-500',
-    red: 'stroke-red-500',
-    yellow: 'stroke-yellow-500',
+    primary: "stroke-primary",
+    secondary: "stroke-secondary",
+    green: "stroke-green-500",
+    red: "stroke-red-500",
+    yellow: "stroke-yellow-500",
   };
 
   return (
     <div
-      className={cn('relative inline-flex shrink-0 items-center justify-center', className)}
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center",
+        className
+      )}
       style={{ width: size, height: size }}
     >
       {/* Background circle */}
@@ -53,7 +58,10 @@ export function CircularProgress({
         viewBox={`0 0 ${size} ${size}`}
       >
         <circle
-          className={cn('fill-none transition-all duration-200 ease-in-out', colorClasses[color])}
+          className={cn(
+            "fill-none transition-all duration-200 ease-in-out",
+            colorClasses[color]
+          )}
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -63,6 +71,9 @@ export function CircularProgress({
           strokeLinecap="round"
         />
       </svg>
+      <div className="relative z-10 flex items-center justify-center pointer-events-none">
+        {children}
+      </div>
     </div>
   );
-} 
+}

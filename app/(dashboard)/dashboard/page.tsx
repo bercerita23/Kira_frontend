@@ -9,28 +9,15 @@ import {
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { useAuth } from "@/lib/context/auth-context";
 import Link from "next/link";
-import { ChevronRight, Star, Award, Book } from "lucide-react";
+import { ChevronRight, Star, Award, Book, BadgeSwissFranc } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { useTodaysGoal } from "@/hooks/useTodaysGoal";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-type Badge = {
-  badge_id: string;
-  earned_at: string;
-  is_viewed: boolean;
-  name: string;
-  description: string;
-  icon_url?: string;
-};
+import { useRouter } from "next/navigation";
+import AwardDisplay, { badgeTypes } from "@/components/dashboard/awards";
+import KiraGpt from "@/components/Kira-gpt";
 type Quiz = {
   quiz_id: number;
   school_id: string;
@@ -58,97 +45,70 @@ type Attempt = {
   attempt_count: number;
   pass_count: number;
   fail_count: number;
+  completed_at: string;
+};
+
+type Badge = {
+  badge_id: string;
+  earned_at: string;
+  name: string;
+};
+
+type Achievements = {
+  achievement_id: string;
+  completed_at: string;
+  name_en: string;
+};
+
+type userAwards = {
+  userAchievements: Achievements[];
+  userBadges: Badge[];
+};
+
+type mergedAward = {
+  id: badgeTypes;
+  dateAwarded: Date;
+  name: string;
+};
+
+type bintangStatus = {
+  chat_unlocked: boolean;
+  minutes_remaining: number;
 };
 
 export default function DashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showChatbot, setShowChatbot] = useState<boolean>(false);
+
+  const [userAwards, setUserAwards] = useState<userAwards>({
+    userAchievements: [],
+    userBadges: [],
+  });
+  const [displayAwards, setDisplayAwards] = useState<mergedAward[]>([]);
+
   const { user, isLoading } = useAuth();
-  const [streaks, setStreaks] = useState<{
-    current_streak: number;
-    longest_streak: number;
-    last_activity: string;
-  } | null>(null);
-  const [points, setPoints] = useState<{
+  const [userPoints, setUserPoints] = useState<{
     points: number;
   } | null>(null);
-  const { minutes, goalMinutes, percent } = useTodaysGoal();
-  const topicId = "greetings";
   const totalQuestions = 5;
 
   const weekKey = new Date().toISOString().slice(0, 10);
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [week, setWeek] = useState<number>(0);
+  const [nextQuiz, setNextQuiz] = useState<Quiz | null>();
+  const [isBintangAvailable, setIsBintangAvailable] =
+    useState<bintangStatus | null>(null);
+  const [loading, setIsLoading] = useState<boolean>(false);
+  const [mostRecentQuizId, setMostRecentQuizId] = useState<number | null>(null);
   const [globalDailyRetryCount, setGlobalDailyRetryCount] = useState(0);
 
-  // useEffect(() => {
-  //   if (typeof window !== "undefined" && user) {
-  //     const storedCorrect = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:${topicId}:${weekKey}`
-  //     );
-  //     const storedBasic = localStorage.getItem(
-  //       `topicScore:${user.email || user.id}:basic-phrases:${weekKey}`
-  //     );
-
-  //     setCorrectCount(Number(storedCorrect ?? 0));
-  //     setBasicPhrasesCorrect(Number(storedBasic ?? 0));
-  //   }
-  // }, [user, topicId, weekKey]);
-
-  useEffect(() => {
-    async function fetchPoints() {
-      try {
-        const res = await fetch("/api/users/points");
-        if (!res.ok) throw new Error("Failed to fetch points");
-        const data = await res.json();
-        setPoints(data);
-        // Log points to the console
-        // eslint-disable-next-line no-console
-        console.log("User points:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
-      }
-    }
-    fetchPoints();
-  }, []);
-
-  useEffect(() => {
-    async function fetchStreaks() {
-      try {
-        const res = await fetch("/api/users/streaks", {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch streaks");
-        const data = await res.json();
-        setStreaks(data);
-        // Log streaks to the console
-        // eslint-disable-next-line no-console
-        console.log("User streaks:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching streaks:", err);
-      }
-    }
-    fetchStreaks();
-  }, []);
-
-  useEffect(() => {
-    async function fetchQuizzes() {
-      try {
-        const res = await fetch("/api/users/quizzes");
-        if (!res.ok) throw new Error("Failed to fetch quizzes");
-        const data = await res.json();
-        setQuizzes(data.quizzes || []);
-        // eslint-disable-next-line no-console
-        console.log("User quizzes:", data);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Error fetching quizzes or questions:", err);
-      }
-    }
-    fetchQuizzes();
-  }, []);
+  function toDateSafe(s: string | undefined): Date | null {
+    if (!s) return null;
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
 
   useEffect(() => {
     async function fetchAttempts() {
@@ -157,12 +117,199 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
         setAttempts(data.attempts || []);
+        console.log("attempts ", data.attempts);
       } catch (err) {
         console.error("Error fetching attempts:", err);
       }
     }
+
+    async function fetchAchievements() {
+      try {
+        const res = await fetch("/api/users/achievements");
+        if (!res.ok) throw new Error("Failed to fetch achievements");
+        const data = await res.json();
+        //console.log(data.user_achievements);
+
+        console.log(data);
+        setUserAwards((a) => ({
+          ...a,
+          userAchievements: data.user_achievements,
+        }));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function fetchBadges() {
+      try {
+        const res = await fetch("/api/users/badges");
+        if (!res.ok) throw new Error("Failed to fetch badges");
+        const data = await res.json();
+
+        console.log(data);
+
+        setUserAwards((a) => ({
+          ...a,
+          userBadges: data.badges,
+        }));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function fetchPoints() {
+      try {
+        const res = await fetch("/api/users/points");
+        if (!res.ok) throw new Error("Failed to fetch points");
+        const data = await res.json();
+        setUserPoints(data);
+        // Log points to the console
+        // eslint-disable-next-line no-console
+        console.log("User points:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching points:", err);
+      }
+    }
+    setIsLoading(true);
+    fetchAchievements();
+    fetchBadges();
     fetchAttempts();
+    fetchPoints();
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    async function fetchQuizzes() {
+      try {
+        const res = await fetch("/api/users/quizzes");
+        if (!res.ok) throw new Error("Failed to fetch quizzes");
+        const data = await res.json();
+
+        const today = new Date().getDay();
+        const parseQuizNumber = (name: string): number | null => {
+          const m = name.match(/quiz\s*(\d+)/i);
+          return m ? parseInt(m[1], 10) : null;
+        };
+        const UNLOCK_DAY_BY_NUMBER: Record<number, number> = {
+          1: 1, // Monday
+          2: 3, // Wednesday
+          3: 5, // Friday
+        };
+
+        const now = new Date();
+        const unlockedQuizzes: Quiz[] = (data.quizzes ?? [])
+          .filter((q: Quiz) => {
+            // 1) Include ALL expired quizzes
+            const isExpired = q.expired_at
+              ? new Date(q.expired_at) <= now
+              : false;
+            if (isExpired) return true;
+
+            // 2) Otherwise (not expired), include if:
+            //    a) user has an attempt for it, OR
+            //    b) it is unlockable by schedule and not locked
+            const hasAttempt = attempts.some((a) => a.quiz_id === q.quiz_id);
+            if (hasAttempt) return true;
+
+            if (q.is_locked) return false;
+
+            const num = parseQuizNumber(q.name);
+            if (num == null) return false;
+
+            const unlockDow = UNLOCK_DAY_BY_NUMBER[num];
+            if (unlockDow === undefined) return false;
+
+            return today >= unlockDow; // your existing rule
+          })
+          .reverse();
+
+        setQuizzes(unlockedQuizzes);
+
+        const next = unlockedQuizzes.find(
+          (q) => !attempts.some((a) => a.quiz_id === q.quiz_id)
+        );
+        setNextQuiz(
+          next && new Date(next.expired_at) > new Date() ? next : null
+        );
+
+        // eslint-disable-next-line no-console
+        console.log("User quizzes:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching quizzes or questions:", err);
+      }
+    }
+    fetchQuizzes();
+  }, [attempts]);
+
+  useEffect(() => {
+    async function fetchBintangStatus() {
+      try {
+        const res = await fetch("/api/users/bintang/get-status");
+        if (!res.ok) throw new Error("Failed to fetch bintang status");
+        const data = await res.json();
+        console.log("bintang status", data);
+        setIsBintangAvailable(data);
+        // Log points to the console
+        // eslint-disable-next-line no-console
+        console.log("User points:", data);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching points:", err);
+      }
+    }
+    attempts[0] && setMostRecentQuizId(attempts[0].quiz_id);
+    fetchBintangStatus();
+  }, [attempts]);
+
+  useEffect(() => {
+    async function getTop3() {
+      const achievedAchievements = userAwards.userAchievements
+        .map((a) => {
+          const date = toDateSafe(a.completed_at);
+          if (!date) return undefined;
+
+          const id = a.achievement_id as badgeTypes;
+          return {
+            id,
+            name: a.name_en,
+            dateAwarded: date,
+          } as mergedAward;
+        })
+        // type predicate to tell TS we removed undefined
+        .filter((x): x is mergedAward => x !== undefined);
+
+      const achievedBadges = userAwards.userBadges
+        .map((b) => {
+          const date = toDateSafe(b.earned_at);
+          if (!date) return undefined;
+
+          const id = b.badge_id as badgeTypes;
+          return {
+            id,
+            name: b.name,
+            dateAwarded: date,
+          } as mergedAward;
+        })
+        // type predicate to tell TS we removed undefined
+        .filter((x): x is mergedAward => x !== undefined);
+
+      // normalize badges -> mergedAward
+      const badges: mergedAward[] = [];
+
+      // merge, sort by most recent, take top 3
+      const top3 = [...achievedAchievements, ...achievedBadges]
+        .sort((a, b) => b.dateAwarded.getTime() - a.dateAwarded.getTime())
+        .slice(0, 3);
+
+      console.log(top3);
+
+      setDisplayAwards(top3);
+    }
+
+    getTop3();
+  }, [userAwards]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -198,34 +345,17 @@ export default function DashboardPage() {
     );
   }
 
-  // Get user's display name
-  const getDisplayName = () => {
-    if (!user) return "User";
-    const firstName = user.first_name || "";
-    const lastName = user.last_name || "";
-    if (firstName || lastName) {
-      return `${firstName} ${lastName}`.trim();
-    }
-    return user.email || "User";
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const level = points ? Math.floor(points.points / 100) + 1 : 1;
-  const xpForNextLevel = level * 100;
-  const xpForCurrentLevel = (level - 1) * 100;
-
-  const progressPercentage = points
-    ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((points.points - xpForCurrentLevel) /
-            (xpForNextLevel - xpForCurrentLevel)) *
-            100
-        )
-      )
-    : 0;
-
-  const xp = points?.points ?? 0;
   // Helper to get correct count for a topic
   const getCorrectCount = (topic: string) => {
     // Find the quiz for the topic
@@ -235,300 +365,281 @@ export default function DashboardPage() {
     return attempt ? attempt.pass_count : 0;
   };
 
+  const router = useRouter();
+  if (showChatbot) {
+    console.log("isBintangAvailable ", isBintangAvailable);
+    return (
+      <KiraGpt
+        isOpen={showChatbot}
+        onClose={() => setShowChatbot(false)}
+        initialTopic={`Quiz ${mostRecentQuizId} topics`}
+        remainingTime={60} //isBintangAvailable!.minutes_remaining * 60}
+      />
+    );
+  }
   return (
     <MobileMenuContext.Provider
       value={{ isMobileMenuOpen, setIsMobileMenuOpen }}
     >
-      <div className="min-h-screen bg-white">
-        <DashboardHeader />
-        <div className="flex flex-col md:flex-row">
-          <DashboardSidebar />
-          <main className="flex-1 pt-12 px-6 md:px-8 md:pt-12 md:pl-64">
-            <div className="max-w-none py-4">
-              {/* Welcome Section */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 ">
-                  Hello, {getDisplayName()}!
-                </h1>
-                <p className="text-gray-500 text-sm mt-1">
-                  Continue your English learning journey
-                </p>
-              </div>
+      <div className="h-screen bg-[#113604] flex flex-col select-none">
+        <DashboardHeader hidden={showChatbot} />
+        <div className={`flex-1 min-h-0 ${showChatbot ? "" : "pt-6"}`}>
+          <div className="flex flex-col md:flex-row bg-white rounded-2xl w-[95%] mx-auto h-full overflow-auto items-start">
+            <div className="grid grid-cols-2 gap-4 w-full max-w-[90%] mx-auto mt-3 mb-3">
+              <div className="col-span-2 border-[#5CA145] border-2 border-solid rounded-2xl overflow-hidden flex flex-col md:flex-row h-40">
+                <div className="flex-1 flex flex-col justify-center ml-12">
+                  <span className="text-black text-xl">
+                    Hi, {user.first_name}
+                    {user.last_name ? user.last_name : ""}
+                  </span>
+                  <span className="text-black text-4xl">
+                    Welcome Back to Week {week}
+                  </span>
+                </div>
 
-              {/* Stats Overview */}
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex flex-col">
-                    <p className="text-xs text-gray-500">Today's Goal</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm font-medium">
-                        {minutes}/{goalMinutes} minutes
+                <div className="bg-[#E7F7E2] flex-1 mr-8 mt-6 mb-6 rounded-xl flex flex-row overflow-hidden border-[#AFD8A1] border-2 border-solid whitespace-nowrap">
+                  <div className="flex-1 flex items-center justify-center space-x-2">
+                    <img
+                      src="/assets/dashboard/points_icon.png"
+                      className="w-8"
+                    />
+                    <span className="text-xl">
+                      {userPoints?.points ?? 0} Points
+                    </span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center space-x-2r">
+                    <img
+                      src="/assets/dashboard/medals_icon.png"
+                      className="w-8"
+                    />
+                    <span className="text-xl">
+                      {userAwards.userBadges.length ?? 0} Medals
+                    </span>
+                  </div>
+                  <div className="flex-1 flex items-center justify-center space-x-2r mr-3">
+                    <img
+                      src="/assets/dashboard/trophy_icon.png"
+                      className="w-8"
+                    />
+                    <span className="text-xl">
+                      {userAwards.userAchievements.length ?? 0} Achievements
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {nextQuiz ? (
+                <div className="col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-row">
+                  <div className="items-center w-[60%] flex flex-row justify-center ">
+                    <img
+                      src="/assets/dashboard/head_surprised.png"
+                      className="w-40 ml-10 mt-10 mb-10"
+                    />
+                    <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
+                      {/* Bubble content */}
+                      <p className="text-center text-green-900 font-medium">
+                        There is a new quiz available:
                       </p>
-                      <p className="text-xs font-medium text-blue-500">
-                        {percent}%
+                      <p className="text-center text-green-900 text-lg font-semibold">
+                        {nextQuiz?.name}
                       </p>
+                      {/* Bubble tail (left side) */}
+                      <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
                     </div>
-                    <div className="relative w-full h-1.5 bg-gray-200 rounded overflow-hidden mt-2">
+                  </div>
+                  <div className="flex flex-1 justify-center items-center">
+                    <button
+                      className="bg-green-700 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-[60%] text-center justify-center"
+                      onClick={() => {
+                        router.push(`/lesson/${nextQuiz!.quiz_id}`);
+                      }}
+                    >
+                      <span className="text-xl">Go to Quiz →</span>
+                    </button>
+                  </div>
+                </div>
+              ) : isBintangAvailable?.chat_unlocked ? (
+                <div className="col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-row">
+                  <div className="items-center w-[60%] flex flex-row justify-center ">
+                    <img
+                      src="/assets/dashboard/head_surprised.png"
+                      className="w-40 ml-10 mt-10 mb-10"
+                    />
+                    <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
+                      {/* Bubble content */}
+                      <p className="text-center text-green-900 text-lg font-semibold">
+                        Great Job!
+                      </p>
+                      <p className="text-center text-green-900 text-lg">
+                        You Unlocked Kira!
+                      </p>
+                      {/* Bubble tail (left side) */}
+                      <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
+                    </div>
+                  </div>
+                  <div className="flex flex-1 justify-center items-center">
+                    <button
+                      className="bg-green-700 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-[60%] text-center justify-center"
+                      onClick={() => {
+                        setShowChatbot(true);
+                      }}
+                    >
+                      <span className="text-xl">Talk to Kira →</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <></>
+              )}
+              <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
+                <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
+                  <span className="text-black text-xl flex-1">
+                    Past Quizzes
+                  </span>
+                  <span
+                    className="text-[#2D7017] justify-end hover:cursor-pointer"
+                    onClick={() => {
+                      router.push("/dashboard/quizzes-and-awards?r=quizzes");
+                    }}
+                  >
+                    See All Quizzes {">"}
+                  </span>
+                </div>
+                {quizzes && quizzes.length > 0 ? (
+                  quizzes.slice(0, 3).map((quiz) => {
+                    const attempt = attempts.find(
+                      (a) => a.quiz_id === quiz.quiz_id
+                    );
+                    const totalQuestions = quiz.questions?.length || 10; // Use actual quiz length instead of hardcoded 5
+                    const score = attempt ? attempt.pass_count : 0;
+                    // Lock quiz if:
+                    // 1. Quiz is inherently locked, OR
+                    // 2. User has reached max attempts (2) for this quiz, OR
+                    // 3. User has used their daily retry and hasn't maxed out this quiz
+                    const hasMaxedAttempts =
+                      attempt && attempt.attempt_count >= 2;
+                    const hasUsedDailyRetry = globalDailyRetryCount >= 1;
+                    const shouldLock =
+                      new Date(quiz.expired_at) <= new Date() ||
+                      quiz.is_locked ||
+                      (attempt && attempt.attempt_count === 2);
+                    const progressColor =
+                      score === totalQuestions ? "green" : "primary";
+                    const date = attempt
+                      ? new Date(attempt.completed_at)
+                      : null;
+                    var takenDate;
+                    if (date) {
+                      takenDate = date.toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      });
+                    }
+
+                    const displayGrade = attempt
+                      ? (attempt?.pass_count /
+                          (attempt?.fail_count + attempt?.pass_count)) *
+                          100 +
+                        "%"
+                      : "N/A";
+
+                    return shouldLock ? (
                       <div
-                        className="absolute top-0 left-0 h-full bg-blue-500 transition-all"
-                        style={{ width: `${percent ?? 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center">
-                    <div className="relative mr-4">
-                      <CircularProgress
-                        value={progressPercentage}
-                        size={48}
-                        strokeWidth={4}
-                        color="primary"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Award className="h-5 w-5 text-purple-500" />
+                        key={quiz.quiz_id}
+                        className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
+                      >
+                        <span className="text-black self-center flex-1">
+                          {quiz.name}
+                        </span>
+                        <span className="text-black self-center flex-1 text-xs text-center">
+                          {displayGrade}
+                        </span>
+                        <span className="text-black self-center flex-1 text-xs text-center">
+                          {date ? takenDate : "N/A"}
+                        </span>
+                        <div className="flex flex-1  justify-center items-center mx-auto"></div>
                       </div>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-xs text-gray-500">Level</p>
-                      <p className="text-xl font-semibold text-gray-900">
-                        {level}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {xp}/{xpForNextLevel} XP
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    ) : (
+                      <div
+                        key={quiz.quiz_id}
+                        className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
+                      >
+                        <span className="text-black self-center flex-1">
+                          {quiz.name}
+                        </span>
+                        <span className="text-black self-center flex-1 text-xs text-center">
+                          {displayGrade}
+                        </span>
+                        <span className="text-black self-center flex-1 text-xs text-center">
+                          {date ? takenDate : ""}
+                        </span>
+                        <div className="flex flex-1  justify-center items-center mx-auto">
+                          <button
+                            className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid`}
+                            onClick={() => {
+                              router.push(`/lesson/${quiz.quiz_id}`);
+                            }}
+                          >
+                            {attempt
+                              ? attempt?.attempt_count < 2
+                                ? "Try Again"
+                                : "Try"
+                              : "Do Quiz"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-500">No quizzes available.</p>
+                )}
               </div>
-
-              {/* Today's Activities */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Today's Activities
-                </h2>
-                <div className="space-y-3">
-                  {quizzes && quizzes.length > 0 ? (
-                    quizzes.map((quiz) => {
-                      const attempt = attempts.find(
-                        (a) => a.quiz_id === quiz.quiz_id
-                      );
-                      const totalQuestions = quiz.questions?.length || 10; // Use actual quiz length instead of hardcoded 5
-                      const score = attempt ? attempt.pass_count : 0;
-                      // Lock quiz if:
-                      // 1. Quiz is inherently locked, OR
-                      // 2. User has reached max attempts (2) for this quiz, OR
-                      // 3. User has used their daily retry and hasn't maxed out this quiz
-                      const hasMaxedAttempts =
-                        attempt && attempt.attempt_count >= 2;
-                      const hasUsedDailyRetry = globalDailyRetryCount >= 1;
-                      const shouldLock =
-                        quiz.is_locked ||
-                        (attempt && attempt.attempt_count === 2);
-                      hasMaxedAttempts ||
-                        (hasUsedDailyRetry && !hasMaxedAttempts);
-                      const progressColor =
-                        score === totalQuestions ? "green" : "primary";
-                      return shouldLock ? (
-                        <div
-                          key={quiz.quiz_id}
-                          className="block bg-white rounded-lg p-4 shadow-sm border border-gray-200 opacity-60 cursor-not-allowed mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-700">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-gray-400"
-                              disabled
-                            >
-                              <span>Locked</span>
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Link
-                          key={quiz.quiz_id}
-                          href={`/lesson/${quiz.quiz_id}`}
-                          className="block bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:border-blue-200 transition-colors mb-2"
-                        >
-                          <div className="flex items-center">
-                            <div className="relative mr-4">
-                              <CircularProgress
-                                value={
-                                  totalQuestions > 0
-                                    ? (score / totalQuestions) * 100
-                                    : 0
-                                }
-                                size={48}
-                                strokeWidth={4}
-                                color={progressColor}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">📝</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <p className="font-medium text-gray-900">
-                                {quiz.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {quiz.description}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Score: {score} / {totalQuestions}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-gray-400" />
-                          </div>
-                        </Link>
-                      );
-                    })
-                  ) : (
-                    <p className="text-gray-500">No quizzes available today.</p>
-                  )}
+              <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
+                <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
+                  <span className="flex-1 text-xl">Medals & Achievements</span>
+                  <span
+                    className="hover:cursor-pointer text-[#2D7017]"
+                    onClick={() => {
+                      router.push("/dashboard/quizzes-and-awards?r=awards");
+                    }}
+                  >
+                    See All Awards {">"}
+                  </span>
                 </div>
-              </div>
+                <div className="flex flex-1 flex-col xl:flex-row mt-3 mr-3 w-full items-stretch overflow-y-auto overflow-x-hidden ">
+                  {displayAwards.map((d) => (
+                    <div
+                      key={d.id}
+                      className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center flex-1 px-2"
+                    >
+                      {/* Name */}
+                      <div className="min-h-[40px] flex items-center">
+                        <span className="bg-[#FEB030] rounded-full px-3 py-1 text-center">
+                          {d.name.toUpperCase()}
+                        </span>
+                      </div>
 
-              {/* Weekly Topics */}
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  This Week's Topics
-                </h2>
+                      {/* Icon fills the middle row */}
+                      <div className="flex items-center justify-center">
+                        <AwardDisplay name={d.id} size={90} />
+                      </div>
 
-                <div className="space-y-4">
-                  <div className="relative">
-                    <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-green-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("greetings") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("greetings") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">👋</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">
-                            Greetings
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {getCorrectCount("greetings")} of {totalQuestions}{" "}
-                            questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-green-500"
-                          asChild
-                        >
-                          <Link href="/lesson/greetings">
-                            <span>Review</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
+                      {/* Date */}
+                      <div className="mt-4 mb-4">
+                        <span className="border border-black px-3 rounded-full whitespace-nowrap">
+                          {d.dateAwarded.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-blue-500">
-                      <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full"></div>
-                      <div className="flex items-center">
-                        <div className="relative mr-4">
-                          <CircularProgress
-                            value={
-                              totalQuestions > 0
-                                ? Math.round(
-                                    (getCorrectCount("basic phrases") /
-                                      totalQuestions) *
-                                      100
-                                  )
-                                : 0
-                            }
-                            size={48}
-                            strokeWidth={4}
-                            color={
-                              getCorrectCount("basic phrases") >= totalQuestions
-                                ? "green"
-                                : "primary"
-                            }
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xl">💬</span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">
-                            Basic Phrases
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {getCorrectCount("basic phrases")} of{" "}
-                            {totalQuestions} questions correct
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-500"
-                          asChild
-                        >
-                          <Link href="/lesson/basic-phrases">
-                            <span>Continue</span>
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </main>
+          </div>
         </div>
       </div>
     </MobileMenuContext.Provider>

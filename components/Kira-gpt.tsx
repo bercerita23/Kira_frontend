@@ -16,12 +16,14 @@ interface KiraGptProps {
   isOpen: boolean;
   onClose: () => void;
   initialTopic?: string;
+  remainingTime?: number;
 }
 
 export default function KiraGpt({
   isOpen,
   onClose,
   initialTopic = "your learning",
+  remainingTime = 5 * 60,
 }: KiraGptProps) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -237,7 +239,9 @@ export default function KiraGpt({
         console.log("Starting chat session with initialTopic:", initialTopic);
 
         // Extract quiz ID from initialTopic, e.g. "Quiz 98 topics"
+        console.log(initialTopic);
         const match = initialTopic.match(/Quiz (\d+)/);
+        console.log(match);
         const quizId = match ? parseInt(match[1], 10) : null;
 
         if (!quizId) {
@@ -420,7 +424,7 @@ export default function KiraGpt({
     }
   };
 
-  const TIMER_DURATION = 5 * 60; // 5 minutes in seconds
+  const TIMER_DURATION = remainingTime;
   const [timer, setTimer] = useState(TIMER_DURATION);
   const [locked, setLocked] = useState(false);
 
