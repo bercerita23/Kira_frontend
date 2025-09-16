@@ -246,7 +246,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchBintangStatus() {
       try {
-        const res = await fetch("/api/users/bintang/get-status");
+        const res = await fetch("/api/users/chat/eligibility");
         if (!res.ok) throw new Error("Failed to fetch bintang status");
         const data = await res.json();
         console.log("bintang status", data);
