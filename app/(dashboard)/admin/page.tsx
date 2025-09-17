@@ -581,6 +581,7 @@ export default function AdminDashboardPage() {
           password,
           first_name,
           last_name,
+          grade,
         }),
       });
 

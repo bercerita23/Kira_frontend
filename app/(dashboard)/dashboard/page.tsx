@@ -74,6 +74,7 @@ type mergedAward = {
 type bintangStatus = {
   chat_unlocked: boolean;
   minutes_remaining: number;
+  recent_quiz?: Quiz;
 };
 
 export default function DashboardPage() {
@@ -373,7 +374,7 @@ export default function DashboardPage() {
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
         initialTopic={`Quiz ${mostRecentQuizId} topics`}
-        remainingTime={60} //isBintangAvailable!.minutes_remaining * 60}
+        remainingTime={isBintangAvailable!.minutes_remaining * 60}
       />
     );
   }
@@ -457,7 +458,8 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 </div>
-              ) : isBintangAvailable?.chat_unlocked ? (
+              ) : isBintangAvailable?.chat_unlocked &&
+                isBintangAvailable.recent_quiz ? (
                 <div className="col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-row">
                   <div className="items-center w-[60%] flex flex-row justify-center ">
                     <img
