@@ -529,7 +529,6 @@ export default function LessonPage() {
             timer={chatTimer}
             timerMax={CHAT_SESSION_LIMIT_MINUTES * 60}
             showProgressBar={true}
-            onExit={() => setShowChatbot(false)}
           />
           <KiraGpt
             isOpen={showChatbot}

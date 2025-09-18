@@ -9,7 +9,7 @@ interface LessonNavbarProps {
   timer?: number;
   timerMax?: number;
   showProgressBar?: boolean;
-  onExit: () => void;
+  onExit?: () => void;
 }
 
 export default function LessonNavbar({
@@ -107,15 +107,22 @@ export default function LessonNavbar({
         )}
 
         {/* Exit button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
-          onClick={onExit}
-        >
-          Exit
-          <X className="h-4 w-4 ml-1" />
-        </Button>
+        {onExit ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            onClick={onExit}
+          >
+            Exit
+            <X className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" className="invisible">
+            Exit
+            <X className="h-4 w-4 ml-1" />
+          </Button>
+        )}
       </div>
     </div>
   );
