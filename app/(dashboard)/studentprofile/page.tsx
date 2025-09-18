@@ -102,7 +102,7 @@ export default function StudentProfile() {
                   className="rounded bg-[#D7D7D7] py-2 px-3"
                   placeholder="username"
                   disabled
-                  value={userDetails?.school_name}
+                  value={userDetails?.username}
                 />
               </div>
               <div className="flex flex-col">

@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
     console.log("📝 Request body:", body);
 
     // Validate required fields
-    const { username, password, first_name, last_name } = body;
+    const { username, password, first_name, last_name, grade } = body;
 
-    if (!username || !password || !first_name || !last_name) {
+    if (!username || !password || !first_name || !last_name || !grade) {
       return NextResponse.json(
         {
           detail:

@@ -14,6 +14,15 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
 import Link from "next/link";
 import UploadContentSection from "@/components/UploadContentSection";
 import {
@@ -132,8 +141,6 @@ export default function AdminDashboardPage() {
   const [studentQuizAttempts, setStudentQuizAttempts] =
     useState<StudentQuizData | null>(null);
   const [showAllPointsHistory, setShowAllPointsHistory] = useState(false);
-  const [showAllBadges, setShowAllBadges] = useState(false);
-  const [showAllAchievements, setShowAllAchievements] = useState(false);
   // Add new state for edit modal
   const [editStudent, setEditStudent] = useState<DbUser | null>(null);
   const [editForm, setEditForm] = useState({
@@ -153,6 +160,7 @@ export default function AdminDashboardPage() {
     confirmPassword: "",
     first_name: "",
     last_name: "",
+    grade: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -512,8 +520,14 @@ export default function AdminDashboardPage() {
   };
 
   const addStudent = async () => {
-    const { username, password, confirmPassword, first_name, last_name } =
-      addStudentForm;
+    const {
+      username,
+      password,
+      confirmPassword,
+      first_name,
+      last_name,
+      grade,
+    } = addStudentForm;
 
     // Validation
     if (
@@ -521,7 +535,8 @@ export default function AdminDashboardPage() {
       !password.trim() ||
       !confirmPassword.trim() ||
       !first_name.trim() ||
-      !last_name.trim()
+      !last_name.trim() ||
+      !grade.trim()
     ) {
       toast({
         title: "Missing Information",
@@ -566,6 +581,7 @@ export default function AdminDashboardPage() {
           password,
           first_name,
           last_name,
+          grade,
         }),
       });
 
@@ -587,6 +603,7 @@ export default function AdminDashboardPage() {
         confirmPassword: "",
         first_name: "",
         last_name: "",
+        grade: "",
       });
 
       // Refresh the students list
@@ -1175,6 +1192,35 @@ export default function AdminDashboardPage() {
                           Passwords do not match
                         </p>
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="grade">Grade</Label>
+                      <Select
+                        value={addStudentForm.grade}
+                        onValueChange={(value) =>
+                          setAddStudentForm({ ...addStudentForm, grade: value })
+                        }
+                      >
+                        <SelectTrigger id="grade">
+                          <SelectValue placeholder="Select grade" />
+                        </SelectTrigger>
+
+                        <SelectContent className="bg-white border border-input shadow-md">
+                          <SelectItem value="1st">1st</SelectItem>
+                          <SelectItem value="2nd">2nd</SelectItem>
+                          <SelectItem value="3rd">3rd</SelectItem>
+                          <SelectItem value="4th">4th</SelectItem>
+                          <SelectItem value="5th">5th</SelectItem>
+                          <SelectItem value="6th">6th</SelectItem>
+                          <SelectItem value="7th">7th</SelectItem>
+                          <SelectItem value="8th">8th</SelectItem>
+                          <SelectItem value="9th">9th</SelectItem>
+                          <SelectItem value="10th">10th</SelectItem>
+                          <SelectItem value="11th">11th</SelectItem>
+                          <SelectItem value="12th">12th</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="flex justify-end">
