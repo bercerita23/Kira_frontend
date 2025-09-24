@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
@@ -10,7 +10,14 @@ import { LandingFooter } from "@/components/landing/footer";
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-din",
+  variable: "--font-inter",
+});
+
+const lato = Lato({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-lato",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${lato.variable}`}>
       <body className={inter.className}>
         <LandingHeader />
         <ThemeProvider>

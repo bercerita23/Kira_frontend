@@ -4,10 +4,10 @@ import { mentors, interns } from "@/lib/team-data";
 
 export default function TeamPage() {
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50">
+    <div className="font-lato flex flex-col min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full bg-[#113604]">
         <section className="flex items-center justify-center py-20">
-          <h1 className="font-lato font-medium text-4xl text-white leading-[100%] tracking-[-0.02em] text-center uppercase">
+          <h1 className="font-medium text-4xl text-white leading-[100%] tracking-[-0.02em] text-center uppercase">
             the kira team
           </h1>
         </section>
