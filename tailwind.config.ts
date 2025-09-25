@@ -19,6 +19,10 @@ const config: Config = {
           DEFAULT: "rgb(var(--secondary))",
           foreground: "rgb(var(--secondary-foreground))",
         },
+        button: {
+          DEFAULT: "rgb(var(--button-primary))",
+          primary: "rgb(var(--button-primary))",
+        },
         accent: {
           DEFAULT: "rgb(var(--accent))",
           foreground: "rgb(var(--accent-foreground))",
