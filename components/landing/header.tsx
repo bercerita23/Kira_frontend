@@ -44,13 +44,13 @@ export function LandingHeader() {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/about"
-            className="text-foreground hover:text-primary transition-colors"
+            className="text-foreground hover:text-button transition-colors"
           >
             About
           </Link>
           <Link
             href="/team"
-            className="text-foreground hover:text-primary transition-colors"
+            className="text-foreground hover:text-button transition-colors"
           >
             Our Team
           </Link>
@@ -80,14 +80,14 @@ export function LandingHeader() {
           <div className="container mx-auto px-4 flex flex-col space-y-4">
             <Link
               href="/about"
-              className="text-foreground hover:text-primary transition-colors py-2"
+              className="text-foreground hover:text-button transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/team"
-              className="text-foreground hover:text-primary transition-colors py-2"
+              className="text-foreground hover:text-button transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Our Team

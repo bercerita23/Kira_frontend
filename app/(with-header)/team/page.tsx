@@ -1,10 +1,13 @@
 import { ProfileCard } from "@/components/ui/profile-card";
 import { JoinTeam } from "@/components/ui/join-team";
 import { mentors, interns } from "@/lib/team-data";
+import { LandingHeader } from "@/components/landing/header";
+import { LandingFooter } from "@/components/landing/footer";
 
 export default function TeamPage() {
   return (
     <div className="font-lato flex flex-col min-h-screen items-center justify-center bg-gray-50">
+      <LandingHeader />
       <div className="w-full bg-[#113604]">
         <section className="flex items-center justify-center py-20">
           <h1 className="font-medium text-4xl text-white leading-[100%] tracking-[-0.02em] text-center uppercase">
@@ -44,6 +47,7 @@ export default function TeamPage() {
         </section>
       </div>
       <JoinTeam />
+      <LandingFooter />
     </div>
   );
 }

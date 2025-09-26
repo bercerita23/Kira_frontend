@@ -4,8 +4,6 @@ import { Inter, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
-import { LandingHeader } from "@/components/landing/header";
-import { LandingFooter } from "@/components/landing/footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,14 +32,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${lato.variable}`}>
       <body className={inter.className}>
-        <LandingHeader />
         <ThemeProvider>
           <AuthProvider>
             {children}
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
-        <LandingFooter />
       </body>
     </html>
   );
