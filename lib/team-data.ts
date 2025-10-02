@@ -1,45 +1,45 @@
 export const mentors = [
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Lead Mentor",
-    subtitle: "Alice Johnson",
+    imageUrl: "/team/anoop.jpg",
+    title: "Technical Lead",
+    subtitle: "Anoop Sreedhar",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Senior Mentor",
-    subtitle: "Bob Lee",
+    imageUrl: "/team/Ilma Chairani.jpg",
+    title: "Program Manager",
+    subtitle: "Ilma Chairani",
   },
 ];
 
 export const interns = [
   {
     imageUrl: "/team/sai.jpg",
-    title: "Intern",
+    title: "Software Engineer Intern",
     subtitle: "Sai Wong",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Intern",
-    subtitle: "Jane Doe",
+    imageUrl: "/team/Shang-chen Hsieh.jpg",
+    title: "Software Engineer Intern",
+    subtitle: "Shang-chen Hsieh",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Intern",
-    subtitle: "Jane Doe",
+    imageUrl: "/team/Khashayar Moradpour.webp",
+    title: "Software Engineer Intern",
+    subtitle: "Khashayar Moradpour",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Intern",
-    subtitle: "Jane Doe",
+    imageUrl: "/team/Nadia Corral.jpg",
+    title: "UX Designer",
+    subtitle: "Nadia Corral",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Intern",
-    subtitle: "Jane Doe",
+    imageUrl: "/team/anika.jpg",
+    title: "Product Manager",
+    subtitle: "Anika Nambiar",
   },
   {
-    imageUrl: "/team/sai.jpg",
-    title: "Intern",
-    subtitle: "Jane Doe",
+    imageUrl: "/team/rheniro.jpg",
+    title: "Software Engineer Intern",
+    subtitle: "Rhenjiro Gunawan",
   },
 ];

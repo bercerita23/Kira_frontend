@@ -17,7 +17,7 @@ export function ProfileCard({
   return (
     <div
       className={cn(
-        "rounded-[6px] bg-[#E7F7E2] border-1 flex flex-col items-center text-center p-6 gap-8",
+        "rounded-sm bg-[#E7F7E2] border-1 flex flex-col items-center text-center p-6 gap-8",
         className
       )}
     >
