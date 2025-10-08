@@ -1,15 +1,11 @@
-import { LandingFooter } from "@/components/landing/footer";
 import { LandingHeader } from "@/components/landing/header";
+import { LandingFooter } from "@/components/landing/footer";
 
-export default function WithHeaderLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <LandingHeader />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
       <LandingFooter />
     </div>
   );

@@ -54,12 +54,18 @@ export function LandingHeader() {
           >
             Our Team
           </Link>
+          <Link
+            href="/support"
+            className="text-foreground hover:text-button transition-colors"
+          >
+            Support
+          </Link>
           <div className="ml-4 flex space-x-4">
             <Button variant="greenoutline" asChild>
               <Link href="/login">Log In</Link>
             </Button>
             <Button asChild variant="defaultgreen">
-              <Link href="/signup">Try A Demo</Link>
+              <Link href="/support">Support KIRA</Link>
             </Button>
           </div>
         </nav>
@@ -92,12 +98,19 @@ export function LandingHeader() {
             >
               Our Team
             </Link>
+            <Link
+              href="/support"
+              className="text-foreground hover:text-button transition-colors py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Support
+            </Link>
             <div className="flex flex-col space-y-2 pt-2">
               <Button variant="greenoutline" asChild>
                 <Link href="/login">Log In</Link>
               </Button>
               <Button asChild variant="defaultgreen">
-                <Link href="/signup">Try A Demo</Link>
+                <Link href="/support">Support KIRA</Link>
               </Button>
             </div>
           </div>
