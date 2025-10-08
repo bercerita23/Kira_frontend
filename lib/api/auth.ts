@@ -94,6 +94,7 @@ export interface DbUser {
   last_login_time?: string;
   grade?: string;
   points?: number;
+  deactivated?: boolean;
 }
 
 export const authApi = {

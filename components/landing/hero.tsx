@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function LandingHero() {
   return (
@@ -10,28 +10,39 @@ export function LandingHero() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4">
-              Learn English Through
-              <span className="text-primary"> Large Language Models</span>
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-lg mx-auto md:mx-0">
-              Master English naturally with interactive lessons and engaging stories at your own pace.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Button size="lg" asChild>
-                <Link href="/signup">
-                  Start Learning Now
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/courses">Browse Courses</Link>
-              </Button>
-            </div>
-            <div className="mt-8 font-medium text-sm">
-              <p className="text-muted-foreground">
-                Join over 10,000 language learners worldwide
+            <div className="gap-y-1">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4 text-[#2D7017]">
+                K<span className="text-black">IDS</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4 text-[#2D7017]">
+                I<span className="text-black">NTERACTIVE</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4 text-[#2D7017]">
+                R<span className="text-black">EINFORCEMENT</span>
+              </h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tighter mb-4 text-[#2D7017]">
+                A<span className="text-black">PP</span>
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 max-w-lg mx-auto md:mx-0">
+                A gamified, AI-powered platform that makes English practice fun
+                and accessible for children across remote areas.
               </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Button
+                size="lg"
+                className="bg-[#2D7017] text-[#F5F5F5] text-lg"
+                asChild
+              >
+                <Link href="/signup">Try KIRA for Free</Link>
+              </Button>
+              <Button
+                size="lg"
+                className="border-2 border-[#2D7017] text-[#2D7017] bg-white text-lg"
+                asChild
+              >
+                <Link href="/courses">Learn More</Link>
+              </Button>
             </div>
           </div>
           <div className="flex-1 relative">
@@ -41,20 +52,11 @@ export function LandingHero() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <div className="p-6">
-                <div className="mb-6 bg-sky-50 p-4 rounded-lg">
-                  <p className="text-lg font-medium mb-4">Translate this sentence:</p>
-                  <p className="text-xl font-bold mb-4">"She reads a book every day."</p>
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <Button variant="outline" className="rounded-full">Dia</Button>
-                    <Button variant="outline" className="rounded-full">membaca</Button>
-                    <Button variant="outline" className="rounded-full">sebuah</Button>
-                    <Button variant="outline" className="rounded-full">buku</Button>
-                    <Button variant="outline" className="rounded-full">setiap</Button>
-                    <Button variant="outline" className="rounded-full">hari</Button>
-                  </div>
-                </div>
-                <Button className="w-full">Check Answer</Button>
+              <div className="">
+                <img
+                  src="/assets/sample_quiz.png"
+                  className="w-full h-auto self-center rounded-xl"
+                />
               </div>
             </div>
             <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-purple-200 rounded-full blur-3xl -z-10 opacity-70"></div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
-import { authApi, DbUser } from "@/lib/api/auth";
+import { DbUser } from "@/lib/api/auth";
 import Link from "next/link";
 import {
   Select,
@@ -17,10 +17,8 @@ import {
   Crown,
   Shield,
   LogOut,
-  Settings,
   Database,
   BarChart3,
-  Key,
   School,
   UserPlus,
   AlertTriangle,
@@ -28,6 +26,7 @@ import {
   Mail,
   Plus,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,8 +41,38 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
+// UI
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+// Icons
+import { MoreVertical, Power } from "lucide-react";
 
 export default function SuperAdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
@@ -104,9 +133,15 @@ export default function SuperAdminDashboardPage() {
         setAllUsers(users);
 
         // Calculate stats with detailed logging
-        const students = users.filter((u) => !u.is_admin && !u.is_super_admin);
-        const admins = users.filter((u) => u.is_admin && !u.is_super_admin);
-        const superAdmins = users.filter((u) => u.is_super_admin);
+        const students = users.filter(
+          (u) => !u.is_admin && !u.is_super_admin && !u.deactivated
+        );
+        const admins = users.filter(
+          (u) => u.is_admin && !u.is_super_admin && !u.deactivated
+        );
+        const superAdmins = users.filter(
+          (u) => u.is_super_admin && !u.deactivated
+        );
         const uniqueSchools = new Set(
           users.map((u) => u.school_id).filter(Boolean)
         );
@@ -158,9 +193,7 @@ export default function SuperAdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            Verifying super admin access...
-          </p>
+          <p className="text-gray-600">Verifying super admin access...</p>
         </div>
       </div>
     );
@@ -170,7 +203,7 @@ export default function SuperAdminDashboardPage() {
   if (!user) {
     console.log("🚫 Super Admin page: No user found, showing login prompt");
     if (typeof window !== "undefined") {
-      window.location.href = "/admin/login?from=/super-admin";
+      window.location.href = "/admin/login?from=/super_admin";
     }
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -178,9 +211,7 @@ export default function SuperAdminDashboardPage() {
           <h1 className="text-2xl font-bold mb-4">
             Super Admin Authentication Required
           </h1>
-          <p className="text-gray-600 mb-6">
-            Redirecting to admin login...
-          </p>
+          <p className="text-gray-600 mb-6">Redirecting to admin login...</p>
           <div className="space-x-4">
             <Button asChild>
               <Link href="/admin/login">Go to Admin Login</Link>
@@ -258,17 +289,11 @@ export default function SuperAdminDashboardPage() {
   const getUserRoleBadge = (user: DbUser) => {
     if (user.is_super_admin) {
       return (
-        <Badge className="bg-purple-100 text-purple-800">
-          Super Admin
-        </Badge>
+        <Badge className="bg-purple-100 text-purple-800">Super Admin</Badge>
       );
     }
     if (user.is_admin) {
-      return (
-        <Badge className="bg-blue-100 text-blue-800">
-          Admin
-        </Badge>
-      );
+      return <Badge className="bg-blue-100 text-blue-800">Admin</Badge>;
     }
     return <Badge variant="secondary">Student</Badge>;
   };
@@ -394,9 +419,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">
-                      Loading students...
-                    </p>
+                    <p className="text-gray-600">Loading students...</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -452,24 +475,24 @@ export default function SuperAdminDashboardPage() {
                     {allUsers.filter(
                       (user) => !user.is_admin && !user.is_super_admin
                     ).length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No students found</p>
-                          <p className="text-xs mt-2">
-                            Total users loaded: {allUsers.length}
-                          </p>
-                          {allUsers.length > 0 && (
-                            <details className="mt-4 text-left">
-                              <summary className="cursor-pointer text-sm">
-                                Debug: Show raw user data
-                              </summary>
-                              <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
-                                {JSON.stringify(allUsers, null, 2)}
-                              </pre>
-                            </details>
-                          )}
-                        </div>
-                      )}
+                      <div className="text-center py-8 text-gray-500">
+                        <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No students found</p>
+                        <p className="text-xs mt-2">
+                          Total users loaded: {allUsers.length}
+                        </p>
+                        {allUsers.length > 0 && (
+                          <details className="mt-4 text-left">
+                            <summary className="cursor-pointer text-sm">
+                              Debug: Show raw user data
+                            </summary>
+                            <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+                              {JSON.stringify(allUsers, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -490,9 +513,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">
-                      Loading admins...
-                    </p>
+                    <p className="text-gray-600">Loading admins...</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -545,11 +566,11 @@ export default function SuperAdminDashboardPage() {
                     {allUsers.filter(
                       (user) => user.is_admin && !user.is_super_admin
                     ).length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No admins found</p>
-                        </div>
-                      )}
+                      <div className="text-center py-8 text-gray-500">
+                        <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No admins found</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -570,9 +591,7 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">
-                      Loading super admins...
-                    </p>
+                    <p className="text-gray-600">Loading super admins...</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -624,11 +643,11 @@ export default function SuperAdminDashboardPage() {
                       ))}
                     {allUsers.filter((user) => user.is_super_admin).length ===
                       0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No super admins found</p>
-                        </div>
-                      )}
+                      <div className="text-center py-8 text-gray-500">
+                        <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>No super admins found</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -721,15 +740,17 @@ function InviteAdminsTab() {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/auth/school", {
+        const response = await fetch("/api/super_admin/schools", {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
-              }`,
+            Authorization: `Bearer ${
+              document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
           },
         });
         if (response.ok) {
           const schoolData = await response.json();
+          console.log("Schools:", schoolData);
           setSchools(schoolData || []);
         } else {
           console.error("Failed to fetch schools");
@@ -839,12 +860,12 @@ function InviteAdminsTab() {
       invitationList.length > 0
         ? invitationList
         : [invitationForm].filter(
-          (inv) =>
-            inv.email.trim() &&
-            inv.first_name.trim() &&
-            inv.last_name.trim() &&
-            inv.school_id.trim()
-        );
+            (inv) =>
+              inv.email.trim() &&
+              inv.first_name.trim() &&
+              inv.last_name.trim() &&
+              inv.school_id.trim()
+          );
 
     if (fullList.length === 0) {
       toast({
@@ -865,8 +886,9 @@ function InviteAdminsTab() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
-            }`,
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
         body: JSON.stringify({ invitations: fullList }),
       });
@@ -1159,7 +1181,14 @@ function InviteAdminsTab() {
     </div>
   );
 }
-
+interface School {
+  school_id: string;
+  name: string;
+  email: string;
+  status: string;
+  telephone: string;
+  address: string;
+}
 function ManageSchoolsTab({
   allUsers,
   loadingUsers,
@@ -1168,9 +1197,7 @@ function ManageSchoolsTab({
   loadingUsers: boolean;
 }) {
   const { toast } = useToast();
-  const [schools, setSchools] = useState<
-    Array<{ school_id: string; name: string; email: string }>
-  >([]);
+  const [schools, setSchools] = useState<Array<School>>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [approvalForm, setApprovalForm] = useState({
@@ -1180,29 +1207,57 @@ function ManageSchoolsTab({
     admin_last_name: "",
   });
   const [isApproving, setIsApproving] = useState(false);
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
+  const [pending, setPending] = useState<{
+    action: "deactivate" | "suspend";
+    schoolId: string;
+    schoolName: string;
+  } | null>(null);
+
+  const [updatedSchoolFields, setUpdatedSchoolFields] = useState<{
+    school_id: string;
+    name: string;
+    telephone: string;
+    address: string;
+    email: string;
+  }>({
+    school_id: "",
+    name: "",
+    telephone: "",
+    address: "",
+    email: "",
+  });
+
+  const [inactiveSchools, setInactiveSchools] = useState<Array<School>>([]);
+  const [loadingInactive, setLoadingInactive] = useState(true);
 
   // Fetch schools data
+  type SchoolsResponse = { schools: School[] };
+
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const response = await fetch("/api/auth/school", {
+        const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+        const response = await fetch("/api/super_admin/schools", {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
-              }`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        if (response.ok) {
-          const schoolData = await response.json();
-          setSchools(schoolData || []);
-        } else {
-          console.error("Failed to fetch schools");
+        if (!response.ok) {
           toast({
             title: "Error",
             description: "Failed to load schools data",
             variant: "destructive",
           });
+          return;
         }
+
+        const data: unknown = await response.json();
+        const arr = Array.isArray(data)
+          ? data
+          : (data as SchoolsResponse).schools ?? [];
+        setSchools(arr);
       } catch (error) {
         console.error("Error fetching schools:", error);
         toast({
@@ -1217,6 +1272,55 @@ function ManageSchoolsTab({
 
     fetchSchools();
   }, [toast]);
+
+  const fetchInactiveSchools = async () => {
+    setLoadingInactive(true);
+    setInactiveSchools([]);
+
+    try {
+      const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+      const response = await fetch(`/api/super_admin/inactive-schools`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      });
+
+      if (response.status === 404) {
+        setInactiveSchools([]);
+        setLoadingInactive(false);
+        return;
+      }
+
+      if (!response.ok) {
+        let msg = "Failed to load inactive schools";
+        try {
+          const err = await response.json();
+          msg = err?.detail || err?.message || msg;
+        } catch {}
+        toast({ title: "Error", description: msg, variant: "destructive" });
+        return;
+      }
+      const data = await response.json();
+      const arr = Array.isArray(data) ? data : data.schools ?? [];
+      setInactiveSchools(arr);
+    } catch (error) {
+      console.error("Error fetching inactive schools:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load inactive schools",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingInactive(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInactiveSchools();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Create school-admin mapping
   const schoolAdminMap = React.useMemo(() => {
@@ -1338,8 +1442,9 @@ function ManageSchoolsTab({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
-            }`,
+          Authorization: `Bearer ${
+            document.cookie.match(/token=([^;]+)/)?.[1] || ""
+          }`,
         },
         body: JSON.stringify({ invitations }),
       });
@@ -1349,8 +1454,9 @@ function ManageSchoolsTab({
       if (response.ok) {
         toast({
           title: "School Approved",
-          description: `Invitation sent to ${admin_email.trim()} for ${schools.find((s) => s.school_id === school_id.trim())?.name
-            }`,
+          description: `Invitation sent to ${admin_email.trim()} for ${
+            schools.find((s) => s.school_id === school_id.trim())?.name
+          }`,
         });
 
         // Reset form
@@ -1378,40 +1484,162 @@ function ManageSchoolsTab({
     }
   };
 
+  const AddNewSchool = () => {
+    const [newSchoolForm, setNewSchoolForm] = useState({
+      name: "",
+      email: "",
+      telephone: "",
+      address: "",
+    });
+
+    const [isApproving, setIsApproving] = useState<false>(false);
+
+    const submit = async () => {
+      try {
+        await fetch("/api/super_admin/create-school", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${
+              document.cookie.match(/token=([^;]+)/)?.[1] || ""
+            }`,
+          },
+          body: JSON.stringify(newSchoolForm),
+        });
+        toast({
+          title: "School Added",
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <School className="h-5 w-5 text-green-600" />
+            Add new school
+          </CardTitle>
+          <CardDescription>Add a new school to the school list</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school name">School Name *</Label>
+              <Input
+                id="school name"
+                placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
+                value={newSchoolForm.name}
+                onChange={(e) => {
+                  setNewSchoolForm((f) => ({ ...f, name: e.target.value }));
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school name">School email *</Label>
+              <Input
+                id="school email"
+                type="email"
+                placeholder="sdn08@gmail.com"
+                value={newSchoolForm.email}
+                onChange={(e) => {
+                  setNewSchoolForm((f) => ({ ...f, email: e.target.value }));
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school telephone">School Telephone *</Label>
+              <Input
+                id="school telephone"
+                placeholder="+62 1234-5678-9101"
+                type="tel"
+                value={newSchoolForm.telephone}
+                onChange={(e) => {
+                  setNewSchoolForm((f) => ({
+                    ...f,
+                    telephone: e.target.value,
+                  }));
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school address">School Address *</Label>
+              <Input
+                id="school address"
+                placeholder="Kalisongo, Jawa Timur"
+                value={newSchoolForm.address}
+                onChange={(e) => {
+                  setNewSchoolForm((f) => ({
+                    ...f,
+                    address: e.target.value,
+                  }));
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={submit}
+              disabled={isApproving}
+              className="flex items-center gap-2"
+            >
+              {isApproving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Adding School ....
+                </>
+              ) : (
+                <>Add School</>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
   // Handle admin removal
   const handleRemoveAdmin = async (adminEmail: string, schoolName: string) => {
     try {
-      const response = await fetch("/api/admin/deactivate", {
+      const res = await fetch("/api/admin/deactivate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${document.cookie.match(/token=([^;]+)/)?.[1] || ""
-            }`,
-        },
-        body: JSON.stringify({ admin_email: adminEmail }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: adminEmail }),
       });
 
-      const data = await response.json();
+      // Try to read error message (some backends return 204; guard it)
+      if (!res.ok) {
+        let msg = "Failed to remove admin";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
-      if (response.status === 501) {
-        // Backend endpoint not implemented yet
+      // Some servers return 501 for “not implemented”
+      if (res.status === 501) {
+        let detail =
+          "Backend endpoint for deactivating admins needs to be implemented";
+        try {
+          const data = await res.json();
+          detail = data?.detail || detail;
+        } catch {}
         toast({
           title: "Feature Not Available",
-          description:
-            data.detail ||
-            "Backend endpoint for deactivating admins needs to be implemented",
+          description: detail,
           variant: "destructive",
         });
-      } else if (response.ok) {
-        toast({
-          title: "Admin Removed",
-          description: `${adminEmail} has been deactivated and removed from ${schoolName}`,
-        });
-        // Note: In a real implementation, we would refetch users data here
-        // to update the UI with the deactivated admin
-      } else {
-        throw new Error(data.detail || "Failed to remove admin");
+        return;
       }
+
+      toast({
+        title: "Admin Removed",
+        description: `${adminEmail} has been deactivated and removed from ${schoolName}`,
+      });
     } catch (error) {
       console.error("Failed to remove admin:", error);
       toast({
@@ -1425,249 +1653,692 @@ function ManageSchoolsTab({
     }
   };
 
+  const fetchSchools = async (arg?: string) => {
+    setSchools([]);
+    try {
+      const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+      const response = await fetch(`/api/super_admin/schools`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const schoolData = await response.json();
+        setSchools(schoolData || []);
+      } else {
+        console.error("Failed to fetch schools");
+        toast({
+          title: "Error",
+          description: "Failed to load schools data",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching schools:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load schools data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSchools(false);
+    }
+  };
+
+  const [display, setDisplay] = useState<string>("active");
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const handleDeactivateSchool = async (schoolID: string) => {
+    try {
+      const res = await fetch(
+        `/api/super_admin/deactivate-school/${schoolID}`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!res.ok) {
+        let msg = "Failed to deactivate school";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      toast({
+        title: "School Deactivated",
+        description: `School ${schoolID} has been set to inactive.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to deactivate school",
+        description:
+          error instanceof Error ? error.message : "An error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleActivate = async (schoolID: string) => {
+    try {
+      const res = await fetch(`/api/super_admin/activate-school/${schoolID}`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        let msg = "Failed to activate school";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      toast({
+        title: "School Activated",
+        description: `School ${schoolID} is now active.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Activation failed",
+        description:
+          error instanceof Error ? error.message : "Could not activate school.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSuspension = async (schoolID: string) => {
+    try {
+      const res = await fetch(
+        `/api/super_admin/delete-school/${encodeURIComponent(schoolID)}`,
+        { method: "POST" }
+      );
+
+      if (!res.ok) {
+        let msg = "Failed to delete/suspend school";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      toast({
+        title: "School Deleted",
+        description: `School ${schoolID} has been removed/suspended.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete/suspend school",
+        description:
+          error instanceof Error ? error.message : "An error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loadingUsers || loadingSchools) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600">
-          Loading schools and administrators...
-        </p>
+        <p className="text-gray-600">Loading schools and administrators...</p>
       </div>
     );
   }
 
+  const requestConfirmation = (
+    action: "deactivate" | "suspend",
+    schoolId: string,
+    schoolName: string
+  ) => {
+    setPending({ action, schoolId, schoolName });
+    setIsWaiting(true);
+  };
+
+  const confirmAction = async () => {
+    if (!pending) return;
+    try {
+      if (pending.action === "deactivate") {
+        await handleDeactivateSchool(pending.schoolId);
+      } else {
+        await handleSuspension(pending.schoolId);
+      }
+    } finally {
+      setIsWaiting(false);
+      setPending(null);
+    }
+  };
+
+  const handleUpdateSchool = async () => {
+    const { school_id, name, email, telephone, address } = updatedSchoolFields;
+
+    // Required fields
+    if (!school_id?.trim()) {
+      toast({
+        title: "Missing School ID",
+        description: "A valid school_id is required to update a school.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!name.trim() || !email.trim() || !telephone.trim() || !address.trim()) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in name, email, telephone, and address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Email format
+    if (!isValidEmail(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+
+      const res = await fetch("/api/super_admin/update-school", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          school_id,
+          name,
+          email,
+          telephone,
+          address,
+        }),
+      });
+
+      toast({
+        title: "School Updated",
+        description: `${name} has been updated successfully.`,
+      });
+
+      setIsEditOpen(false);
+    } catch (error) {
+      console.error("Update school failed:", error);
+      toast({
+        title: "Update Failed",
+        description:
+          error instanceof Error ? error.message : "Could not update school.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const openEdit = (school: School) => {
+    setUpdatedSchoolFields({
+      school_id: school.school_id,
+      name: school.name ?? "",
+      email: school.email ?? "",
+      telephone: school.telephone ?? "",
+      address: school.address ?? "",
+    });
+    setIsEditOpen(true);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Approve New School Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <School className="h-5 w-5 text-green-600" />
-            Approve New School
-          </CardTitle>
-          <CardDescription>
-            Select a school and assign an administrator to approve access
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <>
+      <AlertDialog
+        open={isWaiting}
+        onOpenChange={(open) => {
+          setIsWaiting(open);
+          if (!open) setPending(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.action === "deactivate"
+                ? "Deactivate school?"
+                : "Delete school?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending
+                ? pending.action === "deactivate"
+                  ? `Are you sure you want to deactivate ${pending.schoolName} (${pending.schoolId})?`
+                  : `Are you sure you want to DELETE ${pending.schoolName} (${pending.schoolId})? This action is NOT REVERSIBLE`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPending(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAction}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {pending?.action === "deactivate" ? "Deactivate" : "DELETE"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update School Information</DialogTitle>
+            <DialogDescription>
+              Update the school’s details. Changes apply immediately after
+              saving.
+            </DialogDescription>
+          </DialogHeader>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* use ids without spaces */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="school-id">School ID</Label>
+              <Input
+                id="school-id"
+                value={updatedSchoolFields.school_id}
+                disabled
+              />
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="school-select">School *</Label>
-              <select
-                id="school-select"
-                className="w-full p-2 border rounded-md"
-                value={approvalForm.school_id}
+              <Label htmlFor="school-name">School Name *</Label>
+              <Input
+                id="school-name"
+                value={updatedSchoolFields.name}
                 onChange={(e) =>
-                  setApprovalForm({
-                    ...approvalForm,
-                    school_id: e.target.value,
-                  })
+                  setUpdatedSchoolFields((f) => ({
+                    ...f,
+                    name: e.target.value,
+                  }))
                 }
-              >
-                <option value="">Select a school...</option>
-                {schools.map((school) => {
-                  const hasAdmin =
-                    schoolAdminMap.get(school.school_id)?.admins.length > 0;
-                  return (
-                    <option
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school-email">School email *</Label>
+              <Input
+                id="school-email"
+                type="email"
+                value={updatedSchoolFields.email}
+                onChange={(e) =>
+                  setUpdatedSchoolFields((f) => ({
+                    ...f,
+                    email: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school-telephone">School Telephone *</Label>
+              <Input
+                id="school-telephone"
+                type="tel"
+                value={updatedSchoolFields.telephone}
+                onChange={(e) =>
+                  setUpdatedSchoolFields((f) => ({
+                    ...f,
+                    telephone: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="school-address">School Address *</Label>
+              <Input
+                id="school-address"
+                value={updatedSchoolFields.address}
+                onChange={(e) =>
+                  setUpdatedSchoolFields((f) => ({
+                    ...f,
+                    address: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateSchool} disabled={isSavingEdit}>
+              {isSavingEdit ? "Saving..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Main content */}
+      <div className="space-y-6">
+        <AddNewSchool />
+        {display === "active" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <School className="h-5 w-5 text-blue-600" />
+                Approved Schools ({filteredSchools.length})
+              </CardTitle>
+              <CardDescription>
+                Manage currently approved schools and their administrators
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              {/* Search Bar */}
+              <div className="flex items-center gap-2 mb-4">
+                <Input
+                  placeholder="Search schools, admins, or emails..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-md"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearchTerm("")}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+
+              {filteredSchools.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No approved schools found</p>
+                  <p className="text-sm">
+                    Use the form above to approve new schools
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredSchools.map(({ school, admins }) => (
+                    <div
                       key={school.school_id}
-                      value={school.school_id}
-                      disabled={hasAdmin}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                     >
-                      {school.name} ({school.school_id}){" "}
-                      {hasAdmin ? "- Already has admin" : ""}
-                    </option>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-medium text-lg">
+                              {school.name}
+                            </h3>
+                            <Badge variant="outline">{school.school_id}</Badge>
+                          </div>
+
+                          {admins.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                Administrators ({admins.length}):
+                              </p>
+
+                              {admins.map((admin: DbUser) => (
+                                <div
+                                  key={admin.user_id}
+                                  className="flex items-center justify-between bg-white rounded p-3 border"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                        {admin.first_name?.[0]}
+                                        {admin.last_name?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm">
+                                        {admin.first_name} {admin.last_name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {admin.email}
+                                      </p>
+                                      {admin.last_login_time && (
+                                        <p className="text-xs text-gray-400">
+                                          Last login:{" "}
+                                          {new Date(
+                                            admin.last_login_time
+                                          ).toLocaleDateString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      console.log(admin.email, school.name);
+                                      handleRemoveAdmin(
+                                        admin.email,
+                                        school.name
+                                      );
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 text-gray-500">
+                              <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                              <p className="text-sm">
+                                No administrator assigned
+                              </p>
+                              <p className="text-xs">
+                                School is registered but has no admin access
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions menu */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label="Open actions menu"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48 bg-white"
+                          >
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                            <DropdownMenuItem
+                              className="text-black"
+                              onClick={() => openEdit(school)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit School
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600"
+                              onClick={() =>
+                                requestConfirmation(
+                                  "deactivate",
+                                  school.school_id,
+                                  school.name
+                                )
+                              }
+                            >
+                              <Power className="mr-2 h-4 w-4" />
+                              Deactivate school
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600 font-bold"
+                              onClick={() =>
+                                requestConfirmation(
+                                  "suspend",
+                                  school.school_id,
+                                  school.name
+                                )
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete school
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <School className="h-5 w-5 text-blue-600" />
+              Inactive Schools ({inactiveSchools.length})
+            </CardTitle>
+            <CardDescription>
+              Schools that are currently inactive.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {loadingInactive ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+                <p className="text-gray-600">Loading inactive schools...</p>
+              </div>
+            ) : inactiveSchools.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No inactive schools found</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {inactiveSchools.map((school) => {
+                  const admins = allUsers.filter(
+                    (u) =>
+                      u.is_admin &&
+                      !u.is_super_admin &&
+                      u.school_id === school.school_id
+                  );
+                  return (
+                    <div
+                      key={school.school_id}
+                      className="border rounded-lg p-4 hover:bg-gray-50"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-medium text-lg">
+                              {school.name}
+                            </h3>
+                            <Badge variant="outline">{school.school_id}</Badge>
+                          </div>
+
+                          {admins.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-sm text-gray-600">
+                                Administrators ({admins.length}):
+                              </p>
+                              {admins.map((admin: DbUser) => (
+                                <div
+                                  key={admin.user_id}
+                                  className="flex items-center justify-between bg-white rounded p-3 border"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                        {admin.first_name?.[0]}
+                                        {admin.last_name?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium text-sm">
+                                        {admin.first_name} {admin.last_name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {admin.email}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 text-gray-500">
+                              <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                              <p className="text-sm">
+                                No administrator assigned
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label="Open actions menu"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48 bg-white"
+                          >
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              className="text-green-700"
+                              onClick={() => handleActivate(school.school_id)}
+                            >
+                              Activate school
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-red-600 focus:text-red-600 font-bold"
+                              onClick={() =>
+                                requestConfirmation(
+                                  "suspend",
+                                  school.school_id,
+                                  school.name
+                                )
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete school
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
                   );
                 })}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="admin-email">Admin Email *</Label>
-              <Input
-                id="admin-email"
-                type="email"
-                placeholder="admin@school.edu"
-                value={approvalForm.admin_email}
-                onChange={(e) =>
-                  setApprovalForm({
-                    ...approvalForm,
-                    admin_email: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="admin-first-name">Admin First Name *</Label>
-              <Input
-                id="admin-first-name"
-                placeholder="John"
-                value={approvalForm.admin_first_name}
-                onChange={(e) =>
-                  setApprovalForm({
-                    ...approvalForm,
-                    admin_first_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="admin-last-name">Admin Last Name *</Label>
-              <Input
-                id="admin-last-name"
-                placeholder="Doe"
-                value={approvalForm.admin_last_name}
-                onChange={(e) =>
-                  setApprovalForm({
-                    ...approvalForm,
-                    admin_last_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-4">
-            <Button
-              onClick={handleApproveSchool}
-              disabled={isApproving}
-              className="flex items-center gap-2"
-            >
-              {isApproving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Sending Invite...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  Send Invite
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Approved Schools List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <School className="h-5 w-5 text-blue-600" />
-            Approved Schools ({filteredSchools.length})
-          </CardTitle>
-          <CardDescription>
-            Manage currently approved schools and their administrators
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Search Bar */}
-          <div className="flex items-center gap-2 mb-4">
-            <Input
-              placeholder="Search schools, admins, or emails..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-md"
-            />
-            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchTerm("")}
-              >
-                Clear
-              </Button>
+              </div>
             )}
-          </div>
-
-          {filteredSchools.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No approved schools found</p>
-              <p className="text-sm">
-                Use the form above to approve new schools
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredSchools.map(({ school, admins }) => (
-                <div
-                  key={school.school_id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-lg">{school.name}</h3>
-                        <Badge variant="outline">{school.school_id}</Badge>
-                      </div>
-
-                      {admins.length > 0 ? (
-                        <div className="space-y-2">
-                          <p className="text-sm text-gray-600">
-                            Administrators ({admins.length}):
-                          </p>
-                          {admins.map((admin: DbUser) => (
-                            <div
-                              key={admin.user_id}
-                              className="flex items-center justify-between bg-white rounded p-3 border"
-                            >
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                    {admin.first_name?.[0]}
-                                    {admin.last_name?.[0]}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-medium text-sm">
-                                    {admin.first_name} {admin.last_name}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    {admin.email}
-                                  </p>
-                                  {admin.last_login_time && (
-                                    <p className="text-xs text-gray-400">
-                                      Last login:{" "}
-                                      {new Date(
-                                        admin.last_login_time
-                                      ).toLocaleDateString()}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleRemoveAdmin(admin.email, school.name)
-                                }
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-gray-500">
-                          <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                          <p className="text-sm">No administrator assigned</p>
-                          <p className="text-xs">
-                            School is registered but has no admin access
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>{" "}
+      </div>
+    </>
   );
 }
