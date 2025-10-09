@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,50 +15,57 @@ export function LandingHeader() {
       setIsScrolled(window.scrollY > 10);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled
-          ? 'bg-white shadow-md py-2'
-          : 'bg-transparent py-4'
+        "font-lato fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled ? "bg-white shadow-md py-2" : "bg-transparent py-4"
       )}
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold text-primary">Kira</span>
+          <img
+            src="/assets/header.png"
+            alt="Kira Auth"
+            style={{
+              height: 40,
+              width: "auto",
+              objectFit: "contain",
+              marginBottom: 0,
+            }}
+          ></img>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <Link 
-            href="/about" 
-            className="text-foreground hover:text-primary transition-colors"
+          <Link
+            href="/about"
+            className="text-foreground hover:text-button transition-colors"
           >
             About
           </Link>
-          <Link 
-            href="/courses" 
-            className="text-foreground hover:text-primary transition-colors"
+          <Link
+            href="/team"
+            className="text-foreground hover:text-button transition-colors"
           >
-            Courses
+            Our Team
           </Link>
-          <Link 
-            href="/pricing" 
-            className="text-foreground hover:text-primary transition-colors"
+          <Link
+            href="/support"
+            className="text-foreground hover:text-button transition-colors"
           >
-            Pricing
+            Support
           </Link>
-          <div className="ml-4 flex space-x-2">
-            <Button variant="outline" asChild>
-              <Link href="/login">Login</Link>
+          <div className="ml-4 flex space-x-4">
+            <Button variant="greenoutline" asChild>
+              <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild>
-              <Link href="/signup">Get Started</Link>
+            <Button asChild variant="defaultgreen">
+              <Link href="/support">Support KIRA</Link>
             </Button>
           </div>
         </nav>
@@ -77,33 +84,33 @@ export function LandingHeader() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-background border-t py-4">
           <div className="container mx-auto px-4 flex flex-col space-y-4">
-            <Link 
-              href="/about" 
-              className="text-foreground hover:text-primary transition-colors py-2"
+            <Link
+              href="/about"
+              className="text-foreground hover:text-button transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
-            <Link 
-              href="/courses" 
-              className="text-foreground hover:text-primary transition-colors py-2"
+            <Link
+              href="/team"
+              className="text-foreground hover:text-button transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Courses
+              Our Team
             </Link>
-            <Link 
-              href="/pricing" 
-              className="text-foreground hover:text-primary transition-colors py-2"
+            <Link
+              href="/support"
+              className="text-foreground hover:text-button transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Pricing
+              Support
             </Link>
             <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="outline" asChild>
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+              <Button variant="greenoutline" asChild>
+                <Link href="/login">Log In</Link>
               </Button>
-              <Button asChild>
-                <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
+              <Button asChild variant="defaultgreen">
+                <Link href="/support">Support KIRA</Link>
               </Button>
             </div>
           </div>

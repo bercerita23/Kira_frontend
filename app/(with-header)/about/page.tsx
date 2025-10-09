@@ -207,7 +207,6 @@ export default function About() {
           <Link href="/demo">Try a Student Quiz Demo</Link>
         </Button>
       </div>
-      <LandingFooter />
     </div>
   );
 }
