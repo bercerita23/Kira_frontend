@@ -94,10 +94,11 @@ export default function DashboardPage() {
   const totalQuestions = 5;
 
   const weekKey = new Date().toISOString().slice(0, 10);
-
+  const today = new Date();
+  const nextSunday = new Date(today);
+  nextSunday.setDate(today.getDate() - today.getDay());
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [week, setWeek] = useState<number>(0);
   const [nextQuiz, setNextQuiz] = useState<Quiz | null>();
   const [isBintangAvailable, setIsBintangAvailable] =
     useState<bintangStatus | null>(null);
@@ -393,8 +394,14 @@ export default function DashboardPage() {
                     Hi, {user.first_name}
                     {user.last_name ? user.last_name : ""}
                   </span>
-                  <span className="text-black text-4xl">
-                    Welcome Back to Week {week}
+                  <span className="text-black text-3xl">
+                    For the week of{" "}
+                    {nextSunday.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                    :
                   </span>
                 </div>
 
