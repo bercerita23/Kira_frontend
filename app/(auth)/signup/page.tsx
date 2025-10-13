@@ -27,9 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 const dummySchools = [
-  { school_id: "SCH001", name: "Greenwood High" },
-  { school_id: "SCH002", name: "Bright Future Academy" },
-  { school_id: "SCH003", name: "Riverdale School" },
+  { school_id: "SDN028", name: "SDN 28 MEMBALONG, BELITUNG, INDONESIA" },
 ];
 
 export default function SignupPage() {
@@ -77,10 +75,13 @@ export default function SignupPage() {
         if (!res.ok) throw new Error("Failed to load schools");
 
         const data = await res.json();
-        setSchools(data); // expected: [{ school_id: "...", name: "..." }]
+        console.log(data);
+        //setSchools(data); // expected: [{ school_id: "...", name: "..." }]
+
+        setSchools(dummySchools);
       } catch (err) {
-        console.warn("Using temporarly stored schools due to error:", err);
-        setSchools([]);
+        console.warn("Using temporarily stored schools due to error:", err);
+        //setSchools([]);
       }
     };
 
@@ -268,7 +269,10 @@ export default function SignupPage() {
                   <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017]">
                     <SelectValue placeholder="Choose a school" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <SelectContent
+                    position="popper"
+                    className="max-h-80 overflow-y-auto z-[100] bg-white"
+                  >
                     {schools.map((school) => (
                       <SelectItem
                         className="!bg-white !text-black hover:!bg-gray-100"
