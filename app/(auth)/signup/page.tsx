@@ -73,14 +73,14 @@ export default function SignupPage() {
   useEffect(() => {
     const loadSchools = async () => {
       try {
-        const res = await fetch("/api/auth/school");
+        const res = await fetch("/api/auth/schools");
         if (!res.ok) throw new Error("Failed to load schools");
 
         const data = await res.json();
         setSchools(data); // expected: [{ school_id: "...", name: "..." }]
       } catch (err) {
         console.warn("Using temporarly stored schools due to error:", err);
-        setSchools(dummySchools);
+        setSchools([]);
       }
     };
 
