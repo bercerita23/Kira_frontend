@@ -35,7 +35,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${lato.variable}`}
     >
-      <body className={inter.className}>
+      <body>
         <ThemeProvider>
           <AuthProvider>
             {children}
