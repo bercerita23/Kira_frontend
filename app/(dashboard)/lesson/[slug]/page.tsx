@@ -166,7 +166,7 @@ export default function LessonPage() {
         })
         .catch(() => setChatEligibility(null));
     }
-  }, [quizCompleted, chatEligibility]);
+  }, [quizCompleted]);
 
   // When chatbot is shown, start the timer countdown
   useEffect(() => {
@@ -534,6 +534,7 @@ export default function LessonPage() {
             isOpen={showChatbot}
             onClose={() => setShowChatbot(false)}
             initialTopic={`${quiz.name} topics`}
+            remainingTime={chatTimer}
           />
         </div>
       );
