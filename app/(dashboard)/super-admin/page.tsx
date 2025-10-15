@@ -714,6 +714,13 @@ export default function SuperAdminDashboardPage() {
 }
 
 // Invite Admins Tab Component
+
+interface Invitation {
+  email: string;
+  first_name: string;
+  last_name: string;
+  school_id: string;
+}
 function InviteAdminsTab() {
   const { toast } = useToast();
   const [invitationForm, setInvitationForm] = useState({
@@ -722,18 +729,10 @@ function InviteAdminsTab() {
     last_name: "",
     school_id: "",
   });
-  const [invitationList, setInvitationList] = useState<
-    Array<{
-      email: string;
-      first_name: string;
-      last_name: string;
-      school_id: string;
-    }>
-  >([]);
+  const [invitationList, setInvitationList] = useState<Array<Invitation>>([]);
   const [isSending, setIsSending] = useState(false);
-  const [schools, setSchools] = useState<
-    Array<{ school_id: string; name: string }>
-  >([]);
+
+  const [schools, setSchools] = useState<Array<School>>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
 
   // Fetch schools for validation
@@ -750,8 +749,8 @@ function InviteAdminsTab() {
         });
         if (response.ok) {
           const schoolData = await response.json();
-          console.log("Schools:", schoolData);
-          setSchools(schoolData || []);
+          console.log("Schools:", schoolData.schools);
+          setSchools(schoolData.schools || []);
         } else {
           console.error("Failed to fetch schools");
         }
@@ -763,7 +762,7 @@ function InviteAdminsTab() {
     };
 
     fetchSchools();
-  }, []);
+  }, [isSending]);
 
   // Add invitation to the list
   const addInvitation = () => {
@@ -1034,22 +1033,23 @@ function InviteAdminsTab() {
                   <SelectValue placeholder="Choose a school" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {schools.map((school) => (
-                    <SelectItem
-                      key={school.school_id}
-                      value={school.school_id}
-                      className="!bg-white !text-black hover:!bg-gray-100"
-                    >
-                      {school.name}
-                    </SelectItem>
-                  ))}
+                  {schools &&
+                    schools.map((school) => (
+                      <SelectItem
+                        key={school.school_id}
+                        value={school.school_id}
+                        className="!bg-white !text-black hover:!bg-gray-100"
+                      >
+                        {school.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <div className="text-xs text-gray-500">
                 {schools.length > 0 && (
                   <p className="mt-1">
                     <strong>Available schools:</strong>{" "}
-                    {schools.map((s) => s.name).join(", ")}
+                    {schools && schools.map((s) => s.name).join(", ")}
                   </p>
                 )}
               </div>
@@ -1371,119 +1371,6 @@ function ManageSchoolsTab({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Handle school approval (send invite to admin)
-  const handleApproveSchool = async () => {
-    const { school_id, admin_email, admin_first_name, admin_last_name } =
-      approvalForm;
-
-    // Validation
-    if (
-      !school_id.trim() ||
-      !admin_email.trim() ||
-      !admin_first_name.trim() ||
-      !admin_last_name.trim()
-    ) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!isValidEmail(admin_email.trim())) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if school exists
-    const schoolExists = schools.some(
-      (school) => school.school_id === school_id.trim()
-    );
-    if (!schoolExists) {
-      toast({
-        title: "Invalid School",
-        description: `School ID "${school_id.trim()}" does not exist.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if email already exists as admin
-    const existingAdmin = allUsers.find(
-      (user) => user.email === admin_email.trim() && user.is_admin
-    );
-    if (existingAdmin) {
-      toast({
-        title: "Email Already Registered",
-        description: "This email is already registered as an admin.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsApproving(true);
-
-    try {
-      const invitations = [
-        {
-          school_id: school_id.trim(),
-          email: admin_email.trim(),
-          first_name: admin_first_name.trim(),
-          last_name: admin_last_name.trim(),
-        },
-      ];
-
-      const response = await fetch("/api/super_admin/invite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie.match(/token=([^;]+)/)?.[1] || ""
-          }`,
-        },
-        body: JSON.stringify({ invitations }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast({
-          title: "School Approved",
-          description: `Invitation sent to ${admin_email.trim()} for ${
-            schools.find((s) => s.school_id === school_id.trim())?.name
-          }`,
-        });
-
-        // Reset form
-        setApprovalForm({
-          school_id: "",
-          admin_email: "",
-          admin_first_name: "",
-          admin_last_name: "",
-        });
-      } else {
-        throw new Error(data.error || "Failed to send invitation");
-      }
-    } catch (error) {
-      console.error("Failed to approve school:", error);
-      toast({
-        title: "Failed to Approve School",
-        description:
-          error instanceof Error
-            ? error.message
-            : "An error occurred while sending the invitation.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsApproving(false);
-    }
-  };
-
   const AddNewSchool = () => {
     const [newSchoolForm, setNewSchoolForm] = useState({
       name: "",
@@ -1511,6 +1398,9 @@ function ManageSchoolsTab({
         });
       } catch (error) {
         console.error(error);
+      } finally {
+        await fetchSchools();
+        await fetchInactiveSchools();
       }
     };
 
@@ -1665,7 +1555,7 @@ function ManageSchoolsTab({
       });
       if (response.ok) {
         const schoolData = await response.json();
-        setSchools(schoolData || []);
+        setSchools(schoolData.schools || []);
       } else {
         console.error("Failed to fetch schools");
         toast({
@@ -1719,6 +1609,9 @@ function ManageSchoolsTab({
           error instanceof Error ? error.message : "An error occurred.",
         variant: "destructive",
       });
+    } finally {
+      await fetchSchools();
+      await fetchInactiveSchools();
     }
   };
 
@@ -1748,6 +1641,9 @@ function ManageSchoolsTab({
           error instanceof Error ? error.message : "Could not activate school.",
         variant: "destructive",
       });
+    } finally {
+      await fetchSchools();
+      await fetchInactiveSchools();
     }
   };
 
@@ -1778,6 +1674,9 @@ function ManageSchoolsTab({
           error instanceof Error ? error.message : "An error occurred.",
         variant: "destructive",
       });
+    } finally {
+      await fetchSchools();
+      await fetchInactiveSchools();
     }
   };
 
@@ -1877,6 +1776,8 @@ function ManageSchoolsTab({
         variant: "destructive",
       });
     } finally {
+      await fetchSchools();
+      await fetchInactiveSchools();
       setIsSavingEdit(false);
     }
   };
@@ -2065,145 +1966,149 @@ function ManageSchoolsTab({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredSchools.map(({ school, admins }) => (
-                    <div
-                      key={school.school_id}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-medium text-lg">
-                              {school.name}
-                            </h3>
-                            <Badge variant="outline">{school.school_id}</Badge>
+                  {filteredSchools &&
+                    filteredSchools.map(({ school, admins }) => (
+                      <div
+                        key={school.school_id}
+                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-medium text-lg">
+                                {school.name}
+                              </h3>
+                              <Badge variant="outline">
+                                {school.school_id}
+                              </Badge>
+                            </div>
+
+                            {admins.length > 0 ? (
+                              <div className="space-y-2">
+                                <p className="text-sm text-gray-600">
+                                  Administrators ({admins.length}):
+                                </p>
+
+                                {admins &&
+                                  admins.map((admin: DbUser) => (
+                                    <div
+                                      key={admin.user_id}
+                                      className="flex items-center justify-between bg-white rounded p-3 border"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Avatar className="h-8 w-8">
+                                          <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                            {admin.first_name?.[0]}
+                                            {admin.last_name?.[0]}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                          <p className="font-medium text-sm">
+                                            {admin.first_name} {admin.last_name}
+                                          </p>
+                                          <p className="text-xs text-gray-500">
+                                            {admin.email}
+                                          </p>
+                                          {admin.last_login_time && (
+                                            <p className="text-xs text-gray-400">
+                                              Last login:{" "}
+                                              {new Date(
+                                                admin.last_login_time
+                                              ).toLocaleDateString()}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          console.log(admin.email, school.name);
+                                          handleRemoveAdmin(
+                                            admin.email,
+                                            school.name
+                                          );
+                                        }}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-gray-500">
+                                <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                                <p className="text-sm">
+                                  No administrator assigned
+                                </p>
+                                <p className="text-xs">
+                                  School is registered but has no admin access
+                                </p>
+                              </div>
+                            )}
                           </div>
 
-                          {admins.length > 0 ? (
-                            <div className="space-y-2">
-                              <p className="text-sm text-gray-600">
-                                Administrators ({admins.length}):
-                              </p>
+                          {/* Actions menu */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label="Open actions menu"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
 
-                              {admins.map((admin: DbUser) => (
-                                <div
-                                  key={admin.user_id}
-                                  className="flex items-center justify-between bg-white rounded p-3 border"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                        {admin.first_name?.[0]}
-                                        {admin.last_name?.[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="font-medium text-sm">
-                                        {admin.first_name} {admin.last_name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {admin.email}
-                                      </p>
-                                      {admin.last_login_time && (
-                                        <p className="text-xs text-gray-400">
-                                          Last login:{" "}
-                                          {new Date(
-                                            admin.last_login_time
-                                          ).toLocaleDateString()}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-48 bg-white"
+                            >
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      console.log(admin.email, school.name);
-                                      handleRemoveAdmin(
-                                        admin.email,
-                                        school.name
-                                      );
-                                    }}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-4 text-gray-500">
-                              <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                              <p className="text-sm">
-                                No administrator assigned
-                              </p>
-                              <p className="text-xs">
-                                School is registered but has no admin access
-                              </p>
-                            </div>
-                          )}
+                              <DropdownMenuItem
+                                className="text-black"
+                                onClick={() => openEdit(school)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit School
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600"
+                                onClick={() =>
+                                  requestConfirmation(
+                                    "deactivate",
+                                    school.school_id,
+                                    school.name
+                                  )
+                                }
+                              >
+                                <Power className="mr-2 h-4 w-4" />
+                                Deactivate school
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600 font-bold"
+                                onClick={() =>
+                                  requestConfirmation(
+                                    "suspend",
+                                    school.school_id,
+                                    school.name
+                                  )
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete school
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-
-                        {/* Actions menu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              aria-label="Open actions menu"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-48 bg-white"
-                          >
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-                            <DropdownMenuItem
-                              className="text-black"
-                              onClick={() => openEdit(school)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit School
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600"
-                              onClick={() =>
-                                requestConfirmation(
-                                  "deactivate",
-                                  school.school_id,
-                                  school.name
-                                )
-                              }
-                            >
-                              <Power className="mr-2 h-4 w-4" />
-                              Deactivate school
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600 font-bold"
-                              onClick={() =>
-                                requestConfirmation(
-                                  "suspend",
-                                  school.school_id,
-                                  school.name
-                                )
-                              }
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete school
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </CardContent>
@@ -2233,107 +2138,110 @@ function ManageSchoolsTab({
               </div>
             ) : (
               <div className="space-y-4">
-                {inactiveSchools.map((school) => {
-                  const admins = allUsers.filter(
-                    (u) =>
-                      u.is_admin &&
-                      !u.is_super_admin &&
-                      u.school_id === school.school_id
-                  );
-                  return (
-                    <div
-                      key={school.school_id}
-                      className="border rounded-lg p-4 hover:bg-gray-50"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-medium text-lg">
-                              {school.name}
-                            </h3>
-                            <Badge variant="outline">{school.school_id}</Badge>
-                          </div>
+                {inactiveSchools &&
+                  inactiveSchools.map((school) => {
+                    const admins = allUsers.filter(
+                      (u) =>
+                        u.is_admin &&
+                        !u.is_super_admin &&
+                        u.school_id === school.school_id
+                    );
+                    return (
+                      <div
+                        key={school.school_id}
+                        className="border rounded-lg p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-medium text-lg">
+                                {school.name}
+                              </h3>
+                              <Badge variant="outline">
+                                {school.school_id}
+                              </Badge>
+                            </div>
 
-                          {admins.length > 0 ? (
-                            <div className="space-y-2">
-                              <p className="text-sm text-gray-600">
-                                Administrators ({admins.length}):
-                              </p>
-                              {admins.map((admin: DbUser) => (
-                                <div
-                                  key={admin.user_id}
-                                  className="flex items-center justify-between bg-white rounded p-3 border"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                      <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                        {admin.first_name?.[0]}
-                                        {admin.last_name?.[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="font-medium text-sm">
-                                        {admin.first_name} {admin.last_name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {admin.email}
-                                      </p>
+                            {admins.length > 0 ? (
+                              <div className="space-y-2">
+                                <p className="text-sm text-gray-600">
+                                  Administrators ({admins.length}):
+                                </p>
+                                {admins.map((admin: DbUser) => (
+                                  <div
+                                    key={admin.user_id}
+                                    className="flex items-center justify-between bg-white rounded p-3 border"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                          {admin.first_name?.[0]}
+                                          {admin.last_name?.[0]}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-medium text-sm">
+                                          {admin.first_name} {admin.last_name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          {admin.email}
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-4 text-gray-500">
-                              <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                              <p className="text-sm">
-                                No administrator assigned
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-gray-500">
+                                <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
+                                <p className="text-sm">
+                                  No administrator assigned
+                                </p>
+                              </div>
+                            )}
+                          </div>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              aria-label="Open actions menu"
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label="Open actions menu"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-48 bg-white"
                             >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-48 bg-white"
-                          >
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              className="text-green-700"
-                              onClick={() => handleActivate(school.school_id)}
-                            >
-                              Activate school
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600 font-bold"
-                              onClick={() =>
-                                requestConfirmation(
-                                  "suspend",
-                                  school.school_id,
-                                  school.name
-                                )
-                              }
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete school
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                className="text-green-700"
+                                onClick={() => handleActivate(school.school_id)}
+                              >
+                                Activate school
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600 font-bold"
+                                onClick={() =>
+                                  requestConfirmation(
+                                    "suspend",
+                                    school.school_id,
+                                    school.name
+                                  )
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete school
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             )}
           </CardContent>
