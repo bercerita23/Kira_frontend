@@ -65,7 +65,7 @@ function isTypoTolerantMatch(input: string, correct: string): boolean {
   const compactB = b.replace(/\s+/g, "");
   const overallDist = distance(compactA, compactB);
 
-  if (overallDist <= 2) return true;
+  if (overallDist <= 2 && correct.length >= 4) return true;
 
   const wordsA = a.split(" ");
   const wordsB = b.split(" ");
@@ -85,6 +85,8 @@ function isTypoTolerantMatch(input: string, correct: string): boolean {
   }
 
   const ratio = matches / comparisons;
+  console.log(ratio);
+
   return ratio >= 0.8;
 }
 
