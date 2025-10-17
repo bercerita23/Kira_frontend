@@ -114,7 +114,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchAttempts() {
       try {
-        const res = await fetch("/api/users/attempts");
+        const res = await fetch("/api/users/attempts/all");
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
         setAttempts(data.attempts || []);
@@ -178,7 +178,7 @@ export default function DashboardPage() {
     fetchAttempts();
     fetchPoints();
     setIsLoading(false);
-  }, []);
+  }, [showChatbot]);
 
   useEffect(() => {
     async function fetchQuizzes() {
@@ -260,7 +260,6 @@ export default function DashboardPage() {
         console.error("Error fetching points:", err);
       }
     }
-    attempts[0] && setMostRecentQuizId(attempts[0].quiz_id);
     fetchBintangStatus();
   }, [attempts]);
 
@@ -369,11 +368,12 @@ export default function DashboardPage() {
   const router = useRouter();
   if (showChatbot) {
     console.log("isBintangAvailable ", isBintangAvailable);
+    console.log("request:", isBintangAvailable?.recent_quiz);
     return (
       <KiraGpt
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
-        initialTopic={`Quiz ${mostRecentQuizId} topics`}
+        initialTopic={`Quiz ${isBintangAvailable?.recent_quiz} topics`}
         remainingTime={isBintangAvailable!.minutes_remaining * 60}
       />
     );
