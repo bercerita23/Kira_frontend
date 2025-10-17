@@ -8,6 +8,9 @@ export async function GET(req: NextRequest) {
       {
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
         },
       }
     );
