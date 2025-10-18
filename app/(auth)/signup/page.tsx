@@ -76,9 +76,7 @@ export default function SignupPage() {
 
         const data = await res.json();
         console.log(data);
-        //setSchools(data); // expected: [{ school_id: "...", name: "..." }]
-
-        setSchools(dummySchools);
+        setSchools(data); // expected: [{ school_id: "...", name: "..." }]
       } catch (err) {
         console.warn("Using temporarily stored schools due to error:", err);
         //setSchools([]);

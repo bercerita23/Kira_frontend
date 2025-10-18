@@ -35,7 +35,6 @@ export default function KiraGpt({
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
-
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
 
@@ -536,7 +535,10 @@ export default function KiraGpt({
                     </p>
                   </div>
                 ) : (
-                  <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[620px]">
+                  <div
+                    className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[620px]"
+                    ref={endRef}
+                  >
                     <p className="text-sm">{msg.text}</p>
                   </div>
                 )}

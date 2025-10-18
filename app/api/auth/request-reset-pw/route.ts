@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+  console.log("Requesting through access point");
   try {
     const body = await request.json();
     const response = await fetch(
