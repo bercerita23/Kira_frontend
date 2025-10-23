@@ -113,7 +113,7 @@ export default function LessonPage() {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
 
   // Add state for chat timer (sync with KiraGpt timer duration)
-  const CHAT_SESSION_LIMIT_MINUTES = 60;
+  const CHAT_SESSION_LIMIT_MINUTES = 5;
   const [chatTimer, setChatTimer] = useState(CHAT_SESSION_LIMIT_MINUTES * 60);
 
   useEffect(() => {
@@ -195,7 +195,6 @@ export default function LessonPage() {
   // When chatbot is shown, start the timer countdown
   useEffect(() => {
     if (!showChatbot) return;
-    setChatTimer(CHAT_SESSION_LIMIT_MINUTES * 60);
     const interval = setInterval(() => {
       setChatTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -526,7 +525,9 @@ export default function LessonPage() {
           />
           <KiraGpt
             isOpen={showChatbot}
-            onClose={() => setShowChatbot(false)}
+            onClose={() => {
+              setShowChatbot(false);
+            }}
             initialTopic={`${quiz.name} topics`}
             remainingTime={chatTimer}
           />
