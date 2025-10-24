@@ -901,9 +901,7 @@ export default function ReviewQuestions({
             </Button>
             <Button
               className="bg-[#0FA958] hover:bg-[#0c8b4a]"
-              onClick={() => {
-                
-              }}
+              onClick={approve}
               disabled={!quizName.trim()}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
