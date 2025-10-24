@@ -17,6 +17,17 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 type Question = {
   question_id: number;
   content: string;
@@ -72,6 +83,12 @@ export default function ReviewQuestions({
   const [imageCacheUrls, setImageCacheUrls] = useState<Record<number, string>>(
     {}
   );
+
+  // Set isDone editing to either DONE or OTHER; OTHER indicates that there is another quiz being edited. DONE means that on approve, there is a quiz being edited.
+  const [isDoneEditing, setIsDoneEditing] = useState<{
+    state: "DONE" | "OTHER" | null;
+    id: number | null;
+  }>({ state: null, id: null });
 
   console.log("ReviewQuestions component mounted with topicId:", topicId);
 
@@ -559,6 +576,44 @@ export default function ReviewQuestions({
 
   return (
     <div className="mx-auto max-w-5xl">
+      <AlertDialog open={isDoneEditing.state != null}>
+        <AlertDialogContent>
+          <AlertDialogTitle>You have unsaved changes!</AlertDialogTitle>
+          <AlertDialogDescription>
+            {isDoneEditing.state === "DONE"
+              ? "You have unsaved changes, would you like to save and approve?"
+              : "You have unsaved changes, would you like to save and edit this question?"}
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <div className="flex flex-row-reverse gap-x-3">
+              <Button
+                className="w-min"
+                onClick={() => {
+                  if (isDoneEditing.state === "OTHER") {
+                    saveEdit();
+                    setEditingId(isDoneEditing.id);
+                    setIsDoneEditing({ id: null, state: null });
+                  } else {
+                    saveEdit();
+                    setIsDoneEditing({ id: null, state: null });
+                    approve();
+                  }
+                }}
+              >
+                yes
+              </Button>
+              <Button
+                className="w-min"
+                onClick={() => {
+                  setIsDoneEditing({ id: null, state: null });
+                }}
+              >
+                no
+              </Button>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -582,7 +637,14 @@ export default function ReviewQuestions({
           <Button variant="outline" onClick={cancel}>
             Back
           </Button>
-          <Button className="bg-[#0FA958] hover:bg-[#0c8b4a]" onClick={approve}>
+          <Button
+            className="bg-[#0FA958] hover:bg-[#0c8b4a]"
+            onClick={() => {
+              editingId === null
+                ? approve()
+                : setIsDoneEditing({ state: "DONE", id: null });
+            }}
+          >
             <CheckCircle className="mr-2 h-4 w-4" />
             Approve
           </Button>
@@ -678,7 +740,14 @@ export default function ReviewQuestions({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => startEdit(q)}
+                        onClick={() => {
+                          editingId === null
+                            ? startEdit(q)
+                            : setIsDoneEditing({
+                                state: "OTHER",
+                                id: q.question_id,
+                              });
+                        }}
                         aria-label="Edit"
                       >
                         <Pencil className="h-4 w-4" />
@@ -832,7 +901,9 @@ export default function ReviewQuestions({
             </Button>
             <Button
               className="bg-[#0FA958] hover:bg-[#0c8b4a]"
-              onClick={approve}
+              onClick={() => {
+                
+              }}
               disabled={!quizName.trim()}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
