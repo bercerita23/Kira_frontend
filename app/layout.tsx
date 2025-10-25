@@ -30,8 +30,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${lato.variable}`}>
-      <body className={inter.className}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${lato.variable}`}
+    >
+      <body>
         <ThemeProvider>
           <AuthProvider>
             {children}
