@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
+import AnalyticsPage from "@/components/dashboard/analytics";
 import ReviewQuestions from "@/components/ReviewQuestions";
 import { parseISO, isThisWeek } from "date-fns";
 import {
@@ -363,12 +364,13 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const fetchSchoolName = async () => {
+      console.log("Fetching school name for school_id:", user?.school_id);
       if (!user?.school_id) return;
 
       try {
         const response = await fetch("/api/auth/school");
         const schools = await response.json();
-
+        console.log("Fetched schools:", schools);
         const school = schools.find(
           (s: { school_id: string }) => s.school_id === user.school_id
         );
@@ -1787,11 +1789,7 @@ export default function AdminDashboardPage() {
         )}
 
         {activeTab === "analytics" && (
-          <div>
-            {/* Place your Usage Analytics content here */}
-            <h2 className="text-2xl font-bold mb-4">Usage Analytics</h2>
-            {/* ...add analytics content as needed... */}
-          </div>
+          <AnalyticsPage schoolName={schoolName || "My School"} />
         )}
 
         {activeTab === "upload" && (
