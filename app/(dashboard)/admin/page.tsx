@@ -123,6 +123,18 @@ export default function AdminDashboardPage() {
     topic_name: string;
   } | null>(null);
 
+  type QuizStat = {
+    quiz_id: number;
+    quiz_name?: string;
+    mean_score: number;
+    min_score?: number;
+    max_score?: number;
+    stddev_score?: number;
+    median_score?: number;
+    completion?: number;
+  };
+
+  const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
 
@@ -376,7 +388,15 @@ export default function AdminDashboardPage() {
         );
 
         if (school) {
-          setSchoolName(school.name); // or whatever field represents the name
+          setSchoolName(school.name);
+        }
+
+        const quizStatsRes = await fetch("/api/admin/quizzes");
+        const quizStats = await quizStatsRes.json();
+        console.log("Fetched stats:", quizStats);
+
+        if (quizStats) {
+          setQuizStats(quizStats);
         }
       } catch (error) {
         console.error("Failed to fetch school data:", error);
@@ -1789,7 +1809,11 @@ export default function AdminDashboardPage() {
         )}
 
         {activeTab === "analytics" && (
-          <AnalyticsPage schoolName={schoolName || "My School"} />
+          <AnalyticsPage
+            schoolName={schoolName || "My School"}
+            quizStats={quizStats}
+            totalStudents={students.length}
+          />
         )}
 
         {activeTab === "upload" && (
