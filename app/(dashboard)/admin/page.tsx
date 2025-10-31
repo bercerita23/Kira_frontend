@@ -134,6 +134,13 @@ export default function AdminDashboardPage() {
     completion?: number;
   };
 
+  interface StudentStat {
+    user_id: number;
+    first_name: string;
+    mean_score: number;
+  }
+
+  const [studentStats, setStudentStats] = useState<StudentStat[] | null>(null);
   const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
@@ -397,6 +404,13 @@ export default function AdminDashboardPage() {
 
         if (quizStats) {
           setQuizStats(quizStats);
+        }
+
+        const scoresRes = await fetch("/api/admin/mean-scores");
+        const studentMeanScore = await scoresRes.json();
+        console.log("Fetched scores:", studentMeanScore);
+        if (studentMeanScore) {
+          setStudentStats(studentMeanScore);
         }
       } catch (error) {
         console.error("Failed to fetch school data:", error);
@@ -1813,6 +1827,7 @@ export default function AdminDashboardPage() {
             schoolName={schoolName || "My School"}
             quizStats={quizStats}
             totalStudents={students.length}
+            studentStats={studentStats}
           />
         )}
 

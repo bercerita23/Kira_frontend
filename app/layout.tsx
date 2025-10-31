@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 const lato = Lato({
-  weight: "400",
+  weight: ["300", "400", "700"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-lato",

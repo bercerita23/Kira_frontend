@@ -15,16 +15,24 @@ interface QuizStats {
   completion?: number;
 }
 
+interface StudentStat {
+  user_id: number;
+  first_name: string;
+  mean_score: number;
+}
+
 interface AnalyticsProps {
   schoolName: string;
   quizStats: QuizStats[] | null;
   totalStudents?: number;
+  studentStats: StudentStat[] | null;
 }
 
 export default function AnalyticsPage({
   schoolName,
   quizStats,
   totalStudents,
+  studentStats,
 }: AnalyticsProps) {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
 
@@ -37,7 +45,7 @@ export default function AnalyticsPage({
   }
 
   return (
-    <div className="flex flex-col mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+    <div className="font-lato flex flex-col mt-6 rounded-2xl border bg-white p-5 shadow-sm">
       <div className="border-b px-6 py-4 text-center">
         <h3 className="text-lg font-semibold">{schoolName}</h3>
       </div>
@@ -75,7 +83,7 @@ export default function AnalyticsPage({
             className="w-1/2 border border rounded-[4px] px-3 py-2 text-sm"
           >
             <option value="">Select Quiz</option>
-            {quizStats.map((quiz) => (
+            {quizStats?.map((quiz) => (
               <option key={quiz.quiz_id} value={quiz.quiz_id}>
                 {quiz.quiz_name || `Quiz ${quiz.quiz_id}`}
               </option>
@@ -139,27 +147,70 @@ export default function AnalyticsPage({
               </div>
             </div>
           )}
+        </div>
+      </div>
 
-          {/* {quizStats && quizStats.length > 0 ? (
-          quizStats.map((stat) => (
-            <div
-              key={stat.quiz_id}
-              className="mt-4 flex flex-row justify-between"
-            >
-              <div className="flex flex-col gap-2">
-                <p className="text-sm"> Quiz ID: {stat.quiz_id} </p>
-                <p className="text-sm">
-                  {" "}
-                  Mean Score: {stat.mean_score.toFixed(2)}{" "}
+      <div className="flex p-8 flex-col mt-6 gap-8 rounded-sm border bg-white p-0 shadow-sm ">
+        <h3 className="text-gray-400 font-semibold opacity-90  text-lg">
+          Average Quiz Score Over Time
+        </h3>
+
+        <div className="flex flex-row gap-4 items-center justify-evenly ">
+          <div className="flex flex-col gap-2 items-center justify-center bg-gray-50 px-12 py-4 gap-4 rounded-sm">
+            <div className="text-center text-lg border-b px-6 py-4">
+              <p> Latest Quiz Average </p>
+            </div>
+            <p className="text-lg font-bold">
+              {(quizStats[0].mean_score * 100).toFixed(0)}%
+            </p>
+            <div className="flex items-center gap-1 px-3 py-1 rounded-full border border-green-700 bg-green-50 text-green-700 text-sm font-semibold">
+              <span className="text-lg leading-none">↑</span>
+              <span>+2%</span>
+            </div>
+          </div>
+
+          <div>
+            {" "}
+            <p> graph goes here </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex p-8 flex-col mt-6 gap-8 rounded-sm border bg-white p-0 shadow-sm ">
+        <h3 className="text-gray-400 font-semibold opacity-90  text-lg">
+          Student Leaderboard - Average Quiz Score
+        </h3>
+
+        <div className="mt-2 text-lg border-b px-6 py-4">
+          <p> TOP SCORERS </p>
+        </div>
+
+        <div className="flex flex-row items-start justify-evenly w-full mt-6">
+          {!studentStats || studentStats.length === 0 ? (
+            <p className="text-sm text-gray-500">No stats available</p>
+          ) : (
+            studentStats.slice(0, 3).map((student, index) => (
+              <div
+                key={student.user_id}
+                className="flex flex-col items-center text-center"
+              >
+                <p className="text-sm font-medium text-green-700">
+                  {index === 0
+                    ? "1st Place"
+                    : index === 1
+                    ? "2nd Place"
+                    : index === 2
+                    ? "3rd Place"
+                    : `${index + 1}th Place`}
+                </p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                  {(student.mean_score * 100).toFixed(0)}%
+                </p>
+                <p className="text-base text-gray-800 mt-1">
+                  {student.first_name}
                 </p>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="mt-4 text-sm text-gray-500">
-            No quiz statistics available.
-          </p> */}
-          {/* )} */}
+            ))
+          )}
         </div>
       </div>
     </div>
