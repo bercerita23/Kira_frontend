@@ -140,6 +140,12 @@ export default function AdminDashboardPage() {
     mean_score: number;
   }
 
+  interface TimeStats {
+    avg_student_per_month: number;
+    total_minutes: number;
+  }
+
+  const [timeStats, setTimeStats] = useState<TimeStats | null>(null);
   const [studentStats, setStudentStats] = useState<StudentStat[] | null>(null);
   const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
@@ -411,6 +417,13 @@ export default function AdminDashboardPage() {
         console.log("Fetched scores:", studentMeanScore);
         if (studentMeanScore) {
           setStudentStats(studentMeanScore);
+        }
+
+        const timeStatsRes = await fetch("/api/admin/time-stats");
+        const timeStatsData = await timeStatsRes.json();
+        console.log("Fetched time stats:", timeStatsData);
+        if (timeStatsData) {
+          setTimeStats(timeStatsData);
         }
       } catch (error) {
         console.error("Failed to fetch school data:", error);
@@ -1828,6 +1841,7 @@ export default function AdminDashboardPage() {
             quizStats={quizStats}
             totalStudents={students.length}
             studentStats={studentStats}
+            timeStats={timeStats}
           />
         )}
 

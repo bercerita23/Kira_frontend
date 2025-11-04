@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ReviewQuestions from "@/components/ReviewQuestions";
 import Link from "next/link";
+import QuizAverageChart from "@/components/dashboard/line-graph";
 
 interface QuizStats {
   quiz_id: number;
@@ -13,6 +14,11 @@ interface QuizStats {
   stddev_score?: number;
   median_score?: number;
   completion?: number;
+}
+
+interface TimeStats {
+  avg_student_per_month: number;
+  total_minutes: number;
 }
 
 interface StudentStat {
@@ -26,6 +32,7 @@ interface AnalyticsProps {
   quizStats: QuizStats[] | null;
   totalStudents?: number;
   studentStats: StudentStat[] | null;
+  timeStats?: TimeStats | null;
 }
 
 export default function AnalyticsPage({
@@ -33,6 +40,7 @@ export default function AnalyticsPage({
   quizStats,
   totalStudents,
   studentStats,
+  timeStats,
 }: AnalyticsProps) {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
 
@@ -58,11 +66,35 @@ export default function AnalyticsPage({
         <div className="mt-4 flex flex-row justify-between">
           <div className="flex flex-col gap-2">
             <p className="text-sm"> Total </p>
-            <p className="text-[#113604]"> 20 hours 25 minutes</p>
+            <p className="text-[#113604]">
+              {timeStats?.total_minutes !== undefined
+                ? (() => {
+                    const totalMinutes = Math.round(timeStats.total_minutes);
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    if (hours > 0 && minutes > 0)
+                      return `${hours} hours ${minutes} mins`;
+                    if (hours > 0) return `${hours} hours`;
+                    return `${minutes} mins`;
+                  })()
+                : "0 mins"}
+            </p>{" "}
           </div>
           <div className="flex flex-col gap-2 ">
             <p className="text-sm"> Average per Student per Month </p>
-            <p className="text-[#113604]"> 4 hours 5 minutes </p>
+            {timeStats?.avg_student_per_month !== undefined
+              ? (() => {
+                  const totalMinutes = Math.round(
+                    timeStats.avg_student_per_month
+                  );
+                  const hours = Math.floor(totalMinutes / 60);
+                  const minutes = totalMinutes % 60;
+                  if (hours > 0 && minutes > 0)
+                    return `${hours} hours ${minutes} mins`;
+                  if (hours > 0) return `${hours} hours`;
+                  return `${minutes} mins`;
+                })()
+              : "0 mins"}
           </div>
           <div className="flex flex-col gap-2"></div>
         </div>
@@ -169,10 +201,7 @@ export default function AnalyticsPage({
             </div>
           </div>
 
-          <div>
-            {" "}
-            <p> graph goes here </p>
-          </div>
+          <QuizAverageChart />
         </div>
       </div>
       <div className="flex p-8 flex-col mt-6 gap-8 rounded-sm border bg-white p-0 shadow-sm ">
