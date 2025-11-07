@@ -21,6 +21,8 @@ import KiraGpt from "@/components/Kira-gpt";
 import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import LessonNavbar from "@/components/LessonNavbar"; // Add this import
+import { distance } from "fastest-levenshtein";
+
 type Question = {
   question_id: number;
   content: string;
@@ -47,6 +49,46 @@ type Attempt = {
   created_at: string;
   attempt_count: number;
 };
+
+function isTypoTolerantMatch(input: string, correct: string): boolean {
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^A-Za-z\s]/g, "")
+      .trim()
+      .replace(/\s+/g, " ");
+
+  const a = normalize(input);
+  const b = normalize(correct);
+
+  const compactA = a.replace(/\s+/g, "");
+  const compactB = b.replace(/\s+/g, "");
+  const overallDist = distance(compactA, compactB);
+
+  if (overallDist <= 2 && correct.length >= 4) return true;
+
+  const wordsA = a.split(" ");
+  const wordsB = b.split(" ");
+
+  let matches = 0;
+  let comparisons = Math.max(wordsA.length, wordsB.length);
+
+  for (const wordA of wordsA) {
+    let bestDistance = Infinity;
+    for (const wordB of wordsB) {
+      const d = distance(wordA, wordB);
+      bestDistance = Math.min(bestDistance, d);
+    }
+
+    const allowedTypos = wordA.length <= 4 ? 0 : wordA.length <= 8 ? 1 : 2;
+    if (bestDistance <= allowedTypos) matches++;
+  }
+
+  const ratio = matches / comparisons;
+  console.log(ratio);
+
+  return ratio >= 0.8;
+}
 
 export default function LessonPage() {
   const { toast } = useToast();
@@ -263,13 +305,11 @@ export default function LessonPage() {
   };
 
   const handleNext = () => {
+    console.log("User answers", userAnswers);
     if (!selectedAnswer.trim()) return;
 
     // Trigger confetti if current answer is correct before moving to next question
-    if (
-      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
-      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
-    ) {
+    if (isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)) {
       confetti({
         particleCount: 100,
         spread: 70,
@@ -284,8 +324,7 @@ export default function LessonPage() {
     } else {
       const finalScore = userAnswers.reduce(
         (acc, answer, index) =>
-          answer.toLowerCase().trim() ===
-          quiz.questions[index].answer.toLowerCase().trim()
+          isTypoTolerantMatch(answer, quiz.questions[index].answer)
             ? acc + 1
             : acc,
         0
@@ -301,13 +340,8 @@ export default function LessonPage() {
 
   const submitQuizResults = async (finalScore: number) => {
     try {
-      const correctAnswers = userAnswers.filter(
-        (answer, index) =>
-          answer.toLowerCase().trim().replace(/\s+/g, " ") ===
-          quiz!.questions[index].answer
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, " ")
+      const correctAnswers = userAnswers.filter((ans, index) =>
+        isTypoTolerantMatch(ans, quiz!.questions[index].answer)
       ).length;
 
       const submissionData = {
@@ -346,12 +380,6 @@ export default function LessonPage() {
 
   const handleSubmit = () => {
     setShowResult(true);
-
-    if (
-      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
-      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
-    ) {
-    }
   };
 
   const renderQuestion = () => {
@@ -397,11 +425,7 @@ export default function LessonPage() {
                 <textarea
                   value={
                     showResult &&
-                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
-                      currentQuestion.answer
-                        .toLowerCase()
-                        .trim()
-                        .replace(/\s+/g, " ")
+                    !isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)
                       ? `Incorrect - Correct answer: ${currentQuestion.answer}`
                       : selectedAnswer
                   }
@@ -418,14 +442,10 @@ export default function LessonPage() {
                   placeholder="Type Here..."
                   className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
                     showResult
-                      ? selectedAnswer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ") ===
-                        currentQuestion.answer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ")
+                      ? isTypoTolerantMatch(
+                          selectedAnswer,
+                          currentQuestion.answer
+                        )
                         ? "border-green-400 bg-green-50 text-green-800"
                         : "border-red-400 bg-red-50 text-red-800"
                       : "border-orange-400 bg-white text-gray-700"
@@ -459,11 +479,7 @@ export default function LessonPage() {
                 <textarea
                   value={
                     showResult &&
-                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
-                      currentQuestion.answer
-                        .toLowerCase()
-                        .trim()
-                        .replace(/\s+/g, " ")
+                    !isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)
                       ? `Incorrect - Correct answer: ${currentQuestion.answer}`
                       : selectedAnswer
                   }
@@ -480,14 +496,10 @@ export default function LessonPage() {
                   placeholder="Type Here..."
                   className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
                     showResult
-                      ? selectedAnswer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ") ===
-                        currentQuestion.answer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ")
+                      ? isTypoTolerantMatch(
+                          selectedAnswer,
+                          currentQuestion.answer
+                        )
                         ? "border-green-400 bg-green-50 text-green-800"
                         : "border-red-400 bg-red-50 text-red-800"
                       : "border-orange-400 bg-white text-gray-700"
