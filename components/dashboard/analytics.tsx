@@ -14,6 +14,7 @@ interface QuizStats {
   stddev_score?: number;
   median_score?: number;
   completion?: number;
+  scores?: number[];
 }
 
 interface TimeStats {
@@ -35,6 +36,11 @@ interface AnalyticsProps {
   timeStats?: TimeStats | null;
 }
 
+interface QuizAverage {
+  quiz: string;
+  average: number;
+}
+
 export default function AnalyticsPage({
   schoolName,
   quizStats,
@@ -43,7 +49,14 @@ export default function AnalyticsPage({
   timeStats,
 }: AnalyticsProps) {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
-
+  const getQuizAverages = (): QuizAverage[] => {
+    return (
+      quizStats?.map((quiz) => ({
+        quiz: quiz.quiz_name || `Quiz ${quiz.quiz_id}`,
+        average: quiz.mean_score * 100,
+      })) || []
+    );
+  };
   if (!quizStats || quizStats.length === 0) {
     return (
       <p className="mt-4 text-sm text-gray-500">
@@ -193,15 +206,53 @@ export default function AnalyticsPage({
               <p> Latest Quiz Average </p>
             </div>
             <p className="text-lg font-bold">
-              {(quizStats[0].mean_score * 100).toFixed(0)}%
+              {(quizStats[quizStats.length - 1].mean_score * 100).toFixed(0)}%
             </p>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-full border border-green-700 bg-green-50 text-green-700 text-sm font-semibold">
-              <span className="text-lg leading-none">↑</span>
-              <span>+2%</span>
-            </div>
+            {(() => {
+              const averages = getQuizAverages();
+              const len = averages.length;
+
+              if (len < 2) {
+                return (
+                  <div className="flex items-center gap-1 px-3 py-1 rounded-full border border-gray-400 bg-gray-50 text-gray-600 text-sm font-semibold">
+                    <span className="text-lg leading-none">–</span>
+                    <span>100%</span>
+                  </div>
+                );
+              }
+
+              const last = averages[len - 1].average;
+              const prev = averages[len - 2].average;
+              const diff = last - prev;
+
+              let colorClasses = "";
+              let arrow = "";
+              let formattedDiff = diff.toFixed(0);
+
+              if (diff > 0) {
+                colorClasses = "border-green-700 bg-green-50 text-green-700";
+                arrow = "↑";
+                formattedDiff = `+${formattedDiff}`;
+              } else if (diff < 0) {
+                colorClasses = "border-red-700 bg-red-50 text-red-700";
+                arrow = "↓";
+              } else {
+                colorClasses = "border-gray-400 bg-gray-50 text-gray-600";
+                arrow = "–";
+              }
+
+              return (
+                <div
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full border ${colorClasses} text-sm font-semibold`}
+                >
+                  <span className="text-lg leading-none">{arrow}</span>
+                  <span>{formattedDiff}%</span>
+                </div>
+              );
+            })()}
           </div>
 
-          <QuizAverageChart />
+          <QuizAverageChart quizStats={getQuizAverages()} />
         </div>
       </div>
       <div className="flex p-8 flex-col mt-6 gap-8 rounded-sm border bg-white p-0 shadow-sm ">
