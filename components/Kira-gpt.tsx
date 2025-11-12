@@ -23,7 +23,7 @@ export default function KiraGpt({
   isOpen,
   onClose,
   initialTopic = "your learning",
-  remainingTime = 5 * 60,
+  remainingTime = 60 * 60,
 }: KiraGptProps) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -34,6 +34,7 @@ export default function KiraGpt({
   const [recordingStartTime, setRecordingStartTime] = useState<number>(0);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
 
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
@@ -458,6 +459,10 @@ export default function KiraGpt({
 
   if (!isOpen) return null;
 
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [chatMessages.length]);
+
   return (
     <div
       className="min-h-screen flex items-center justify-center relative"
@@ -511,7 +516,10 @@ export default function KiraGpt({
             {chatMessages.map((msg, idx) => (
               <div key={msg.id} className="flex flex-col">
                 {msg.isBot ? (
-                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]">
+                  <div
+                    className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]"
+                    ref={endRef}
+                  >
                     <p className="text-sm text-gray-800">
                       {/* Show typer animation for the last bot message if typing */}
                       {isTyping &&
