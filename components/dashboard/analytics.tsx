@@ -5,6 +5,7 @@ import ReviewQuestions from "@/components/ReviewQuestions";
 import Link from "next/link";
 import QuizAverageChart from "@/components/dashboard/line-graph";
 import { ExternalLink } from "lucide-react";
+import ScoreHistogram from "@/components/dashboard/bar-graph";
 
 interface QuizStats {
   quiz_id: number;
@@ -51,6 +52,12 @@ export default function AnalyticsPage({
 }: AnalyticsProps) {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
   const [showClassStandings, setShowClassStandings] = useState(false);
+
+  useEffect(() => {
+    if (quizStats && quizStats.length > 0) {
+      setSelectedQuiz(quizStats[quizStats.length - 1]);
+    }
+  }, [quizStats]);
 
   const getQuizAverages = (): QuizAverage[] => {
     return (
@@ -137,9 +144,12 @@ export default function AnalyticsPage({
               </option>
             ))}
           </select>
+          {selectedQuiz?.scores && (
+            <ScoreHistogram scores={selectedQuiz.scores} />
+          )}
 
           {selectedQuiz && (
-            <div className="mt-6 w-full">
+            <div className="w-full">
               <div className="flex flex-row justify-between items-start w-full p-4 rounded-md bg-white">
                 {/* Average */}
                 <div className="flex flex-col items-center text-center flex-1">
