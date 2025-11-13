@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ReviewQuestions from "@/components/ReviewQuestions";
 import Link from "next/link";
 import QuizAverageChart from "@/components/dashboard/line-graph";
+import { ExternalLink } from "lucide-react";
 
 interface QuizStats {
   quiz_id: number;
@@ -49,6 +50,8 @@ export default function AnalyticsPage({
   timeStats,
 }: AnalyticsProps) {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
+  const [showClassStandings, setShowClassStandings] = useState(false);
+
   const getQuizAverages = (): QuizAverage[] => {
     return (
       quizStats?.map((quiz) => ({
@@ -292,6 +295,128 @@ export default function AnalyticsPage({
             ))
           )}
         </div>
+
+        {studentStats && studentStats.length > 3 && (
+          <>
+            <div className="mt-8 text-lg border-b px-6 py-4">
+              <p>LOW SCORERS</p>
+            </div>
+
+            <div className="flex flex-row items-start justify-evenly w-full mt-6">
+              {studentStats
+                .slice(-3)
+                .reverse()
+                .map((student, index) => {
+                  const actualPosition = studentStats.length - 2 + index;
+                  return (
+                    <div
+                      key={student.user_id}
+                      className="flex flex-col items-center text-center"
+                    >
+                      <p className="text-sm font-medium text-red-600">
+                        {actualPosition === studentStats.length
+                          ? "Last Place"
+                          : `${actualPosition}${
+                              actualPosition % 10 === 1 && actualPosition !== 11
+                                ? "st"
+                                : actualPosition % 10 === 2 &&
+                                  actualPosition !== 12
+                                ? "nd"
+                                : actualPosition % 10 === 3 &&
+                                  actualPosition !== 13
+                                ? "rd"
+                                : "th"
+                            } Place`}
+                      </p>
+                      <p className="text-2xl font-semibold text-gray-900 mt-1">
+                        {(student.mean_score * 100).toFixed(0)}%
+                      </p>
+                      <p className="text-base text-gray-800 mt-1">
+                        {student.first_name}
+                      </p>
+                    </div>
+                  );
+                })}
+            </div>
+          </>
+        )}
+        {/* View Class Standings Toggle */}
+        {studentStats && studentStats.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={() => setShowClassStandings(!showClassStandings)}
+              className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center gap-1"
+            >
+              View Class Standings
+              <span
+                className={`transform transition-transform ${
+                  showClassStandings ? "rotate-180" : ""
+                }`}
+              >
+                ▼
+              </span>
+            </button>
+          </div>
+        )}
+        {/* Class Standings Table */}
+        {showClassStandings && studentStats && (
+          <div className="mt-6">
+            <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">
+              CLASS STANDINGS
+            </h3>
+
+            <div className="flex flex-col items-center w-full">
+              <div className="w-[80%] max-w-3xl flex flex-col">
+                {/* Header */}
+                <div className="grid grid-cols-12 w-11/12 px-8 py-3 text-xs text-gray-500 font-medium">
+                  <div className="col-span-2 text-left">Ranking</div>
+                  <div className="col-span-7 text-left">Student</div>
+                  <div className="col-span-3 text-right pr-20">
+                    Quiz Average
+                  </div>
+                </div>
+
+                {/* Table Body */}
+                <div className="flex flex-col w-11/12">
+                  {studentStats.map((student, index) => (
+                    <div
+                      key={student.user_id}
+                      className="grid grid-cols-12 items-center w-full bg-white border rounded-xl px-8 py-3 mb-3 hover:shadow-sm transition-all"
+                    >
+                      {/* Ranking */}
+                      <div className="col-span-2 text-left font-semibold text-gray-800">
+                        {index + 1}
+                      </div>
+
+                      {/* Student (Name + Username inline) */}
+                      <div className="col-span-7 text-left text-gray-800 flex items-center gap-2">
+                        <span className="font-medium">
+                          {student.first_name || "First Last"}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          username1234!
+                        </span>
+                      </div>
+
+                      {/* Quiz Average + Arrow Button */}
+                      <div className="col-span-3 flex items-center justify-end gap-20">
+                        <span className="font-semibold text-gray-800 text-sm">
+                          {(student.mean_score * 100).toFixed(0)}%
+                        </span>
+                        <button
+                          title="View details"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full border-transparent hover:border-gray-400 transition"
+                        >
+                          <ExternalLink className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
