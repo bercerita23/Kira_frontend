@@ -233,18 +233,34 @@ export default function AdminDashboardPage() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to deactivate student");
       }
-
+      //KAN 157: since api calls happen only once for this case we locally change the state to deactivated
+      if (studentQuizAttempts) {
+        setStudentQuizAttempts({
+          ...studentQuizAttempts,
+          student_info: {
+            ...studentQuizAttempts.student_info,
+            deactivated: true,
+          },
+        });
+      }
       console.log("✅ Student deactivated:", data);
-      // Optionally refetch students or show a success toast here
+      toast({
+        title: "Student Deactivated",
+        description: "The student account has been deactivated.",
+      });
     } catch (error) {
       console.error("❌ Error deactivating student:", error);
-      // Optionally show an error toast here
+      toast({
+        title: "Deactivation Failed",
+        description: "Failed to deactivate student account.",
+        variant: "destructive",
+      });
     }
   }
 
   async function reactivateStudent(username: string) {
     try {
-      const response = await fetch("/api/admin/reactivate_student/", {
+      const response = await fetch("/api/admin/reactivate_student", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -259,9 +275,26 @@ export default function AdminDashboardPage() {
       }
 
       console.log("✅ Student reactivated:", data);
-      // Optionally refresh state/UI here
+      if (studentQuizAttempts) {
+        setStudentQuizAttempts({
+          ...studentQuizAttempts,
+          student_info: {
+            ...studentQuizAttempts.student_info,
+            deactivated: false,
+          },
+        });
+      }
+      toast({
+        title: "Student Reactivated",
+        description: "The student account has been reactivated.",
+      });
     } catch (error) {
       console.error("❌ Reactivation failed:", error);
+      toast({
+        title: "Reactivation Failed",
+        description: "Failed to reactivate student account.",
+        variant: "destructive",
+      });
     }
   }
 
