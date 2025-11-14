@@ -198,6 +198,9 @@ export default function AdminDashboardPage() {
     "students" | "analytics" | "upload"
   >("students");
   const [passwordError, setPasswordError] = useState(false);
+  const [studentsActiveTab, setStudentsActiveTab] = useState<
+    "students" | "add-student"
+  >("students");
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -908,7 +911,13 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabbed Content */}
         {activeTab === "students" && (
-          <Tabs defaultValue="students" className="space-y-6">
+          <Tabs
+            value={studentsActiveTab}
+            onValueChange={(value) =>
+              setStudentsActiveTab(value as "students" | "add-student")
+            }
+            className="space-y-6"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="students" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -1034,9 +1043,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <Button
                     className="ml-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => {
-                      /* trigger add student tab */
-                    }}
+                    onClick={() => setStudentsActiveTab("add-student")}
                   >
                     Add a Student
                   </Button>
