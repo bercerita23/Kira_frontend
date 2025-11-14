@@ -392,7 +392,7 @@ export default function AnalyticsPage({
                   {studentStats.map((student, index) => (
                     <div
                       key={student.user_id}
-                      className="grid grid-cols-12 items-center w-full bg-white border rounded-xl px-8 py-3 mb-3 hover:shadow-sm transition-all"
+                      className="grid grid-cols-12 items-center w-full bg-white border rounded-xl px-8 py-1 mb-3 hover:shadow-sm transition-all"
                     >
                       {/* Ranking */}
                       <div className="col-span-2 text-left font-semibold text-gray-800">
