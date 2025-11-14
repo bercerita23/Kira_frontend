@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { authApi } from "@/lib/api/auth";
+import AnalyticsPage from "@/components/dashboard/analytics";
 import ReviewQuestions from "@/components/ReviewQuestions";
 import { parseISO, isThisWeek } from "date-fns";
 import {
@@ -122,6 +123,31 @@ export default function AdminDashboardPage() {
     topic_name: string;
   } | null>(null);
 
+  type QuizStat = {
+    quiz_id: number;
+    quiz_name?: string;
+    mean_score: number;
+    min_score?: number;
+    max_score?: number;
+    stddev_score?: number;
+    median_score?: number;
+    completion?: number;
+  };
+
+  interface StudentStat {
+    user_id: number;
+    first_name: string;
+    mean_score: number;
+  }
+
+  interface TimeStats {
+    avg_student_per_month: number;
+    total_minutes: number;
+  }
+
+  const [timeStats, setTimeStats] = useState<TimeStats | null>(null);
+  const [studentStats, setStudentStats] = useState<StudentStat[] | null>(null);
+  const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
 
@@ -172,6 +198,9 @@ export default function AdminDashboardPage() {
     "students" | "analytics" | "upload"
   >("students");
   const [passwordError, setPasswordError] = useState(false);
+  const [studentsActiveTab, setStudentsActiveTab] = useState<
+    "students" | "add-student"
+  >("students");
 
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
@@ -207,18 +236,34 @@ export default function AdminDashboardPage() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to deactivate student");
       }
-
+      //KAN 157: since api calls happen only once for this case we locally change the state to deactivated
+      if (studentQuizAttempts) {
+        setStudentQuizAttempts({
+          ...studentQuizAttempts,
+          student_info: {
+            ...studentQuizAttempts.student_info,
+            deactivated: true,
+          },
+        });
+      }
       console.log("✅ Student deactivated:", data);
-      // Optionally refetch students or show a success toast here
+      toast({
+        title: "Student Deactivated",
+        description: "The student account has been deactivated.",
+      });
     } catch (error) {
       console.error("❌ Error deactivating student:", error);
-      // Optionally show an error toast here
+      toast({
+        title: "Deactivation Failed",
+        description: "Failed to deactivate student account.",
+        variant: "destructive",
+      });
     }
   }
 
   async function reactivateStudent(username: string) {
     try {
-      const response = await fetch("/api/admin/reactivate_student/", {
+      const response = await fetch("/api/admin/reactivate_student", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -233,9 +278,26 @@ export default function AdminDashboardPage() {
       }
 
       console.log("✅ Student reactivated:", data);
-      // Optionally refresh state/UI here
+      if (studentQuizAttempts) {
+        setStudentQuizAttempts({
+          ...studentQuizAttempts,
+          student_info: {
+            ...studentQuizAttempts.student_info,
+            deactivated: false,
+          },
+        });
+      }
+      toast({
+        title: "Student Reactivated",
+        description: "The student account has been reactivated.",
+      });
     } catch (error) {
       console.error("❌ Reactivation failed:", error);
+      toast({
+        title: "Reactivation Failed",
+        description: "Failed to reactivate student account.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -363,18 +425,41 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const fetchSchoolName = async () => {
+      console.log("Fetching school name for school_id:", user?.school_id);
       if (!user?.school_id) return;
 
       try {
         const response = await fetch("/api/auth/school");
         const schools = await response.json();
-
+        console.log("Fetched schools:", schools);
         const school = schools.find(
           (s: { school_id: string }) => s.school_id === user.school_id
         );
 
         if (school) {
-          setSchoolName(school.name); // or whatever field represents the name
+          setSchoolName(school.name);
+        }
+
+        const quizStatsRes = await fetch("/api/admin/quizzes");
+        const quizStats = await quizStatsRes.json();
+        console.log("Fetched stats:", quizStats);
+
+        if (quizStats) {
+          setQuizStats(quizStats);
+        }
+
+        const scoresRes = await fetch("/api/admin/mean-scores");
+        const studentMeanScore = await scoresRes.json();
+        console.log("Fetched scores:", studentMeanScore);
+        if (studentMeanScore) {
+          setStudentStats(studentMeanScore);
+        }
+
+        const timeStatsRes = await fetch("/api/admin/time-stats");
+        const timeStatsData = await timeStatsRes.json();
+        console.log("Fetched time stats:", timeStatsData);
+        if (timeStatsData) {
+          setTimeStats(timeStatsData);
         }
       } catch (error) {
         console.error("Failed to fetch school data:", error);
@@ -826,7 +911,13 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabbed Content */}
         {activeTab === "students" && (
-          <Tabs defaultValue="students" className="space-y-6">
+          <Tabs
+            value={studentsActiveTab}
+            onValueChange={(value) =>
+              setStudentsActiveTab(value as "students" | "add-student")
+            }
+            className="space-y-6"
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="students" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -952,9 +1043,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <Button
                     className="ml-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => {
-                      /* trigger add student tab */
-                    }}
+                    onClick={() => setStudentsActiveTab("add-student")}
                   >
                     Add a Student
                   </Button>
@@ -1787,11 +1876,13 @@ export default function AdminDashboardPage() {
         )}
 
         {activeTab === "analytics" && (
-          <div>
-            {/* Place your Usage Analytics content here */}
-            <h2 className="text-2xl font-bold mb-4">Usage Analytics</h2>
-            {/* ...add analytics content as needed... */}
-          </div>
+          <AnalyticsPage
+            schoolName={schoolName || "My School"}
+            quizStats={quizStats}
+            totalStudents={students.length}
+            studentStats={studentStats}
+            timeStats={timeStats}
+          />
         )}
 
         {activeTab === "upload" && (
