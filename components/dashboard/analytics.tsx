@@ -28,6 +28,7 @@ interface StudentStat {
   user_id: number;
   first_name: string;
   mean_score: number;
+  username?: string;
 }
 
 interface AnalyticsProps {
@@ -404,7 +405,7 @@ export default function AnalyticsPage({
                           {student.first_name || "First Last"}
                         </span>
                         <span className="text-gray-400 text-xs">
-                          username1234!
+                          {student.username || "username1234!"}{" "}
                         </span>
                       </div>
 
