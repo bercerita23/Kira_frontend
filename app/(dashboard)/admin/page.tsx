@@ -1017,12 +1017,12 @@ export default function AdminDashboardPage() {
                       </div>
                       <Button
                         onClick={() => setShowFilter(false)}
-                        className="w-full bg-[#B40000] text-white rounded-sm"
+                        className="w-full bg-green-600 text-white rounded-sm"
                       >
                         Apply
                       </Button>
                       <button
-                        className="mt-2 text-sm text-[#B40000] underline w-full"
+                        className="mt-2 text-sm text-green-600 underline w-full"
                         onClick={() => setSelectedGrades([])}
                       >
                         Clear Filters

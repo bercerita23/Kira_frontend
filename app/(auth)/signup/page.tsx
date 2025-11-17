@@ -71,7 +71,7 @@ export default function SignupPage() {
   useEffect(() => {
     const loadSchools = async () => {
       try {
-        const res = await fetch("/api/auth/schools");
+        const res = await fetch("/api/auth/school");
         if (!res.ok) throw new Error("Failed to load schools");
 
         const data = await res.json();
