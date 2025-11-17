@@ -10,6 +10,13 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -29,12 +36,24 @@ const isEmail = (input: string): boolean => {
 };
 
 // Function to determine the type of identifier and return appropriate credentials
-const getLoginCredentials = (identifier: string, password: string) => {
+const getLoginCredentials = (
+  identifier: string,
+  password: string,
+  schoolId?: string
+) => {
   if (isEmail(identifier)) {
-    return { email: identifier, password };
+    const credentials: any = { email: identifier, password };
+    if (schoolId) {
+      credentials.school_id = schoolId;
+    }
+    return credentials;
   } else {
     // If it's not an email, treat it as username
-    return { username: identifier, password };
+    const credentials: any = { username: identifier, password };
+    if (schoolId) {
+      credentials.school_id = schoolId;
+    }
+    return credentials;
   }
 };
 
@@ -43,6 +62,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState<"student" | "admin">("student");
+  const [schools, setSchools] = useState<{ school_id: string; name: string }[]>([]);
   const [targetStudent, setTargetStudent] = useState<{
     email?: string;
     username?: string;
@@ -51,6 +71,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     identifier: "", // Single field for username or email
     password: "",
+    schoolId: "",
   });
   const [error, setError] = useState("");
 
@@ -60,17 +81,22 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      const credentials = getLoginCredentials(
-        formData.identifier,
-        formData.password
-      );
       if (loginType === "student") {
+        const credentials = getLoginCredentials(
+          formData.identifier,
+          formData.password,
+          formData.schoolId
+        );
         await loginStudent(credentials);
         toast({
           title: "Student Login successful",
           description: "Welcome back to Kira!",
         });
       } else {
+        const credentials = getLoginCredentials(
+          formData.identifier,
+          formData.password
+        );
         await loginAdmin(credentials);
         toast({
           title: "Admin login successful",
@@ -134,6 +160,13 @@ export default function LoginPage() {
     }
   };
 
+  const handleSchoolChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      schoolId: value,
+    }));
+  };
+
   const getErrorType = (errorMessage: string) => {
     if (
       errorMessage.includes("email") ||
@@ -147,6 +180,22 @@ export default function LoginPage() {
     return "general";
   };
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const loadSchools = async () => {
+      try {
+        const res = await fetch("/api/auth/school");
+        if (!res.ok) throw new Error("Failed to load schools");
+
+        const data = await res.json();
+        setSchools(data);
+      } catch (err) {
+        console.warn("Using temporarily stored schools due to error:", err);
+      }
+    };
+
+    loadSchools();
+  }, []);
 
   useEffect(() => {
     const email = searchParams.get("email");
@@ -173,6 +222,7 @@ export default function LoginPage() {
       sessionStorage.setItem("targetStudentReset", JSON.stringify(target));
     }
   }, [searchParams]);
+
   return (
     <div
       className="min-h-screen flex items-center justify-center"
@@ -278,6 +328,40 @@ export default function LoginPage() {
                 style={{ fontSize: "1rem" }}
               />
             </div>
+
+            {loginType === "student" && (
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="schoolId"
+                  className="text-sm font-medium text-[#2D0B18]"
+                >
+                  Select School
+                </label>
+                <Select
+                  value={formData.schoolId}
+                  onValueChange={handleSchoolChange}
+                >
+                  <SelectTrigger className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#2d7017] focus:border-[#2d7017]">
+                    <SelectValue placeholder="Choose a school" />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    className="max-h-80 overflow-y-auto z-[100] bg-white"
+                  >
+                    {schools.map((school) => (
+                      <SelectItem
+                        className="!bg-white !text-black hover:!bg-gray-100"
+                        key={school.school_id}
+                        value={school.school_id}
+                      >
+                        {school.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2 mt-3 mb-4">
               <div className="flex items-center justify-between">
                 <label
