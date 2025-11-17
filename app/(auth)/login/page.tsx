@@ -62,7 +62,9 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [loginType, setLoginType] = useState<"student" | "admin">("student");
-  const [schools, setSchools] = useState<{ school_id: string; name: string }[]>([]);
+  const [schools, setSchools] = useState<{ school_id: string; name: string }[]>(
+    []
+  );
   const [targetStudent, setTargetStudent] = useState<{
     email?: string;
     username?: string;
