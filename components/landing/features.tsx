@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BookOpen,
   Award,
@@ -7,6 +9,7 @@ import {
   CheckCircle2,
   MessageCircle,
 } from "lucide-react";
+import { motion, Variants } from "framer-motion";
 
 export function LandingFeatures() {
   const features = [
@@ -48,10 +51,46 @@ export function LandingFeatures() {
     },
   ];
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const headerVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 50, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Why Kira Works
           </h2>
@@ -59,20 +98,31 @@ export function LandingFeatures() {
             Combining technology, practice, and motivation makes English
             learning effective and accessible for every child.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={index}
               className="bg-[#E7F7E2] p-8 rounded-xl transition-all duration-300 hover:shadow-md border border-gray-100"
+              variants={cardVariants}
+              whileHover={{
+                scale: 1.02,
+                transition: { duration: 0.2 },
+              }}
             >
               <div className="mb-4">{feature.icon}</div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
