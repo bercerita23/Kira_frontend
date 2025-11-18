@@ -50,10 +50,7 @@ export function LandingCTA() {
           >
             Transforming English Learning for Underserved Students
           </motion.h2>
-          <motion.p
-            className="text-xl text-white mb-8"
-            variants={itemVariants}
-          >
+          <motion.p className="text-xl text-white mb-8" variants={itemVariants}>
             KIRA was created to support Bercerita's long standing English
             learning program. Designed to make English practice fun and
             accessible for children in rural Indonesian schools, it enables them
@@ -63,11 +60,7 @@ export function LandingCTA() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
             variants={buttonVariants}
           >
-            <Button 
-              size="lg" 
-              asChild 
-              className="bg-[#2D7017] text-lg"
-            >
+            <Button size="lg" asChild className="bg-[#2D7017] text-lg">
               <Link href="/signup">Help Us Serve Students </Link>
             </Button>
           </motion.div>
