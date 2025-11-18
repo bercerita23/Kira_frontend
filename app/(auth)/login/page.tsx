@@ -134,7 +134,7 @@ export default function LoginPage() {
         toast({
           title: "Incorrect credentials",
           description:
-            "The email/username or password you entered is incorrect.",
+            "The email/username/school or password you entered is incorrect.",
           variant: "destructive",
         });
       } else if (errorMessage.toLowerCase().includes("admin accounts cannot")) {
