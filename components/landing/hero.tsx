@@ -34,14 +34,14 @@ export function LandingHero() {
                 className="bg-[#2D7017] text-[#F5F5F5] text-lg"
                 asChild
               >
-                <Link href="/signup">Try KIRA for Free</Link>
+                <Link href="/signup">Support Kira</Link>
               </Button>
               <Button
                 size="lg"
                 className="border-2 border-[#2D7017] text-[#2D7017] bg-white text-lg"
                 asChild
               >
-                <Link href="/courses">Learn More</Link>
+                <Link href="/about">Learn More About Our Product</Link>
               </Button>
             </div>
           </div>
