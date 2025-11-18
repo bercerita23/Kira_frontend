@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { motion, Variants } from "framer-motion";
 
 export function LandingHero() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -100,11 +100,15 @@ export function LandingHero() {
             </motion.div>
           </motion.div>
           <motion.div
-            className="flex-1 relative"
+            className="flex-1 relative z-0"
             variants={imageVariants}
             initial="hidden"
             animate="visible"
           >
+            {/* Background blur elements - moved before the main content */}
+            <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-purple-200 rounded-full blur-3xl opacity-70"></div>
+            <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-200 rounded-full blur-3xl opacity-70"></div>
+
             <div className="relative z-10 bg-white rounded-2xl shadow-xl overflow-hidden max-w-md mx-auto border border-gray-100">
               <div className="h-12 bg-sky-500 flex items-center px-4">
                 <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
@@ -118,8 +122,6 @@ export function LandingHero() {
                 />
               </div>
             </div>
-            <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-purple-200 rounded-full blur-3xl -z-10 opacity-70"></div>
-            <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-200 rounded-full blur-3xl -z-10 opacity-70"></div>
           </motion.div>
         </div>
       </div>
