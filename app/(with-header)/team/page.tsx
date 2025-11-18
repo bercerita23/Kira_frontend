@@ -17,7 +17,7 @@ export default function TeamPage() {
           <h2 className="font-medium text-2xl tracking-[-0.03em] text-center items-center justify-center">
             Mentors
           </h2>
-          <div className="grid grid-cols-2 gap-x-12 gap-y-6 justify-items-center">
+          <div className="grid grid-cols-3 gap-x-12 gap-y-6 justify-items-center">
             {mentors.map((mentor, i) => (
               <ProfileCard key={i} {...mentor} className="w-full h-full" />
             ))}

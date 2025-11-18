@@ -38,14 +38,6 @@ export function LandingFooter() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/demo"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  Try a Demo
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/login"
                   className="text-muted-foreground hover:text-primary"
                 >

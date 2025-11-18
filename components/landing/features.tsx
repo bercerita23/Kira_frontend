@@ -14,7 +14,7 @@ export function LandingFeatures() {
       icon: <BookOpen className="h-8 w-8 text-black" />,
       title: "AI-Powered Learning",
       description:
-        "Smart quizzes generated weekly so kids can keep practicing outside the classroom.",
+        "Smart quizzes created by AI help kids practice and remember what they learn.",
     },
     {
       icon: <MessageCircle className="h-8 w-8 text-black" />,
@@ -32,7 +32,7 @@ export function LandingFeatures() {
       icon: <Award className="h-8 w-8 text-black" />,
       title: "Gamified Experience",
       description:
-        "Fun points, badges, and compliments keep students motivated to learn.",
+        "Points, badges, and positive reinforcement keep students motivated and excited to continue practicing ",
     },
     {
       icon: <CheckCircle2 className="h-8 w-8 text-black" />,
@@ -53,10 +53,11 @@ export function LandingFeatures() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why Learn With Kira?
+            Why Kira Works
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Our approach makes learning English effective and enjoyable for kids
+            Combining technology, practice, and motivation makes English
+            learning effective and accessible for every child.
           </p>
         </div>
 

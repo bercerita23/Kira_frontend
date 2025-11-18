@@ -68,7 +68,7 @@ export default function About() {
         <h1 className="text-5xl">
           WHAT IS <span className="text-[#2D7017]">KIRA?</span>
         </h1>
-        <span className="w-[70%] text-center text-md">
+        <span className="w-[46%] text-center text-md">
           KIRA is a free, web-based platform that helps children in remote and
           underserved areas learn English in a fun, engaging, and effective way.
           Built with AI and gamification, it is designed to supplement classroom
@@ -77,7 +77,7 @@ export default function About() {
           working with Bercerita, ensuring it reaches students who need it most.
         </span>
         <br />
-        <span className="w-[50%] text-center text-md">
+        <span className="w-[46%] text-center text-md">
           In many rural communities, children have little access to quality
           English education, yet English skills are crucial for future
           opportunities. KIRA bridges this gap by using technology to deliver
@@ -88,7 +88,7 @@ export default function About() {
         </span>
 
         <Button size="lg" className="bg-[#2D7017] text-white mt-6">
-          <Link href="/demo">Try a Demo</Link>
+          <Link href="/demo">Support KIRA’s Mission</Link>
         </Button>
       </div>
 
@@ -204,7 +204,7 @@ export default function About() {
           size="lg"
           className="bg-[#2D7017] text-white mt-12 w-min self-center"
         >
-          <Link href="/demo">Try a Student Quiz Demo</Link>
+          <Link href="/demo">Give Today</Link>
         </Button>
       </div>
     </div>
