@@ -176,6 +176,7 @@ export default function AdminDashboardPage() {
     notes: "",
     school: "",
     grade: "",
+    username: "", // Add username to the form
   });
   const [isUpdating, setIsUpdating] = useState(false);
   //
@@ -329,8 +330,9 @@ export default function AdminDashboardPage() {
       last_name: student.last_name || "",
       email: student.email || "",
       notes: student.notes || "",
-      school: student.school || "", // or student.school if that’s correct
+      school: student.school || "",
       grade: student.grade || "",
+      username: student.username || "", // Include current username
     });
 
     try {
@@ -381,16 +383,23 @@ export default function AdminDashboardPage() {
     setIsUpdating(true);
 
     try {
-      const rawPayload = {
-        username: editStudent.username,
-        ...editForm,
-        school: editStudent.school || "",
-        grade: editForm.grade || "",
+      const payload: any = {
+        username: editStudent.username, // Original username for identification
       };
 
-      const payload = Object.fromEntries(
-        Object.entries(rawPayload).filter(([_, v]) => v !== "")
-      );
+      // Add new_username if it has changed
+      if (editForm.username && editForm.username !== editStudent.username) {
+        payload.new_username = editForm.username;
+      }
+
+      // Add other fields that are not empty
+      if (editForm.first_name.trim()) payload.first_name = editForm.first_name;
+      if (editForm.last_name.trim()) payload.last_name = editForm.last_name;
+      if (editForm.email.trim()) payload.email = editForm.email;
+      if (editForm.notes.trim()) payload.notes = editForm.notes;
+      if (editForm.grade.trim()) payload.grade = editForm.grade;
+      if (editStudent.school) payload.school = editStudent.school;
+
       console.log("🟡 Sending update payload to /api/admin/update:", payload);
 
       const res = await fetch("/api/admin/update", {
@@ -407,7 +416,9 @@ export default function AdminDashboardPage() {
 
       toast({
         title: "Student Updated",
-        description: `Information for ${editStudent.username} updated.`,
+        description: `Information for ${
+          editForm.username || editStudent.username
+        } updated successfully.`,
       });
 
       // Reset and refresh
@@ -1006,12 +1017,12 @@ export default function AdminDashboardPage() {
                       </div>
                       <Button
                         onClick={() => setShowFilter(false)}
-                        className="w-full bg-[#B40000] text-white rounded-sm"
+                        className="w-full bg-green-600 text-white rounded-sm"
                       >
                         Apply
                       </Button>
                       <button
-                        className="mt-2 text-sm text-[#B40000] underline w-full"
+                        className="mt-2 text-sm text-green-600 underline w-full"
                         onClick={() => setSelectedGrades([])}
                       >
                         Clear Filters
@@ -1758,10 +1769,22 @@ export default function AdminDashboardPage() {
                               <div className="mt-4">
                                 <Label>Username</Label>
                                 <Input
-                                  value={editStudent.username}
-                                  disabled
-                                  className="mt-1 bg-gray-100"
+                                  value={editForm.username}
+                                  onChange={(e) =>
+                                    setEditForm((f) => ({
+                                      ...f,
+                                      username: e.target.value,
+                                    }))
+                                  }
+                                  className="mt-1"
+                                  placeholder="Username"
                                 />
+                                {editForm.username !== editStudent.username && (
+                                  <p className="text-sm text-orange-600 mt-1">
+                                    ⚠️ Changing username will affect student
+                                    login credentials
+                                  </p>
+                                )}
                               </div>
 
                               <div className="grid grid-cols-2 gap-4 mt-4">
