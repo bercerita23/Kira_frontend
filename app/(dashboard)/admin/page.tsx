@@ -8,6 +8,7 @@ import { authApi } from "@/lib/api/auth";
 import AnalyticsPage from "@/components/dashboard/analytics";
 import ReviewQuestions from "@/components/ReviewQuestions";
 import { parseISO, isThisWeek } from "date-fns";
+import QuizAverageChart from "@/components/dashboard/line-graph";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -203,6 +204,13 @@ export default function AdminDashboardPage() {
     "students" | "add-student"
   >("students");
 
+  const createStatsForStudent = (quizHistory: StudentQuizData) => {
+    return quizHistory["quiz_history"].map(({ quiz_name, grade }) => ({
+      quiz: quiz_name,
+      average: parseFloat(grade),
+    }));
+  };
+
   // Function to find student by username or email
   const findStudentByTarget = (targetStudent: {
     email?: string;
@@ -341,6 +349,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       console.log("Quiz attempts:", data);
       setStudentQuizAttempts(data); // store it in state
+      console.log(studentQuizAttempts);
     } catch (error) {
       console.error("Error fetching student quiz attempts:", error);
       setStudentQuizAttempts(null); // clear or fallback
@@ -1534,18 +1543,28 @@ export default function AdminDashboardPage() {
 
                             {/* Average Quiz Grade + History */}
                             <Card className="p-6 rounded-2xl shadow-sm">
-                              <div className="flex flex-col md:flex-row gap-6 items-start">
+                              <div className="flex flex-col gap-6 items-start">
                                 {/* Left: Average Quiz Grade Circle */}
-                                <div className="flex justify-center md:justify-start md:w-[180px] ">
-                                  <div className="w-36 h-36 rounded-full border-[10px] border-purple-700 bg-purple-100 flex flex-col items-center justify-center text-center shadow-lg">
-                                    <div className="text-sm text-purple-700 font-semibold">
-                                      Avg. Quiz Grade
-                                    </div>
-                                    <div className="text-3xl font-bold text-black">
-                                      {studentQuizAttempts?.avg_quiz_grade ||
-                                        "N/A"}
+                                <div className="flex flex-row w-full">
+                                  <div className="flex justify-center md:justify-start md:w-[180px] ">
+                                    <div className="w-36 h-36 rounded-full border-[10px] border-purple-700 bg-purple-100 flex flex-col items-center justify-center text-center shadow-lg">
+                                      <div className="text-sm text-purple-700 font-semibold">
+                                        Avg. Quiz Grade
+                                      </div>
+                                      <div className="text-3xl font-bold text-black">
+                                        {studentQuizAttempts?.avg_quiz_grade ||
+                                          "N/A"}
+                                      </div>
                                     </div>
                                   </div>
+
+                                  {studentQuizAttempts && (
+                                    <QuizAverageChart
+                                      quizStats={createStatsForStudent(
+                                        studentQuizAttempts
+                                      )}
+                                    />
+                                  )}
                                 </div>
 
                                 {/* Right: Quiz History Table */}

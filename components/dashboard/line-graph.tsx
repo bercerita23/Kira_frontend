@@ -21,8 +21,9 @@ interface QuizAverageChartProps {
 }
 
 export default function QuizAverageChart({ quizStats }: QuizAverageChartProps) {
+  console.log("Quiz Stats:", quizStats);
   return (
-    <div className="w-full h-[300px] flex justify-center items-center bg-white">
+    <div className="w-full flex justify-center items-center bg-white">
       <ResponsiveContainer width="90%" height={250}>
         <LineChart
           data={quizStats}
