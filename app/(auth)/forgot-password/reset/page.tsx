@@ -15,6 +15,7 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showEmailField, setShowEmailField] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -30,16 +31,16 @@ export default function ResetPasswordPage() {
         description: "Please enter your new password to complete the reset.",
       });
     }
-  }, [searchParams]);
 
-  useEffect(() => {
+    // Check for stored email
     const storedEmail = localStorage.getItem("resetEmail");
     if (storedEmail) {
       setEmail(storedEmail);
+      setShowEmailField(false); // Hide email field if found in localStorage
     } else {
-      router.replace("/forgot-password");
+      setShowEmailField(true); // Show email field if not found
     }
-  }, [router]);
+  }, [searchParams, toast]);
 
   const handleSubmitNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,14 +71,19 @@ export default function ResetPasswordPage() {
 
   const passwordsMatch = newPassword === confirmPassword;
   const canSubmit =
-    newPassword && confirmPassword && passwordsMatch && newPassword.length >= 8;
+    email &&
+    code &&
+    newPassword &&
+    confirmPassword &&
+    passwordsMatch &&
+    newPassword.length >= 8;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
       <div className="bg-white p-12 rounded-[8px] shadow-md w-full max-w-md text-center">
         <h1 className="text-4xl font-bold text-[#B71C3B] mb-1">KIRA</h1>
         <h2 className="text-[24px] font-medium text-black mb-10">
-          Forgot Password
+          Reset Password
         </h2>
 
         {error && (
@@ -90,6 +96,27 @@ export default function ResetPasswordPage() {
           onSubmit={handleSubmitNewPassword}
           className="space-y-6 mb-2 text-left"
         >
+          {/* Only show email field if not found in localStorage */}
+          {showEmailField && (
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email Address
+              </label>
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="rounded-[7px]"
+                placeholder="Enter your email address"
+              />
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="code"
