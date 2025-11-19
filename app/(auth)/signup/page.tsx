@@ -193,7 +193,7 @@ export default function SignupPage() {
                     required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -204,7 +204,7 @@ export default function SignupPage() {
                     required
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
               </div>
@@ -218,7 +218,7 @@ export default function SignupPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                  className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                 />
               </div>
 
@@ -237,9 +237,14 @@ export default function SignupPage() {
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500") +
-                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    " focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   }
                 />
+                {formData.password && formData.password.length < 8 && (
+                  <span className="text-sm text-red-500">
+                    Password must be at least 8 characters
+                  </span>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -256,9 +261,14 @@ export default function SignupPage() {
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500") +
-                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    " focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   }
                 />
+                {formData.confirmPassword && !passwordsMatch && (
+                  <span className="text-sm text-red-500">
+                    Passwords do not match
+                  </span>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="schoolId">Select School</Label>
@@ -266,12 +276,12 @@ export default function SignupPage() {
                   value={formData.schoolId}
                   onValueChange={handleSchoolChange}
                 >
-                  <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017]">
+                  <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]">
                     <SelectValue placeholder="Choose a school" />
                   </SelectTrigger>
                   <SelectContent
                     position="popper"
-                    className="max-h-80 overflow-y-auto z-[100] bg-white"
+                    className="max-h-80 overflow-y-auto z-[100] bg-white rounded-[8px]"
                   >
                     {schools.map((school) => (
                       <SelectItem
@@ -295,7 +305,7 @@ export default function SignupPage() {
                     required
                     value={formData.code}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
               </div>
