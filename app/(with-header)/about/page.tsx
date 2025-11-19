@@ -94,15 +94,15 @@ export default function About() {
 
       {/**A Platform for students */}
       <div className="w-full bg-[#F5F5F5] pt-12 py-24 text-center text-black gap-y-3 flex flex-col">
-        <div className="relative mx-auto w-full max-w-[1100px] mt-6 min-h-[480px] overflow-visible mb-32">
-          <div className="pointer-events-none absolute -left-10 top-6 h-64 w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
-          <div className="pointer-events-none absolute right-4 bottom-0 h-72 w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
+        <div className="relative mx-auto w-full max-w-[800px] sm:max-w-[900px] md:max-w-[1100px] mt-6 min-h-[350px] sm:min-h-[420px] md:min-h-[480px] overflow-visible mb-32 scale-75 sm:scale-90 md:scale-100 origin-center">
+          <div className="pointer-events-none absolute -left-6 sm:-left-8 md:-left-10 top-4 sm:top-5 md:top-6 h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
+          <div className="pointer-events-none absolute right-2 sm:right-3 md:right-4 bottom-0 h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
 
-          <div className="absolute left-0 top-4 w-fit -translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
+          <div className="absolute left-0 top-4 w-fit -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
             <img
               src="/assets/students_new_quiz.png"
               alt="New Quiz"
-              className="h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
               loading="lazy"
             />
           </div>
@@ -110,16 +110,16 @@ export default function About() {
             <img
               src="/assets/students_quiz.png"
               alt="Student Quiz"
-              className="h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
               loading="lazy"
             />
           </div>
 
-          <div className="absolute right-0 bottom-2 w-[50%] translate-y-32 z-30 rotate-[0.4deg] scale-[0.96] md:bottom-1 md:w-[52%] rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
+          <div className="absolute right-0 bottom-2 w-[50%] translate-y-24 sm:translate-y-28 md:translate-y-32 z-30 rotate-[0.4deg] scale-[0.96] md:bottom-1 md:w-[52%] rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
             <img
               src="/assets/students_gpt.png"
               alt="Students GPT"
-              className="h-[min(380px,36vh)] w-full object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-full object-fill"
               loading="lazy"
             />
           </div>
@@ -156,15 +156,15 @@ export default function About() {
         <span className="text-muted-foreground text-lg mt-3 mb-8">
           Our approach makes English instruction easy for teachers.
         </span>
-        <div className="relative mx-auto w-full max-w-[1100px] mt-6 min-h-[480px] overflow-visible mb-32">
-          <div className="pointer-events-none absolute -left-10 top-6 h-64 w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
-          <div className="pointer-events-none absolute right-4 bottom-0 h-72 w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
+        <div className="relative mx-auto w-full max-w-[800px] sm:max-w-[900px] md:max-w-[1100px] mt-6 min-h-[350px] sm:min-h-[420px] md:min-h-[480px] overflow-visible mb-32 scale-75 sm:scale-90 md:scale-100 origin-center">
+          <div className="pointer-events-none absolute -left-6 sm:-left-8 md:-left-10 top-4 sm:top-5 md:top-6 h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
+          <div className="pointer-events-none absolute right-2 sm:right-3 md:right-4 bottom-0 h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
 
-          <div className="absolute left-0 top-4 w-fit -translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
+          <div className="absolute left-0 top-4 w-fit -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
             <img
               src="/assets/Quiz Start.png"
               alt="Upload bulk"
-              className="h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
               loading="lazy"
             />
           </div>
@@ -172,16 +172,16 @@ export default function About() {
             <img
               src="/assets/Multiple Choice 1.png"
               alt="Admin dashboard"
-              className="h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
               loading="lazy"
             />
           </div>
 
-          <div className="absolute right-0 bottom-2 w-[50%] translate-y-32 z-30 rotate-[0.4deg] scale-[0.96] md:bottom-1 md:w-[52%] rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
+          <div className="absolute right-0 bottom-2 w-[50%] translate-y-24 sm:translate-y-28 md:translate-y-32 z-30 rotate-[0.4deg] scale-[0.96] md:bottom-1 md:w-[52%] rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.22)]">
             <img
               src="/assets/sample_quiz.png"
               alt="Results view"
-              className="h-[min(380px,36vh)] w-full object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-full object-fill"
               loading="lazy"
             />
           </div>

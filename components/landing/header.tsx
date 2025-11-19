@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +20,12 @@ export function LandingHeader() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isTeamPage = pathname === "/team/";
+  const linkTextColor =
+    isTeamPage && !isScrolled
+      ? "text-white hover:text-gray-200"
+      : "text-foreground hover:text-button";
 
   return (
     <header
@@ -44,19 +52,16 @@ export function LandingHeader() {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/about"
-            className="text-foreground hover:text-button transition-colors"
+            className={cn(linkTextColor, "transition-colors")}
           >
             About
           </Link>
-          <Link
-            href="/team"
-            className="text-foreground hover:text-button transition-colors"
-          >
+          <Link href="/team" className={cn(linkTextColor, "transition-colors")}>
             Our Team
           </Link>
           <Link
             href="/support"
-            className="text-foreground hover:text-button transition-colors"
+            className={cn(linkTextColor, "transition-colors")}
           >
             Support
           </Link>
@@ -72,7 +77,10 @@ export function LandingHeader() {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-foreground"
+          className={cn(
+            "md:hidden",
+            isTeamPage && !isScrolled ? "text-white" : "text-foreground"
+          )}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -86,21 +94,21 @@ export function LandingHeader() {
           <div className="container mx-auto px-4 flex flex-col space-y-4">
             <Link
               href="/about"
-              className="text-foreground hover:text-button transition-colors py-2"
+              className={cn(linkTextColor, "transition-colors py-2")}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/team"
-              className="text-foreground hover:text-button transition-colors py-2"
+              className={cn(linkTextColor, "transition-colors py-2")}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Our Team
             </Link>
             <Link
               href="/support"
-              className="text-foreground hover:text-button transition-colors py-2"
+              className={cn(linkTextColor, "transition-colors py-2")}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Support
