@@ -22,9 +22,10 @@ export function LandingHeader() {
   }, []);
 
   const isTeamPage = pathname === "/team/";
-  const linkTextColor = isTeamPage
-    ? "text-white hover:text-gray-200"
-    : "text-foreground hover:text-button";
+  const linkTextColor =
+    isTeamPage && !isScrolled
+      ? "text-white hover:text-gray-200"
+      : "text-foreground hover:text-button";
 
   return (
     <header
@@ -78,7 +79,7 @@ export function LandingHeader() {
         <button
           className={cn(
             "md:hidden",
-            isTeamPage ? "text-white" : "text-foreground"
+            isTeamPage && !isScrolled ? "text-white" : "text-foreground"
           )}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
