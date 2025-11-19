@@ -72,7 +72,12 @@ export default function ResetPasswordPage() {
 
   const passwordsMatch = newPassword === confirmPassword;
   const canSubmit =
-    email && code && newPassword && confirmPassword && passwordsMatch && newPassword.length >= 8;
+    email &&
+    code &&
+    newPassword &&
+    confirmPassword &&
+    passwordsMatch &&
+    newPassword.length >= 8;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
