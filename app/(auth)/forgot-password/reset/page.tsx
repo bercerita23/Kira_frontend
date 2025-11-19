@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import Cookies from "js-cookie";
 
 export default function ResetPasswordPage() {
   const { toast } = useToast();
@@ -32,11 +33,11 @@ export default function ResetPasswordPage() {
       });
     }
 
-    // Check for stored email
-    const storedEmail = localStorage.getItem("resetEmail");
+    // Check for stored email in cookies
+    const storedEmail = Cookies.get("resetEmail");
     if (storedEmail) {
       setEmail(storedEmail);
-      setShowEmailField(false); // Hide email field if found in localStorage
+      setShowEmailField(false); // Hide email field if found in cookies
     } else {
       setShowEmailField(true); // Show email field if not found
     }
@@ -60,7 +61,7 @@ export default function ResetPasswordPage() {
       }
 
       toast({ title: "Success", description: "Password has been reset." });
-      localStorage.removeItem("resetEmail");
+      Cookies.remove("resetEmail"); // Remove cookie after successful reset
       router.push("/login");
     } catch (err: any) {
       setError(err.message || "An error occurred.");

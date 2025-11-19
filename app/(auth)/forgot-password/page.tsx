@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import Cookies from "js-cookie";
 
 export default function AdminForgotPasswordPage() {
   const { toast } = useToast();
@@ -33,7 +34,7 @@ export default function AdminForgotPasswordPage() {
 
       if (!response.ok) throw new Error("Failed to send reset code.");
 
-      localStorage.setItem("resetEmail", email);
+      Cookies.set("resetEmail", email, { expires: 1 }); // Expires in 1 day
       setCodeSent(true); // 👈 mark that the code was sent
 
       toast({
