@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
             style={{ width: 64, height: 64, objectFit: "contain" }}
           />
           <span className="text-xl font-medium text-[#2D0B18] mb-6">
-            Reset Password
+            Forgot Password
           </span>
 
           {error && (
