@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
       {
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
           Pragma: "no-cache",
           Expires: "0",
           "Surrogate-Control": "no-store",
@@ -29,7 +30,8 @@ export async function GET(req: NextRequest) {
     // ✅ Extract and return only the schools array with fresh data
     return NextResponse.json(data.schools, {
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
         Pragma: "no-cache",
         Expires: "0",
       },
