@@ -71,17 +71,24 @@ export default function SignupPage() {
   useEffect(() => {
     const loadSchools = async () => {
       try {
-        const res = await fetch("/api/auth/school");
+        const res = await fetch("/api/auth/school", {
+          cache: "no-store", // Force fresh data
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
         if (!res.ok) throw new Error("Failed to load schools");
 
         const data = await res.json();
-        console.log(data);
-        //setSchools(data); // expected: [{ school_id: "...", name: "..." }]
+        console.log("Signup page - fresh school data:", data);
 
-        setSchools(data);
+        // ✅ FIX: Handle the nested structure properly
+        const schoolsArray = Array.isArray(data) ? data : data.schools || [];
+        setSchools(schoolsArray);
       } catch (err) {
         console.warn("Using temporarily stored schools due to error:", err);
-        //setSchools([]);
+        // Optional: Set fallback data on error
+        // setSchools(dummySchools);
       }
     };
 
