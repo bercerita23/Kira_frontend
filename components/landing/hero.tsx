@@ -88,7 +88,13 @@ export function LandingHero() {
                 className="bg-[#2D7017] text-[#F5F5F5] text-lg"
                 asChild
               >
-                <Link href="/signup">Support Kira</Link>
+                <Link
+                  href="https://www.bercerita.org/general-6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support Kira
+                </Link>
               </Button>
               <Button
                 size="lg"
