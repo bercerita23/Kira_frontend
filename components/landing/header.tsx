@@ -21,9 +21,15 @@ export function LandingHeader() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isTeamPage = pathname === "/team/";
+  const isTeamPage = pathname === "/team" || pathname === "/team/";
+  const isLegalPage =
+    pathname === "/terms/" ||
+    pathname === "/privacy/" ||
+    pathname === "/cookies/";
+  const isDarkHeaderPage = isTeamPage || isLegalPage;
+
   const linkTextColor =
-    isTeamPage && !isScrolled
+    isDarkHeaderPage && !isScrolled
       ? "text-white hover:text-gray-200"
       : "text-foreground hover:text-button";
 
@@ -60,17 +66,16 @@ export function LandingHeader() {
             Our Team
           </Link>
           <Link
-            href="/support"
+            href="https://www.bercerita.org/general-6"
             className={cn(linkTextColor, "transition-colors")}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Support
           </Link>
           <div className="ml-4 flex space-x-4">
             <Button variant="greenoutline" asChild>
               <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild variant="defaultgreen">
-              <Link href="/support">Support KIRA</Link>
             </Button>
           </div>
         </nav>
@@ -79,7 +84,7 @@ export function LandingHeader() {
         <button
           className={cn(
             "md:hidden",
-            isTeamPage && !isScrolled ? "text-white" : "text-foreground"
+            isDarkHeaderPage && !isScrolled ? "text-white" : "text-foreground"
           )}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
@@ -107,9 +112,11 @@ export function LandingHeader() {
               Our Team
             </Link>
             <Link
-              href="/support"
+              href="https://www.bercerita.org/general-6"
               className={cn(linkTextColor, "transition-colors py-2")}
               onClick={() => setIsMobileMenuOpen(false)}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Support
             </Link>
@@ -118,7 +125,13 @@ export function LandingHeader() {
                 <Link href="/login">Log In</Link>
               </Button>
               <Button asChild variant="defaultgreen">
-                <Link href="/support">Support KIRA</Link>
+                <Link
+                  href="https://www.bercerita.org/general-6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support KIRA
+                </Link>
               </Button>
             </div>
           </div>
