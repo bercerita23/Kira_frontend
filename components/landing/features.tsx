@@ -91,10 +91,10 @@ export function LandingFeatures() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why Kira Works
+          <h2 className="font-lato text-[32px] font-[500] mb-4 leading-[40px]">
+            Why Kira Works?
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="font-lato text-[20px] font-[400] leading-[28px] text-[#4B4B4E] max-w-2xl mx-auto">
             Combining technology, practice, and motivation makes English
             learning effective and accessible for every child.
           </p>
@@ -110,7 +110,7 @@ export function LandingFeatures() {
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className="bg-[#E7F7E2] p-8 rounded-xl transition-all duration-300 hover:shadow-md border border-gray-100"
+              className="bg-[#E7F7E2] p-8 rounded-xl transition-all duration-300 hover:shadow-md border border-gray-100 hover:border-[#2D7017]"
               variants={cardVariants}
               whileHover={{
                 scale: 1.02,
@@ -118,8 +118,12 @@ export function LandingFeatures() {
               }}
             >
               <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
+              <h3 className="font-lato text-[20px] font-[700] mb-3 leading-[28px] text-[#1C1C1C]">
+                {feature.title}
+              </h3>
+              <p className="font-lato text-[18px] font-[400] leading-[28px] text-[#4B4B4E]">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </motion.div>

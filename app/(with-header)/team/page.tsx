@@ -68,7 +68,7 @@ export default function TeamPage() {
           viewport={{ once: true, amount: 0.1 }}
         >
           <motion.h2
-            className="font-medium text-xl md:text-2xl tracking-[-0.03em] text-center items-center justify-center"
+            className="font-lato text-[24px] font-[500] tracking-[-0.03em] text-center items-center justify-center leading-[32px]"
             variants={headerVariants}
           >
             Mentors
@@ -101,7 +101,7 @@ export default function TeamPage() {
           viewport={{ once: true, amount: 0.1 }}
         >
           <motion.h2
-            className="font-medium text-xl md:text-2xl tracking-[-0.03em] text-center items-center justify-center"
+            className="font-lato text-[24px] font-[500] tracking-[-0.03em] text-center items-center justify-center leading-[32px]"
             variants={headerVariants}
           >
             Interns

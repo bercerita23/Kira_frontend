@@ -31,7 +31,7 @@ export function LandingHeader() {
   const linkTextColor =
     isDarkHeaderPage && !isScrolled
       ? "text-white hover:text-gray-200"
-      : "text-foreground hover:text-button";
+      : "text-foreground hover:text-[#2D7017]";
 
   return (
     <header
@@ -58,24 +58,39 @@ export function LandingHeader() {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/about"
-            className={cn(linkTextColor, "transition-colors")}
+            className={cn(
+              linkTextColor,
+              "transition-colors font-lato text-[16px] font-[500]"
+            )}
           >
             About
           </Link>
-          <Link href="/team" className={cn(linkTextColor, "transition-colors")}>
+          <Link
+            href="/team"
+            className={cn(
+              linkTextColor,
+              "transition-colors font-lato text-[16px] font-[500]"
+            )}
+          >
             Our Team
           </Link>
-          <Link
-            href="https://www.bercerita.org/general-6"
-            className={cn(linkTextColor, "transition-colors")}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Support
-          </Link>
+
           <div className="ml-4 flex space-x-4">
-            <Button variant="greenoutline" asChild>
+            <Button
+              variant="greenoutline"
+              asChild
+              className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+            >
               <Link href="/login">Log In</Link>
+            </Button>
+            <Button
+              asChild
+              variant="defaultgreen"
+              className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+            >
+              <Link href="https://www.bercerita.org/general-6">
+                Support KIRA
+              </Link>
             </Button>
           </div>
         </nav>
@@ -99,21 +114,30 @@ export function LandingHeader() {
           <div className="container mx-auto px-4 flex flex-col space-y-4">
             <Link
               href="/about"
-              className={cn(linkTextColor, "transition-colors py-2")}
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/team"
-              className={cn(linkTextColor, "transition-colors py-2")}
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Our Team
             </Link>
             <Link
               href="https://www.bercerita.org/general-6"
-              className={cn(linkTextColor, "transition-colors py-2")}
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
               target="_blank"
               rel="noopener noreferrer"
@@ -121,10 +145,18 @@ export function LandingHeader() {
               Support
             </Link>
             <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="greenoutline" asChild>
+              <Button
+                variant="greenoutline"
+                asChild
+                className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+              >
                 <Link href="/login">Log In</Link>
               </Button>
-              <Button asChild variant="defaultgreen">
+              <Button
+                asChild
+                variant="defaultgreen"
+                className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+              >
                 <Link
                   href="https://www.bercerita.org/general-6"
                   target="_blank"
