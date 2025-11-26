@@ -88,7 +88,11 @@ export function LandingHeader() {
               variant="defaultgreen"
               className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
             >
-              <Link href="https://www.bercerita.org/general-6">
+              <Link
+                href="https://www.bercerita.org/general-6"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Support KIRA
               </Link>
             </Button>

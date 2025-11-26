@@ -38,7 +38,7 @@ export function LandingHero() {
 
   return (
     <section
-      className="py-20 md:py-32 lg:py-40 xl:py-56 2xl:py-64 px-4 md:px-8 lg:px-16 xl:px-24"
+      className="py-20 md:py-28 lg:py-36 xl:py-44 2xl:py-52 pb-16 md:pb-24 lg:pb-60 xl:pb-80 2xl:pb-96 px-4 md:px-8 lg:px-16 xl:px-24"
       style={{
         background:
           "radial-gradient(circle at center, #E2FFF6 0%, #FCFCFC 50%, #E7F7E2 100%)",
