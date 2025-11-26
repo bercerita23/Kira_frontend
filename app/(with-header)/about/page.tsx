@@ -121,11 +121,14 @@ export default function About() {
         initial="hidden"
         animate="visible"
       >
-        <motion.h1 className="text-5xl" variants={titleVariants}>
+        <motion.h1
+          className="font-lato text-4xl md:text-5xl font-bold text-black mb-4"
+          variants={titleVariants}
+        >
           WHAT IS <span className="text-[#2D7017]">KIRA?</span>
         </motion.h1>
         <motion.span
-          className="w-[46%] text-center text-md"
+          className="w-[46%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E] mb-4"
           variants={contentVariants}
         >
           KIRA is a free, web-based platform that helps children in remote and
@@ -135,9 +138,8 @@ export default function About() {
           limited resources. KIRA is implemented in partnership with schools
           working with Bercerita, ensuring it reaches students who need it most.
         </motion.span>
-        <br />
         <motion.span
-          className="w-[46%] text-center text-md"
+          className="w-[46%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E]"
           variants={contentVariants}
         >
           In many rural communities, children have little access to quality
@@ -150,7 +152,10 @@ export default function About() {
         </motion.span>
 
         <motion.div variants={contentVariants}>
-          <Button size="lg" className="bg-[#2D7017] text-white mt-6">
+          <Button
+            size="lg"
+            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-6 font-lato text-[18px] font-[500]"
+          >
             <Link
               href="https://www.bercerita.org/general-6"
               target="_blank"
@@ -172,7 +177,7 @@ export default function About() {
         viewport={{ once: true, amount: 0.1 }}
       >
         <motion.h1
-          className="text-4xl font-bold text-black mb-16"
+          className="font-lato text-3xl md:text-4xl font-normal text-black mb-16"
           variants={titleVariants}
         >
           Who Can Benefit?
@@ -262,7 +267,10 @@ export default function About() {
         </motion.div>
 
         <motion.div variants={contentVariants}>
-          <Button size="lg" className="bg-[#2D7017] text-white mt-12">
+          <Button
+            size="lg"
+            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 font-lato text-[18px] font-[500]"
+          >
             <Link
               href="https://www.bercerita.org/general-6"
               target="_blank"
@@ -283,11 +291,14 @@ export default function About() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        <motion.h1 className="text-4xl font-normal" variants={titleVariants}>
+        <motion.h1
+          className="font-lato text-3xl md:text-4xl font-normal text-black"
+          variants={titleVariants}
+        >
           A Platform For Students
         </motion.h1>
         <motion.span
-          className="text-muted-foreground text-lg mt-3 mb-8"
+          className="font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E] mt-3 mb-8"
           variants={contentVariants}
         >
           Our approach makes learning English effective and enjoyable for kids.
@@ -339,15 +350,19 @@ export default function About() {
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
             >
               <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
+              <h3 className="font-lato text-[20px] font-[700] text-[#1C1C1C] mb-3 leading-[28px]">
+                {feature.title}
+              </h3>
+              <p className="font-lato text-[18px] font-[400] leading-[28px] text-[#4B4B4E]">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </motion.div>
         <motion.div variants={contentVariants}>
           <Button
             size="lg"
-            className="bg-[#5CA145] text-white mt-12 w-min self-center"
+            className="bg-[#5CA145] hover:bg-[#4a8a37] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
           >
             Student Demo Coming Soon
           </Button>
@@ -362,11 +377,14 @@ export default function About() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        <motion.h1 className="text-4xl font-normal" variants={titleVariants}>
+        <motion.h1
+          className="font-lato text-3xl md:text-4xl font-normal text-black"
+          variants={titleVariants}
+        >
           A Platform For Teachers
         </motion.h1>
         <motion.span
-          className="text-muted-foreground text-lg mt-3 mb-8"
+          className="font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E] mt-3 mb-8"
           variants={contentVariants}
         >
           Our approach makes English instruction easy for teachers.
@@ -418,15 +436,19 @@ export default function About() {
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
             >
               <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
+              <h3 className="font-lato text-[20px] font-[700] text-[#1C1C1C] mb-3 leading-[28px]">
+                {feature.title}
+              </h3>
+              <p className="font-lato text-[18px] font-[400] leading-[28px] text-[#4B4B4E]">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </motion.div>
         <motion.div variants={contentVariants}>
           <Button
             size="lg"
-            className="bg-[#2D7017] text-white mt-12 w-min self-center"
+            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
           >
             <Link
               href="https://www.bercerita.org/general-6"

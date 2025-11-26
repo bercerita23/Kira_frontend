@@ -16,30 +16,32 @@ export function LandingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-6">
           <div className="space-y-4 col-span-2 w-[80%]">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-[#2D7017]">Kira</span>
+              <span className="font-lato text-2xl font-[600] text-[#2D7017]">
+                Kira
+              </span>
             </Link>
-            <p className="text-muted-foreground">
+            <p className="font-lato text-[16px] font-[400] leading-[24px] text-[#4B4B4E]">
               KIRA is an AI-powered, gamified tool created to support
-              Bercerita’s long standing English learning program. Designed to
+              Bercerita's long standing English learning program. Designed to
               make English practice fun and accessible for children in rural
               Indonesian schools, it enables them to practice daily even without
               a live teacher.
             </p>
 
             <Link href="/about" className="">
-              <span className="text-lg text-[#2D7017]">
-                Learn more about Bercerita’s program and impact here.
+              <span className="font-lato text-[18px] font-[500] text-[#2D7017]">
+                Learn more about Bercerita's program and impact here.
               </span>
             </Link>
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Resources</h3>
+            <h3 className="font-lato text-[18px] font-[700] mb-4">Resources</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/login"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Log In
                 </Link>
@@ -47,7 +49,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href="/about"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   About Kira
                 </Link>
@@ -55,7 +57,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href="/team"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Our Team
                 </Link>
@@ -64,7 +66,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href="/opportunities"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Internship Opportunities
                 </Link>
@@ -73,12 +75,12 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg mb-4">Legal</h3>
+            <h3 className="font-lato text-[18px] font-[700] mb-4">Legal</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/terms"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Terms of Service
                 </Link>
@@ -86,7 +88,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Privacy Policy
                 </Link>
@@ -94,7 +96,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href="/cookies"
-                  className="text-muted-foreground hover:text-primary"
+                  className="font-lato text-[16px] font-[400] text-[#4B4B4E] hover:text-[#2D7017]"
                 >
                   Cookie Policy
                 </Link>
@@ -104,7 +106,7 @@ export function LandingFooter() {
         </div>
 
         <div className="border-t pt-8 flex flex-col items-center text-center">
-          <p className="self-center">
+          <p className="font-lato text-[14px] font-[400] text-[#4B4B4E] self-center">
             &copy; {currentYear} Kira. All rights reserved.
           </p>
         </div>
