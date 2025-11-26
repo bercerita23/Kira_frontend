@@ -73,7 +73,13 @@ export function LandingCTA() {
                   asChild
                   className="bg-[#2D7017] hover:bg-[#45A049] font-lato text-[16px] font-medium px-8 py-3 rounded-lg"
                 >
-                  <Link href="/support">Support KIRA's Mission</Link>
+                  <Link
+                    href="https://www.bercerita.org/general-6"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Support KIRA's Mission
+                  </Link>
                 </Button>
               </motion.div>
             </motion.div>
