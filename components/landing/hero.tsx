@@ -127,7 +127,7 @@ export function LandingHero() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <div className="w-full h-[360px]">
+              <div className="w-full h-[190px] sm:h-[190px] md:h-[150px] lg:h-[360px]">
                 <iframe
                   src="https://www.figma.com/proto/tbQaPvUwIeDN4CQYNarvPc/Kira?node-id=39-85&t=ejdoS5IHXgAFSIoE-1&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=39%3A85&embed_host=share&hide-ui=1"
                   className="w-full h-full border-0"

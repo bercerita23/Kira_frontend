@@ -171,14 +171,14 @@ export default function SignupPage() {
             style={{ width: 64, height: 64, objectFit: "contain" }}
             className="mb-1"
           />
-          <span className="text-xl font-medium text-[#2D0B18] mb-2">
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-2">
             Create Admin Account
           </span>
         </div>
         <Card className="bg-white">
           <CardHeader>
             {/* Remove icon and duplicate title, keep only description */}
-            <CardDescription className="text-center">
+            <CardDescription className="text-center font-lato font-[400]">
               Register to access the Kira admin dashboard.
             </CardDescription>
           </CardHeader>
@@ -193,7 +193,9 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="font-lato font-[500]">
+                    First Name
+                  </Label>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -204,7 +206,9 @@ export default function SignupPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="font-lato font-[500]">
+                    Last Name
+                  </Label>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -217,7 +221,9 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="font-lato font-[500]">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -230,7 +236,9 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="font-lato font-[500]">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -248,13 +256,15 @@ export default function SignupPage() {
                   }
                 />
                 {formData.password && formData.password.length < 8 && (
-                  <span className="text-sm text-red-500">
+                  <span className="text-sm font-lato font-[400] text-red-500">
                     Password must be at least 8 characters
                   </span>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="font-lato font-[500]">
+                  Confirm Password
+                </Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -272,13 +282,15 @@ export default function SignupPage() {
                   }
                 />
                 {formData.confirmPassword && !passwordsMatch && (
-                  <span className="text-sm text-red-500">
+                  <span className="text-sm font-lato font-[400] text-red-500">
                     Passwords do not match
                   </span>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="schoolId">Select School</Label>
+                <Label htmlFor="schoolId" className="font-lato font-[500]">
+                  Select School
+                </Label>
                 <Select
                   value={formData.schoolId}
                   onValueChange={handleSchoolChange}
@@ -305,7 +317,9 @@ export default function SignupPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="code">Verification Code</Label>
+                  <Label htmlFor="code" className="font-lato font-[500]">
+                    Verification Code
+                  </Label>
                   <Input
                     id="code"
                     name="code"
@@ -331,11 +345,11 @@ export default function SignupPage() {
                     }))
                   }
                 />
-                <Label htmlFor="terms" className="text-sm font-normal">
+                <Label htmlFor="terms" className="text-sm font-lato font-[400]">
                   I agree to the{" "}
                   <Link
                     href="/terms"
-                    className="font-medium hover:underline"
+                    className="font-lato font-[500] hover:underline"
                     style={{ color: "#94b689" }}
                   >
                     Terms of Service
@@ -343,7 +357,7 @@ export default function SignupPage() {
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="font-medium hover:underline"
+                    className="font-lato font-[500] hover:underline"
                     style={{ color: "#94b689" }}
                   >
                     Privacy Policy
@@ -353,7 +367,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full text-white"
+                className="w-full text-white font-lato font-[500]"
                 style={{ background: "#2d7017" }}
                 disabled={isLoading || !formData.terms}
               >
@@ -369,11 +383,11 @@ export default function SignupPage() {
           </CardContent>
 
           <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm font-lato font-[400] text-muted-foreground">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium hover:underline"
+                className="font-lato font-[500] hover:underline"
                 style={{ color: "#94b689" }}
               >
                 Sign in

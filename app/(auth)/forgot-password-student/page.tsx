@@ -27,7 +27,18 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) throw new Error("Failed to send request to admin");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        if (
+          response.status === 404 ||
+          errorData.message?.includes("not found") ||
+          errorData.message?.includes("not registered")
+        ) {
+          throw new Error("Username not found. Please check and try again.");
+        }
+        throw new Error("Unable to send request to admin. Please try again.");
+      }
 
       localStorage.setItem("resetUsername", username);
       setCodeSent(true);
@@ -38,7 +49,19 @@ export default function ForgotPasswordPage() {
       });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to send request. Please try again.");
+      const errorMessage =
+        err.message || "Unable to send request. Please try again.";
+      setError(errorMessage);
+
+      // Show detailed toast for better user guidance
+      toast({
+        variant: "destructive",
+        title: "Request failed",
+        description:
+          errorMessage.includes("Username not found")
+            ? "Please verify your username is correct and registered with us."
+            : "There was an issue sending your request. Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +83,7 @@ export default function ForgotPasswordPage() {
             className="mb-1"
             style={{ width: 44, height: 44, objectFit: "contain" }}
           />
-          <span className="text-xl font-medium text-[#2D0B18] mb-6">
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-6">
             Forgot Password
           </span>
 
@@ -71,7 +94,7 @@ export default function ForgotPasswordPage() {
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="username"
-                className="text-sm font-medium text-[#2D0B18]"
+                className="text-sm font-lato font-[500] text-[#2D0B18]"
               >
                 Enter your username to send a request
               </label>
@@ -88,7 +111,7 @@ export default function ForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200 mt-4"
+              className="w-full text-white text-base font-lato font-[600] py-2 rounded-[4px] transition-colors duration-200 mt-4"
               style={{
                 background: "#2d7017",
                 color: "#fff",
@@ -104,10 +127,10 @@ export default function ForgotPasswordPage() {
           </form>
 
           {codeSent && (
-            <p className="text-sm text-[#2D0B18] mt-4 text-center">
+            <p className="text-sm font-lato font-[400] text-[#2D0B18] mt-4 text-center">
               If you haven't heard back for a while,{" "}
               <button
-                className="font-medium hover:underline"
+                className="font-lato font-[500] hover:underline"
                 style={{ color: "#94b689" }}
                 onClick={() => {
                   setCodeSent(false);
@@ -126,12 +149,12 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="text-center mt-6">
-            <span className="text-[#2D0B18] text-sm">
+            <span className="text-[#2D0B18] text-sm font-lato font-[400]">
               Remember your password?{" "}
             </span>
             <Link
               href="/login"
-              className="font-medium hover:underline text-sm"
+              className="font-lato font-[500] hover:underline text-sm"
               style={{ color: "#94b689" }}
             >
               Back to Login
