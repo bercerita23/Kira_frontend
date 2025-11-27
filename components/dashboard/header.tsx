@@ -111,7 +111,7 @@ export function DashboardHeader({ hidden = false }: DashboardHeaderProps) {
 
   return (
     <header
-      className={`sticky w-[95%] max-w-screen-2xl bg-white border-b border-gray-100 z-40 h-12 rounded-2xl min-h-max p-4 top-3 justify-self-center self-center ${
+      className={`sticky w-[95%] max-w-none bg-white border-b border-gray-100 z-40 h-12 rounded-2xl min-h-max p-4 top-3 justify-self-center self-center ${
         hidden && hidden === true ? "hidden" : ""
       }`}
     >
@@ -129,7 +129,9 @@ export function DashboardHeader({ hidden = false }: DashboardHeaderProps) {
         </div>
 
         <div className="">
-          <span className="text-2xl hidden md:block">{currentPath ?? ""}</span>
+          <span className="text-2xl font-lato font-[600] hidden md:block">
+            {currentPath ?? ""}
+          </span>
         </div>
 
         <div
@@ -141,10 +143,10 @@ export function DashboardHeader({ hidden = false }: DashboardHeaderProps) {
           {/** Name and school name */}
           <div className="flex flex-row gap-3">
             <div className="flex flex-col text-right">
-              <span className="text-2xl hidden md:block">
+              <span className="text-2xl font-lato font-[500] hidden md:block">
                 {`${userInfo.firstName} ${userInfo.lastName}`}
               </span>
-              <span className="text-l justify-self-endsafe hidden md:block">
+              <span className="text-l font-lato font-[400] justify-self-endsafe hidden md:block">
                 {`${userInfo.school}`}
               </span>
             </div>

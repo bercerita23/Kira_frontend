@@ -318,7 +318,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 font-lato font-[400]">Loading...</p>
         </div>
       </div>
     );
@@ -329,8 +329,10 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-lato font-[600] mb-4">
+            Authentication Required
+          </h1>
+          <p className="text-gray-600 mb-6 font-lato font-[400]">
             Please log in to access your dashboard.
           </p>
           <div className="space-x-4">
@@ -351,7 +353,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 font-lato font-[400]">Loading...</p>
         </div>
       </div>
     );
@@ -390,11 +392,11 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-4 w-full max-w-[90%] mx-auto mt-3 mb-3">
               <div className="col-span-2 border-[#5CA145] border-2 border-solid rounded-2xl overflow-hidden flex flex-col md:flex-row h-40">
                 <div className="flex-1 flex flex-col justify-center ml-12">
-                  <span className="text-black text-xl">
+                  <span className="text-black text-xl font-lato font-[500]">
                     Hi, {user.first_name}
                     {user.last_name ? user.last_name : ""}
                   </span>
-                  <span className="text-black text-3xl">
+                  <span className="text-black text-3xl font-lato font-[600]">
                     For the week of{" "}
                     {nextSunday.toLocaleDateString("en-US", {
                       month: "short",
@@ -411,7 +413,7 @@ export default function DashboardPage() {
                       src="/assets/dashboard/points_icon.png"
                       className="w-8"
                     />
-                    <span className="text-xl">
+                    <span className="text-xl font-lato font-[500]">
                       {userPoints?.points ?? 0} Points
                     </span>
                   </div>
@@ -420,7 +422,7 @@ export default function DashboardPage() {
                       src="/assets/dashboard/medals_icon.png"
                       className="w-8"
                     />
-                    <span className="text-xl">
+                    <span className="text-xl font-lato font-[500]">
                       {userAwards.userBadges.length ?? 0} Medals
                     </span>
                   </div>
@@ -429,7 +431,7 @@ export default function DashboardPage() {
                       src="/assets/dashboard/trophy_icon.png"
                       className="w-8"
                     />
-                    <span className="text-xl">
+                    <span className="text-xl font-lato font-[500]">
                       {userAwards.userAchievements.length ?? 0} Achievements
                     </span>
                   </div>
@@ -444,10 +446,10 @@ export default function DashboardPage() {
                     />
                     <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
                       {/* Bubble content */}
-                      <p className="text-center text-green-900 font-medium">
+                      <p className="text-center text-green-900 font-lato font-[500]">
                         There is a new quiz available:
                       </p>
-                      <p className="text-center text-green-900 text-lg font-semibold">
+                      <p className="text-center text-green-900 text-lg font-lato font-[600]">
                         {nextQuiz?.name}
                       </p>
                       {/* Bubble tail (left side) */}
@@ -461,7 +463,9 @@ export default function DashboardPage() {
                         router.push(`/lesson/${nextQuiz!.quiz_id}`);
                       }}
                     >
-                      <span className="text-xl">Go to Quiz →</span>
+                      <span className="text-xl font-lato font-[500]">
+                        Go to Quiz →
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -475,10 +479,10 @@ export default function DashboardPage() {
                     />
                     <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
                       {/* Bubble content */}
-                      <p className="text-center text-green-900 text-lg font-semibold">
+                      <p className="text-center text-green-900 text-lg font-lato font-[600]">
                         Great Job!
                       </p>
-                      <p className="text-center text-green-900 text-lg">
+                      <p className="text-center text-green-900 text-lg font-lato font-[500]">
                         You Unlocked Kira!
                       </p>
                       {/* Bubble tail (left side) */}
@@ -492,7 +496,9 @@ export default function DashboardPage() {
                         setShowChatbot(true);
                       }}
                     >
-                      <span className="text-xl">Talk to Kira →</span>
+                      <span className="text-xl font-lato font-[500]">
+                        Talk to Kira →
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -501,11 +507,11 @@ export default function DashboardPage() {
               )}
               <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
                 <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
-                  <span className="text-black text-xl flex-1">
+                  <span className="text-black text-xl flex-1 font-lato font-[600]">
                     Past Quizzes
                   </span>
                   <span
-                    className="text-[#2D7017] justify-end hover:cursor-pointer"
+                    className="text-[#2D7017] justify-end hover:cursor-pointer font-lato font-[500]"
                     onClick={() => {
                       router.push("/dashboard/quizzes-and-awards?r=quizzes");
                     }}
@@ -557,13 +563,13 @@ export default function DashboardPage() {
                         key={quiz.quiz_id}
                         className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
                       >
-                        <span className="text-black self-center flex-1">
+                        <span className="text-black self-center flex-1 font-lato font-[500]">
                           {quiz.name}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center">
+                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
                           {displayGrade}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center">
+                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
                           {date ? takenDate : "N/A"}
                         </span>
                         <div className="flex flex-1  justify-center items-center mx-auto"></div>
@@ -573,18 +579,18 @@ export default function DashboardPage() {
                         key={quiz.quiz_id}
                         className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
                       >
-                        <span className="text-black self-center flex-1">
+                        <span className="text-black self-center flex-1 font-lato font-[500]">
                           {quiz.name}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center">
+                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
                           {displayGrade}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center">
+                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
                           {date ? takenDate : ""}
                         </span>
                         <div className="flex flex-1  justify-center items-center mx-auto">
                           <button
-                            className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid`}
+                            className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid font-lato font-[500]`}
                             onClick={() => {
                               router.push(`/lesson/${quiz.quiz_id}`);
                             }}
@@ -600,14 +606,18 @@ export default function DashboardPage() {
                     );
                   })
                 ) : (
-                  <p className="text-gray-500">No quizzes available.</p>
+                  <p className="text-gray-500 font-lato font-[400]">
+                    No quizzes available.
+                  </p>
                 )}
               </div>
               <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
                 <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
-                  <span className="flex-1 text-xl">Medals & Achievements</span>
+                  <span className="flex-1 text-xl font-lato font-[600]">
+                    Medals & Achievements
+                  </span>
                   <span
-                    className="hover:cursor-pointer text-[#2D7017]"
+                    className="hover:cursor-pointer text-[#2D7017] font-lato font-[500]"
                     onClick={() => {
                       router.push("/dashboard/quizzes-and-awards?r=awards");
                     }}
@@ -623,7 +633,7 @@ export default function DashboardPage() {
                     >
                       {/* Name */}
                       <div className="min-h-[40px] flex items-center">
-                        <span className="bg-[#FEB030] rounded-full px-3 py-1 text-center">
+                        <span className="bg-[#FEB030] rounded-full px-3 py-1 text-center font-lato font-[500]">
                           {d.name.toUpperCase()}
                         </span>
                       </div>
@@ -635,7 +645,7 @@ export default function DashboardPage() {
 
                       {/* Date */}
                       <div className="mt-4 mb-4">
-                        <span className="border border-black px-3 rounded-full whitespace-nowrap">
+                        <span className="border border-black px-3 rounded-full whitespace-nowrap font-lato font-[400]">
                           {d.dateAwarded.toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",

@@ -242,10 +242,10 @@ export default function LoginPage() {
             className="mb-1"
             style={{ width: 64, height: 64, objectFit: "contain" }}
           />
-          <span className="text-xl font-medium text-[#2D0B18] mb-11">
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-11">
             Log in to your account
           </span>
-          <span className="text-sm text-[#2D0B18] mb-2">
+          <span className="text-sm font-lato font-[400] text-[#2D0B18] mb-2">
             Choose your account type
           </span>
           <div className="flex w-full justify-center mb-6 ">
@@ -255,7 +255,7 @@ export default function LoginPage() {
             >
               <button
                 type="button"
-                className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
+                className={`flex-1 py-2 px-4 text-base font-lato font-[500] transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
                   ${
                     loginType === "admin"
                       ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
@@ -277,7 +277,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                className={`flex-1 py-2 px-4 text-base font-medium transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
+                className={`flex-1 py-2 px-4 text-base font-lato font-[500] transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 border rounded-[4px]
                   ${
                     loginType === "student"
                       ? "bg-white border-[#E5E7EB] shadow-sm text-[#2d7017] z-10"
@@ -314,7 +314,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="identifier"
-                className="text-sm font-medium text-[#2D0B18]"
+                className="text-sm font-lato font-[500] text-[#2D0B18]"
               >
                 Email or User ID
               </label>
@@ -335,7 +335,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="schoolId"
-                  className="text-sm font-medium text-[#2D0B18]"
+                  className="text-sm font-lato font-[500] text-[#2D0B18]"
                 >
                   Select School
                 </label>
@@ -368,7 +368,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-[#2D0B18]"
+                  className="text-sm font-lato font-[500] text-[#2D0B18]"
                 >
                   Password
                 </label>
@@ -389,7 +389,7 @@ export default function LoginPage() {
                     ? "/forgot-password"
                     : "/forgot-password-student/"
                 }
-                className="text-xs hover:underline"
+                className="text-xs font-lato font-[400] hover:underline"
                 style={{ color: "#94b689" }}
               >
                 Forgot Password?
@@ -398,7 +398,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200"
+              className="w-full text-white text-base font-lato font-[600] py-2 rounded-[4px] transition-colors duration-200"
               style={{
                 background: "#2d7017",
                 color: "#fff",
@@ -434,12 +434,12 @@ export default function LoginPage() {
               )}
             </button>
             <div className="text-center ">
-              <span className="text-[#2D0B18] text-sm">
+              <span className="text-[#2D0B18] text-sm font-lato font-[400]">
                 Don't have an account?{" "}
               </span>
               <a
                 href="/signup"
-                className="font-medium hover:underline text-sm"
+                className="font-lato font-[500] hover:underline text-sm"
                 style={{ color: "#94b689" }}
               >
                 Admin Sign Up

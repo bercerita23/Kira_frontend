@@ -32,7 +32,18 @@ export default function AdminForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      if (!response.ok) throw new Error("Failed to send reset code.");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        if (
+          response.status === 404 ||
+          errorData.message?.includes("not found") ||
+          errorData.message?.includes("not registered")
+        ) {
+          throw new Error("Email not found. Please check and try again.");
+        }
+        throw new Error("Unable to send reset code. Please try again.");
+      }
 
       Cookies.set("resetEmail", email, { expires: 1 }); // Expires in 1 day
       setCodeSent(true); // 👈 mark that the code was sent
@@ -47,7 +58,18 @@ export default function AdminForgotPasswordPage() {
       }, 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to send reset code. Please try again.");
+      const errorMessage =
+        err.message || "Unable to send reset code. Please try again.";
+      setError(errorMessage);
+
+      // Show detailed toast for better user guidance
+      toast({
+        variant: "destructive",
+        title: "Reset code failed",
+        description: errorMessage.includes("Email not found")
+          ? "Please verify your email address is correct and registered with us."
+          : "There was an issue sending the reset code. Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +91,7 @@ export default function AdminForgotPasswordPage() {
             className="mb-1"
             style={{ width: 44, height: 44, objectFit: "contain" }}
           />
-          <span className="text-xl font-medium text-[#2D0B18] mb-6">
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-6">
             Forgot Password
           </span>
 
@@ -80,7 +102,7 @@ export default function AdminForgotPasswordPage() {
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-[#2D0B18]"
+                className="text-sm font-lato font-[500] text-[#2D0B18]"
               >
                 Enter your email to receive a reset code
               </label>
@@ -97,7 +119,7 @@ export default function AdminForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full text-white text-base font-semibold py-2 rounded-[4px] transition-colors duration-200 mt-4"
+              className="w-full text-white text-base font-lato font-[600] py-2 rounded-[4px] transition-colors duration-200 mt-4"
               style={{
                 background: "#2d7017",
                 color: "#fff",
@@ -136,11 +158,11 @@ export default function AdminForgotPasswordPage() {
 
           {/* Only show if code was sent */}
           {codeSent && (
-            <p className="text-sm text-[#2D0B18] mt-4 text-center">
+            <p className="text-sm font-lato font-[400] text-[#2D0B18] mt-4 text-center">
               If you do not receive the code within 5 minutes,{" "}
               <button
                 onClick={handleEmailSubmit}
-                className="font-medium hover:underline"
+                className="font-lato font-[500] hover:underline"
                 style={{ color: "#94b689" }}
               >
                 Resend Code
@@ -155,12 +177,12 @@ export default function AdminForgotPasswordPage() {
           )}
 
           <div className="text-center mt-6">
-            <span className="text-[#2D0B18] text-sm">
+            <span className="text-[#2D0B18] text-sm font-lato font-[400]">
               Remember your password?{" "}
             </span>
             <Link
               href="/login"
-              className="font-medium hover:underline text-sm"
+              className="font-lato font-[500] hover:underline text-sm"
               style={{ color: "#94b689" }}
             >
               Back to Login
