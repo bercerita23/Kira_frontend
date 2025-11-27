@@ -262,7 +262,10 @@ export default function SignupPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="font-lato font-[500]">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="font-lato font-[500]"
+                >
                   Confirm Password
                 </Label>
                 <Input

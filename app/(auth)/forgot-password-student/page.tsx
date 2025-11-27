@@ -57,10 +57,9 @@ export default function ForgotPasswordPage() {
       toast({
         variant: "destructive",
         title: "Request failed",
-        description:
-          errorMessage.includes("Username not found")
-            ? "Please verify your username is correct and registered with us."
-            : "There was an issue sending your request. Please check your connection and try again.",
+        description: errorMessage.includes("Username not found")
+          ? "Please verify your username is correct and registered with us."
+          : "There was an issue sending your request. Please check your connection and try again.",
       });
     } finally {
       setIsLoading(false);

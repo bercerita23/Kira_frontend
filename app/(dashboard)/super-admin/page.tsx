@@ -193,7 +193,9 @@ export default function SuperAdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 font-lato font-[400]">Verifying super admin access...</p>
+          <p className="text-gray-600 font-lato font-[400]">
+            Verifying super admin access...
+          </p>
         </div>
       </div>
     );
@@ -211,7 +213,9 @@ export default function SuperAdminDashboardPage() {
           <h1 className="text-2xl font-lato font-[600] mb-4">
             Super Admin Authentication Required
           </h1>
-          <p className="text-gray-600 mb-6 font-lato font-[400]">Redirecting to admin login...</p>
+          <p className="text-gray-600 mb-6 font-lato font-[400]">
+            Redirecting to admin login...
+          </p>
           <div className="space-x-4">
             <Button asChild>
               <Link href="/admin/login">Go to Admin Login</Link>
@@ -321,7 +325,9 @@ export default function SuperAdminDashboardPage() {
                 <p className="text-sm font-lato font-[500] text-white">
                   {user.first_name}
                 </p>
-                <p className="text-xs font-lato font-[400] text-purple-200">Super Administrator</p>
+                <p className="text-xs font-lato font-[400] text-purple-200">
+                  Super Administrator
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -343,31 +349,43 @@ export default function SuperAdminDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">Total Users</CardTitle>
+              <CardTitle className="text-sm font-lato font-[500]">
+                Total Users
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-lato font-[600]">{stats.totalUsers}</div>
+              <div className="text-2xl font-lato font-[600]">
+                {stats.totalUsers}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">Students</CardTitle>
+              <CardTitle className="text-sm font-lato font-[500]">
+                Students
+              </CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-lato font-[600]">{stats.students}</div>
+              <div className="text-2xl font-lato font-[600]">
+                {stats.students}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">Admins</CardTitle>
+              <CardTitle className="text-sm font-lato font-[500]">
+                Admins
+              </CardTitle>
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-lato font-[600]">{stats.admins}</div>
+              <div className="text-2xl font-lato font-[600]">
+                {stats.admins}
+              </div>
             </CardContent>
           </Card>
 
@@ -379,17 +397,23 @@ export default function SuperAdminDashboardPage() {
               <Crown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-lato font-[600]">{stats.superAdmins}</div>
+              <div className="text-2xl font-lato font-[600]">
+                {stats.superAdmins}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">Schools</CardTitle>
+              <CardTitle className="text-sm font-lato font-[500]">
+                Schools
+              </CardTitle>
               <School className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-lato font-[600]">{stats.schools}</div>
+              <div className="text-2xl font-lato font-[600]">
+                {stats.schools}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -419,7 +443,9 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-lato font-[400]">Loading students...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading students...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -477,7 +503,9 @@ export default function SuperAdminDashboardPage() {
                     ).length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p className="font-lato font-[400]">No students found</p>
+                        <p className="font-lato font-[400]">
+                          No students found
+                        </p>
                         <p className="text-xs mt-2 font-lato font-[400]">
                           Total users loaded: {allUsers.length}
                         </p>
@@ -513,7 +541,9 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-lato font-[400]">Loading admins...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -591,7 +621,9 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600 font-lato font-[400]">Loading super admins...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading super admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -645,7 +677,9 @@ export default function SuperAdminDashboardPage() {
                       0 && (
                       <div className="text-center py-8 text-gray-500">
                         <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p className="font-lato font-[400]">No super admins found</p>
+                        <p className="font-lato font-[400]">
+                          No super admins found
+                        </p>
                       </div>
                     )}
                   </div>
@@ -676,7 +710,9 @@ export default function SuperAdminDashboardPage() {
               <CardContent>
                 <div className="text-center py-8 text-gray-500">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-lato font-[400]">Advanced analytics dashboard coming soon...</p>
+                  <p className="font-lato font-[400]">
+                    Advanced analytics dashboard coming soon...
+                  </p>
                   <p className="text-sm font-lato font-[400]">
                     User activity, engagement metrics, and system performance
                   </p>
@@ -699,7 +735,9 @@ export default function SuperAdminDashboardPage() {
               <CardContent>
                 <div className="text-center py-8 text-gray-500">
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-lato font-[400]">System management tools coming soon...</p>
+                  <p className="font-lato font-[400]">
+                    System management tools coming soon...
+                  </p>
                   <p className="text-sm font-lato font-[400]">
                     Database backups, system health, and maintenance tools
                   </p>
@@ -967,11 +1005,15 @@ function InviteAdminsTab() {
         <CardContent className="space-y-6">
           {/* Invitation Form */}
           <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-            <Label className="text-base font-lato font-[500]">Add New Invitation</Label>
+            <Label className="text-base font-lato font-[500]">
+              Add New Invitation
+            </Label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="first-name" className="font-lato font-[500]">First Name *</Label>
+                <Label htmlFor="first-name" className="font-lato font-[500]">
+                  First Name *
+                </Label>
                 <Input
                   id="first-name"
                   placeholder="John"
@@ -987,7 +1029,9 @@ function InviteAdminsTab() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="last-name" className="font-lato font-[500]">Last Name *</Label>
+                <Label htmlFor="last-name" className="font-lato font-[500]">
+                  Last Name *
+                </Label>
                 <Input
                   id="last-name"
                   placeholder="Doe"
@@ -1004,7 +1048,9 @@ function InviteAdminsTab() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email-input" className="font-lato font-[500]">Email Address *</Label>
+              <Label htmlFor="email-input" className="font-lato font-[500]">
+                Email Address *
+              </Label>
               <Input
                 id="email-input"
                 type="email"
@@ -1021,7 +1067,9 @@ function InviteAdminsTab() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-id" className="font-lato font-[500]">School *</Label>
+              <Label htmlFor="school-id" className="font-lato font-[500]">
+                School *
+              </Label>
               <Select
                 value={invitationForm.school_id}
                 onValueChange={(value) =>
@@ -1453,12 +1501,16 @@ function ManageSchoolsTab({
             <School className="h-5 w-5 text-green-600" />
             Add new school
           </CardTitle>
-          <CardDescription className="font-lato font-[400]">Add a new school to the school list</CardDescription>
+          <CardDescription className="font-lato font-[400]">
+            Add a new school to the school list
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="school name" className="font-lato font-[500]">School Name *</Label>
+              <Label htmlFor="school name" className="font-lato font-[500]">
+                School Name *
+              </Label>
               <Input
                 id="school name"
                 placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
@@ -1470,7 +1522,9 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school name" className="font-lato font-[500]">School email *</Label>
+              <Label htmlFor="school name" className="font-lato font-[500]">
+                School email *
+              </Label>
               <Input
                 id="school email"
                 type="email"
@@ -1483,7 +1537,12 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school telephone" className="font-lato font-[500]">School Telephone *</Label>
+              <Label
+                htmlFor="school telephone"
+                className="font-lato font-[500]"
+              >
+                School Telephone *
+              </Label>
               <Input
                 id="school telephone"
                 placeholder="+62 1234-5678-9101"
@@ -1499,7 +1558,9 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school address" className="font-lato font-[500]">School Address *</Label>
+              <Label htmlFor="school address" className="font-lato font-[500]">
+                School Address *
+              </Label>
               <Input
                 id="school address"
                 placeholder="Kalisongo, Jawa Timur"
@@ -1726,7 +1787,9 @@ function ManageSchoolsTab({
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600 font-lato font-[400]">Loading schools and administrators...</p>
+        <p className="text-gray-600 font-lato font-[400]">
+          Loading schools and administrators...
+        </p>
       </div>
     );
   }
@@ -1876,7 +1939,9 @@ function ManageSchoolsTab({
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-lato font-[600]">Update School Information</DialogTitle>
+            <DialogTitle className="font-lato font-[600]">
+              Update School Information
+            </DialogTitle>
             <DialogDescription className="font-lato font-[400]">
               Update the school's details. Changes apply immediately after
               saving.
@@ -1886,7 +1951,9 @@ function ManageSchoolsTab({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* use ids without spaces */}
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="school-id" className="font-lato font-[500]">School ID</Label>
+              <Label htmlFor="school-id" className="font-lato font-[500]">
+                School ID
+              </Label>
               <Input
                 id="school-id"
                 value={updatedSchoolFields.school_id}
@@ -1895,7 +1962,9 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-name" className="font-lato font-[500]">School Name *</Label>
+              <Label htmlFor="school-name" className="font-lato font-[500]">
+                School Name *
+              </Label>
               <Input
                 id="school-name"
                 value={updatedSchoolFields.name}
@@ -1909,7 +1978,9 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-email" className="font-lato font-[500]">School email *</Label>
+              <Label htmlFor="school-email" className="font-lato font-[500]">
+                School email *
+              </Label>
               <Input
                 id="school-email"
                 type="email"
@@ -1924,7 +1995,12 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-telephone" className="font-lato font-[500]">School Telephone *</Label>
+              <Label
+                htmlFor="school-telephone"
+                className="font-lato font-[500]"
+              >
+                School Telephone *
+              </Label>
               <Input
                 id="school-telephone"
                 type="tel"
@@ -1939,7 +2015,9 @@ function ManageSchoolsTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-address" className="font-lato font-[500]">School Address *</Label>
+              <Label htmlFor="school-address" className="font-lato font-[500]">
+                School Address *
+              </Label>
               <Input
                 id="school-address"
                 value={updatedSchoolFields.address}
@@ -2001,7 +2079,9 @@ function ManageSchoolsTab({
               {filteredSchools.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-lato font-[400]">No approved schools found</p>
+                  <p className="font-lato font-[400]">
+                    No approved schools found
+                  </p>
                   <p className="text-sm font-lato font-[400]">
                     Use the form above to approve new schools
                   </p>
@@ -2171,12 +2251,16 @@ function ManageSchoolsTab({
             {loadingInactive ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-                <p className="text-gray-600 font-lato font-[400]">Loading inactive schools...</p>
+                <p className="text-gray-600 font-lato font-[400]">
+                  Loading inactive schools...
+                </p>
               </div>
             ) : inactiveSchools.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="font-lato font-[400]">No inactive schools found</p>
+                <p className="font-lato font-[400]">
+                  No inactive schools found
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -2222,7 +2306,7 @@ function ManageSchoolsTab({
                                         </AvatarFallback>
                                       </Avatar>
                                       <div>
-                                                                               <p className="font-lato font-[500] text-sm">
+                                        <p className="font-lato font-[500] text-sm">
                                           {admin.first_name} {admin.last_name}
                                         </p>
                                         <p className="text-xs font-lato font-[400] text-gray-500">

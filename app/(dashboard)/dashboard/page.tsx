@@ -329,7 +329,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-lato font-[600] mb-4">Authentication Required</h1>
+          <h1 className="text-2xl font-lato font-[600] mb-4">
+            Authentication Required
+          </h1>
           <p className="text-gray-600 mb-6 font-lato font-[400]">
             Please log in to access your dashboard.
           </p>
@@ -461,7 +463,9 @@ export default function DashboardPage() {
                         router.push(`/lesson/${nextQuiz!.quiz_id}`);
                       }}
                     >
-                      <span className="text-xl font-lato font-[500]">Go to Quiz →</span>
+                      <span className="text-xl font-lato font-[500]">
+                        Go to Quiz →
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -492,7 +496,9 @@ export default function DashboardPage() {
                         setShowChatbot(true);
                       }}
                     >
-                      <span className="text-xl font-lato font-[500]">Talk to Kira →</span>
+                      <span className="text-xl font-lato font-[500]">
+                        Talk to Kira →
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -600,12 +606,16 @@ export default function DashboardPage() {
                     );
                   })
                 ) : (
-                  <p className="text-gray-500 font-lato font-[400]">No quizzes available.</p>
+                  <p className="text-gray-500 font-lato font-[400]">
+                    No quizzes available.
+                  </p>
                 )}
               </div>
               <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
                 <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
-                  <span className="flex-1 text-xl font-lato font-[600]">Medals & Achievements</span>
+                  <span className="flex-1 text-xl font-lato font-[600]">
+                    Medals & Achievements
+                  </span>
                   <span
                     className="hover:cursor-pointer text-[#2D7017] font-lato font-[500]"
                     onClick={() => {

@@ -852,7 +852,9 @@ export default function AdminDashboardPage() {
                 marginBottom: 0,
               }}
             />
-            <span className="text-gray-700 font-lato font-[500]">Admin Dashboard</span>
+            <span className="text-gray-700 font-lato font-[500]">
+              Admin Dashboard
+            </span>
           </div>
 
           {/* Middle: Tabs */}
@@ -895,7 +897,9 @@ export default function AdminDashboardPage() {
               <p className="text-sm font-lato font-[500] text-gray-900">
                 {user.first_name} {user.last_name}
               </p>
-              <p className="text-xs font-lato font-[400] text-[#006400]">Administrator</p>
+              <p className="text-xs font-lato font-[400] text-[#006400]">
+                Administrator
+              </p>
             </div>
 
             <DropdownMenu>
@@ -987,7 +991,9 @@ export default function AdminDashboardPage() {
                       </div>
                       <hr className="mb-3" />
                       <div className="mb-4">
-                        <p className="text-sm font-lato font-[500] mb-2">Grade</p>
+                        <p className="text-sm font-lato font-[500] mb-2">
+                          Grade
+                        </p>
                         {["3rd", "4th", "5th", "6th", "7th"].map((grade) => (
                           <label
                             key={grade}
@@ -1195,7 +1201,12 @@ export default function AdminDashboardPage() {
                   <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="first_name" className="font-lato font-[500]">First Name *</Label>
+                        <Label
+                          htmlFor="first_name"
+                          className="font-lato font-[500]"
+                        >
+                          First Name *
+                        </Label>
                         <Input
                           id="first_name"
                           placeholder="John"
@@ -1211,7 +1222,12 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="last_name" className="font-lato font-[500]">Last Name *</Label>
+                        <Label
+                          htmlFor="last_name"
+                          className="font-lato font-[500]"
+                        >
+                          Last Name *
+                        </Label>
                         <Input
                           id="last_name"
                           placeholder="Doe"
@@ -1228,7 +1244,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="username" className="font-lato font-[500]">Username *</Label>
+                      <Label
+                        htmlFor="username"
+                        className="font-lato font-[500]"
+                      >
+                        Username *
+                      </Label>
                       <Input
                         id="username"
                         placeholder="student123"
@@ -1244,7 +1265,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="font-lato font-[500]">Password *</Label>
+                      <Label
+                        htmlFor="password"
+                        className="font-lato font-[500]"
+                      >
+                        Password *
+                      </Label>
                       <Input
                         id="password"
                         type="password"
@@ -1266,7 +1292,10 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="font-lato font-[500]">
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="font-lato font-[500]"
+                      >
                         Confirm Password *
                       </Label>
                       <Input
@@ -1295,7 +1324,9 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="grade" className="font-lato font-[500]">Grade</Label>
+                      <Label htmlFor="grade" className="font-lato font-[500]">
+                        Grade
+                      </Label>
                       <Select
                         value={addStudentForm.grade}
                         onValueChange={(value) =>
@@ -1346,7 +1377,12 @@ export default function AdminDashboardPage() {
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="new_password" className="font-lato font-[500]">New Password</Label>
+                      <Label
+                        htmlFor="new_password"
+                        className="font-lato font-[500]"
+                      >
+                        New Password
+                      </Label>
                       <Input
                         id="new_password"
                         type="password"
@@ -1358,7 +1394,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="confirm_password" className="font-lato font-[500]">Confirm Password</Label>
+                      <Label
+                        htmlFor="confirm_password"
+                        className="font-lato font-[500]"
+                      >
+                        Confirm Password
+                      </Label>
                       <Input
                         id="confirm_password"
                         type="password"
@@ -1723,7 +1764,9 @@ export default function AdminDashboardPage() {
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="font-lato font-[500]">First Name</Label>
+                                  <Label className="font-lato font-[500]">
+                                    First Name
+                                  </Label>
                                   <Input
                                     value={editForm.first_name}
                                     onChange={(e) =>
@@ -1737,7 +1780,9 @@ export default function AdminDashboardPage() {
                                   />
                                 </div>
                                 <div>
-                                  <Label className="font-lato font-[500]">Last Name</Label>
+                                  <Label className="font-lato font-[500]">
+                                    Last Name
+                                  </Label>
                                   <Input
                                     value={editForm.last_name}
                                     onChange={(e) =>
@@ -1753,7 +1798,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label className="font-lato font-[500]">Email</Label>
+                                <Label className="font-lato font-[500]">
+                                  Email
+                                </Label>
                                 <Input
                                   value={editForm.email}
                                   onChange={(e) =>
@@ -1768,7 +1815,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label className="font-lato font-[500]">Username</Label>
+                                <Label className="font-lato font-[500]">
+                                  Username
+                                </Label>
                                 <Input
                                   value={editForm.username}
                                   onChange={(e) =>
@@ -1790,13 +1839,17 @@ export default function AdminDashboardPage() {
 
                               <div className="grid grid-cols-2 gap-4 mt-4">
                                 <div>
-                                  <Label className="font-lato font-[500]">School</Label>
+                                  <Label className="font-lato font-[500]">
+                                    School
+                                  </Label>
                                   <div className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900">
                                     {schoolName || "Not assigned"}
                                   </div>
                                 </div>
                                 <div>
-                                  <Label className="font-lato font-[500]">Grade</Label>
+                                  <Label className="font-lato font-[500]">
+                                    Grade
+                                  </Label>
                                   <select
                                     value={editForm.grade || ""}
                                     onChange={(e) =>
@@ -1818,7 +1871,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label className="font-lato font-[500]">Notes</Label>
+                                <Label className="font-lato font-[500]">
+                                  Notes
+                                </Label>
                                 <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
                                 <textarea
                                   value={
