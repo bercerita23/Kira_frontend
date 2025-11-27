@@ -28,7 +28,7 @@ export function LandingFooter() {
               a live teacher.
             </p>
 
-            <Link href="/about" className="">
+            <Link href="https://www.bercerita.org/" className="">
               <span className="font-lato text-[18px] font-[500] text-[#2D7017]">
                 Learn more about Bercerita's program and impact here.
               </span>
