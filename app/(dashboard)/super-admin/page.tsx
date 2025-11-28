@@ -32,6 +32,8 @@ import {
   Calendar,
   TrendingUp,
   TrendingDown,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,6 +85,11 @@ export default function SuperAdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const [allUsers, setAllUsers] = useState<DbUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [expandedSections, setExpandedSections] = useState({
+    students: false,
+    admins: false,
+    superAdmins: false,
+  });
   const [stats, setStats] = useState({
     totalUsers: 0,
     students: 0,
@@ -475,6 +482,7 @@ export default function SuperAdminDashboardPage() {
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => !user.is_admin && !user.is_super_admin)
+                      .slice(0, expandedSections.students ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -522,6 +530,39 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
+                    {allUsers.filter(
+                      (user) => !user.is_admin && !user.is_super_admin
+                    ).length > 5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              students: !prev.students,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.students ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter(
+                                (user) => !user.is_admin && !user.is_super_admin
+                              ).length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                     {allUsers.filter(
                       (user) => !user.is_admin && !user.is_super_admin
                     ).length === 0 && (
@@ -573,6 +614,7 @@ export default function SuperAdminDashboardPage() {
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => user.is_admin && !user.is_super_admin)
+                      .slice(0, expandedSections.admins ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -619,6 +661,39 @@ export default function SuperAdminDashboardPage() {
                       ))}
                     {allUsers.filter(
                       (user) => user.is_admin && !user.is_super_admin
+                    ).length > 5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              admins: !prev.admins,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.admins ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter(
+                                (user) => user.is_admin && !user.is_super_admin
+                              ).length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {allUsers.filter(
+                      (user) => user.is_admin && !user.is_super_admin
                     ).length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -653,6 +728,7 @@ export default function SuperAdminDashboardPage() {
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => user.is_super_admin)
+                      .slice(0, expandedSections.superAdmins ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -697,6 +773,37 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
+                    {allUsers.filter((user) => user.is_super_admin).length >
+                      5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              superAdmins: !prev.superAdmins,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.superAdmins ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter((user) => user.is_super_admin)
+                                .length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                     {allUsers.filter((user) => user.is_super_admin).length ===
                       0 && (
                       <div className="text-center py-8 text-gray-500">
