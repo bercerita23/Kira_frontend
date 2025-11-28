@@ -27,6 +27,11 @@ import {
   Plus,
   Trash2,
   Pencil,
+  Clock,
+  Activity,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,6 +89,16 @@ export default function SuperAdminDashboardPage() {
     admins: 0,
     superAdmins: 0,
     schools: 0,
+  });
+  const [activityStats, setActivityStats] = useState({
+    dau: 0,
+    wau: 0,
+    mau: 0,
+    highEngagement: 0,
+    lowEngagement: 0,
+    inactive7Days: [] as DbUser[],
+    inactive14Days: [] as DbUser[],
+    inactive30Days: [] as DbUser[],
   });
 
   console.log("🔒 Super Admin page render:", {
@@ -156,6 +171,88 @@ export default function SuperAdminDashboardPage() {
           admins: admins.length,
           superAdmins: superAdmins.length,
           schools: uniqueSchools.size,
+        });
+
+        // Calculate activity analytics
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const monthAgo = new Date(today);
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const fourteenDaysAgo = new Date(today);
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // DAU/WAU/MAU calculation
+        const dau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= today;
+        }).length;
+
+        const wau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= weekAgo;
+        }).length;
+
+        const mau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= monthAgo;
+        }).length;
+
+        // Engagement classification
+        // High engagement: logged in within last 7 days
+        // Low engagement: logged in more than 7 days ago or never
+        const highEngagement = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= weekAgo;
+        }).length;
+
+        const lowEngagement = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < weekAgo;
+        }).length;
+
+        // Inactive users
+        const inactive7Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < sevenDaysAgo;
+        });
+
+        const inactive14Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < fourteenDaysAgo;
+        });
+
+        const inactive30Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < thirtyDaysAgo;
+        });
+
+        setActivityStats({
+          dau,
+          wau,
+          mau,
+          highEngagement,
+          lowEngagement,
+          inactive7Days,
+          inactive14Days,
+          inactive30Days,
         });
 
         console.log("📊 Super Admin Dashboard: Final stats:", {
@@ -345,79 +442,6 @@ export default function SuperAdminDashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">
-                Total Users
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-lato font-[600]">
-                {stats.totalUsers}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">
-                Students
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-lato font-[600]">
-                {stats.students}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">
-                Admins
-              </CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-lato font-[600]">
-                {stats.admins}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">
-                Super Admins
-              </CardTitle>
-              <Crown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-lato font-[600]">
-                {stats.superAdmins}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-lato font-[500]">
-                Schools
-              </CardTitle>
-              <School className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-lato font-[600]">
-                {stats.schools}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Management</TabsTrigger>
@@ -697,25 +721,418 @@ export default function SuperAdminDashboardPage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Schools Analytics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                    <School className="h-5 w-5 text-blue-600" />
+                    Schools Analytics
+                  </CardTitle>
+                  <CardDescription className="font-lato font-[400]">
+                    Total number of registered schools in the system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-lato font-[400] text-gray-600 mb-1">
+                          Total Schools
+                        </p>
+                        <p className="text-4xl font-lato font-[700] text-blue-600">
+                          {stats.schools}
+                        </p>
+                      </div>
+                      <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center">
+                        <School className="h-10 w-10 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t">
+                      <p className="text-xs font-lato font-[400] text-gray-500">
+                        Active educational institutions registered in the
+                        platform
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Students Analytics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    Students Analytics
+                  </CardTitle>
+                  <CardDescription className="font-lato font-[400]">
+                    Total number of active student accounts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-lato font-[400] text-gray-600 mb-1">
+                          Active Students
+                        </p>
+                        <p className="text-4xl font-lato font-[700] text-green-600">
+                          {stats.students}
+                        </p>
+                      </div>
+                      <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
+                        <UserCheck className="h-10 w-10 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t">
+                      <p className="text-xs font-lato font-[400] text-gray-500">
+                        Students currently using the learning platform
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* User Roles Overview */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <BarChart3 className="h-5 w-5" />
-                  System Analytics
+                  User Roles Overview
                 </CardTitle>
                 <CardDescription className="font-lato font-[400]">
-                  Platform usage and performance metrics
+                  Distribution of users by role and access level
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-lato font-[400]">
-                    Advanced analytics dashboard coming soon...
-                  </p>
-                  <p className="text-sm font-lato font-[400]">
-                    User activity, engagement metrics, and system performance
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Admins
+                      </p>
+                      <Shield className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-blue-600">
+                      {stats.admins}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      School administrators
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-purple-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Super Admins
+                      </p>
+                      <Crown className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-purple-600">
+                      {stats.superAdmins}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      System administrators
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Students
+                      </p>
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-green-600">
+                      {stats.students}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Active learners
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-orange-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Schools
+                      </p>
+                      <School className="h-4 w-4 text-orange-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-orange-600">
+                      {stats.schools}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Total institutions
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Total Users
+                      </p>
+                      <Users className="h-4 w-4 text-gray-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-gray-700">
+                      {stats.totalUsers}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      All accounts combined
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* User Activity Analytics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                  <Activity className="h-5 w-5 text-indigo-600" />
+                  User Activity Analytics
+                </CardTitle>
+                <CardDescription className="font-lato font-[400]">
+                  Daily, weekly, and monthly active users based on login
+                  activity
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 border rounded-lg bg-indigo-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Daily Active Users (DAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-indigo-600">
+                      {activityStats.dau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in today
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Weekly Active Users (WAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-blue-600">
+                      {activityStats.wau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in this week
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-purple-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Monthly Active Users (MAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-purple-600">
+                      {activityStats.mau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in this month
+                    </p>
+                  </div>
+                </div>
+
+                {/* Engagement Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        High Engagement Users
+                      </p>
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-green-600">
+                      {activityStats.highEngagement}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Active within last 7 days
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-red-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Low Engagement Users
+                      </p>
+                      <TrendingDown className="h-4 w-4 text-red-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-red-600">
+                      {activityStats.lowEngagement}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Inactive for 7+ days or never logged in
+                    </p>
+                  </div>
+                </div>
+
+                {/* Inactive Users List */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-lato font-[600] text-gray-700 mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Inactive Users
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            7+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-orange-50 text-orange-700"
+                          >
+                            {activityStats.inactive7Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 7 days
+                        </p>
+                        {activityStats.inactive7Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive7Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive7Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive7Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            14+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-red-50 text-red-700"
+                          >
+                            {activityStats.inactive14Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 14 days
+                        </p>
+                        {activityStats.inactive14Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive14Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive14Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive14Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            30+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-red-100 text-red-800"
+                          >
+                            {activityStats.inactive30Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 30 days
+                        </p>
+                        {activityStats.inactive30Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive30Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive30Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive30Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

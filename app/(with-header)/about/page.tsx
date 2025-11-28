@@ -111,6 +111,9 @@ export default function About() {
     },
   };
 
+  // Add video URL variable
+  const videoUrl = ""; // e.g. "https://www.youtube.com/embed/IXsWr2CK4SI?start=681"
+
   return (
     <div className="w-full min-h-screen">
       <LandingHeader />
@@ -128,7 +131,7 @@ export default function About() {
           WHAT IS <span className="text-[#2D7017]">KIRA?</span>
         </motion.h1>
         <motion.span
-          className="w-[46%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E] mb-4"
+          className="w-[51%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E] mb-4"
           variants={contentVariants}
         >
           KIRA is a free, web-based platform that helps children in remote and
@@ -139,7 +142,7 @@ export default function About() {
           working with Bercerita, ensuring it reaches students who need it most.
         </motion.span>
         <motion.span
-          className="w-[46%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E]"
+          className="w-[52%] text-center font-lato text-[18px] md:text-[20px] font-[400] leading-[28px] text-[#4B4B4E]"
           variants={contentVariants}
         >
           In many rural communities, children have little access to quality
@@ -461,6 +464,58 @@ export default function About() {
           </Button>
         </motion.div>
       </motion.div>
+
+      {/* Schools Are Finding Success With KIRA */}
+      {videoUrl && (
+        <motion.div
+          className="w-full bg-[#113604] text-white py-20 flex flex-col justify-center items-center"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
+          <motion.h1
+            className="font-lato text-4xl md:text-3xl  mb-8"
+            variants={titleVariants}
+          >
+            Schools Are Finding Success With KIRA
+          </motion.h1>
+
+          <motion.div
+            className="w-full max-w-3xl px-8"
+            variants={imageVariants}
+          >
+            <div className="relative w-full aspect-video bg-gray-200 overflow-hidden shadow-xl">
+              <iframe
+                width="100%"
+                height="100%"
+                src={videoUrl}
+                title="Schools Are Finding Success With KIRA"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+              ></iframe>
+            </div>
+          </motion.div>
+
+          <motion.div variants={contentVariants}>
+            <Button
+              size="lg"
+              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-8 font-lato text-[18px] font-[500]"
+            >
+              <Link
+                href="https://www.bercerita.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-lato text-[18px] font-[500] leading-[120%] tracking-[-2%]"
+              >
+                Learn More about Bercerita's Impact →
+              </Link>
+            </Button>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
