@@ -1876,6 +1876,10 @@ function ManageSchoolsTab({
       }
       const data = await response.json();
       const arr = Array.isArray(data) ? data : data.schools ?? [];
+      // Filter for inactive or suspended schools
+      const inactive = arr.filter(
+        (s: School) => s.status === "inactive" || s.status === "suspended"
+      );
       setInactiveSchools(arr);
     } catch (error) {
       console.error("Error fetching inactive schools:", error);
@@ -2627,6 +2631,11 @@ function ManageSchoolsTab({
                               <Badge variant="outline">
                                 {school.school_id}
                               </Badge>
+                              {school.status === "suspended" && (
+                                <Badge className="bg-red-100 text-red-700 ml-2">
+                                  Suspended
+                                </Badge>
+                              )}
                             </div>
 
                             {admins.length > 0 ? (
@@ -2810,6 +2819,11 @@ function ManageSchoolsTab({
                               <Badge variant="outline">
                                 {school.school_id}
                               </Badge>
+                              {school.status === "suspended" && (
+                                <Badge className="bg-red-100 text-red-700 ml-2">
+                                  Suspended
+                                </Badge>
+                              )}
                             </div>
 
                             {admins.length > 0 ? (
