@@ -110,8 +110,22 @@ export default function LoginPage() {
         error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
 
-      // Show specific error messages
-      if (errorMessage.includes("Admin users must")) {
+      // Add this to debug
+      console.log("Full error object:", error);
+      console.log("Error message:", errorMessage);
+
+      // Show specific error messages - CHECK DEACTIVATED FIRST
+      if (
+        errorMessage.toLowerCase().includes("deactivated") ||
+        errorMessage.toLowerCase().includes("user is deactivated")
+      ) {
+        toast({
+          title: "Account Deactivated",
+          description:
+            "Your account has been deactivated. Please contact your teacher or school admin for assistance.",
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes("Admin users must")) {
         toast({
           title: "Wrong Portal",
           description: "Admin users must use the Admin Portal below.",
@@ -142,6 +156,13 @@ export default function LoginPage() {
           title: "Access denied",
           description:
             "Admin accounts cannot log in as students. Please use the Admin login.",
+          variant: "destructive",
+        });
+      } else {
+        // Fallback for any other backend errors
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
           variant: "destructive",
         });
       }
