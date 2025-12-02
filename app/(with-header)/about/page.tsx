@@ -448,21 +448,7 @@ export default function About() {
             </motion.div>
           ))}
         </motion.div>
-        <motion.div variants={contentVariants}>
-          <Button
-            size="lg"
-            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
-          >
-            <Link
-              href="https://www.bercerita.org/general-6"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-lato text-[18px] font-[500] leading-[120%] tracking-[-2%]"
-            >
-              Support KIRA
-            </Link>
-          </Button>
-        </motion.div>
+        <motion.div variants={contentVariants}></motion.div>
       </motion.div>
 
       {/* Schools Are Finding Success With KIRA */}
