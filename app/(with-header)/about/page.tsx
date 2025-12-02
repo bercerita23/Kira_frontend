@@ -155,19 +155,18 @@ export default function About() {
         </motion.span>
 
         <motion.div variants={contentVariants}>
-          <Button
-            size="lg"
-            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-6 font-lato text-[18px] font-[500]"
+          <Link
+            href="https://www.bercerita.org/general-6"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Link
-              href="https://www.bercerita.org/general-6"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-lato text-[18px] font-[500] leading-[120%] tracking-[-2%]"
+            <Button
+              size="lg"
+              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-6 font-lato text-[18px] font-[500]"
             >
               Support KIRA's Mission
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </motion.div>
       </motion.div>
 
@@ -270,19 +269,18 @@ export default function About() {
         </motion.div>
 
         <motion.div variants={contentVariants}>
-          <Button
-            size="lg"
-            className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 font-lato text-[18px] font-[500]"
+          <Link
+            href="https://www.bercerita.org/general-6"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <Link
-              href="https://www.bercerita.org/general-6"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-lato text-[18px] font-[500] leading-[120%] tracking-[-2%]"
+            <Button
+              size="lg"
+              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 font-lato text-[18px] font-[500]"
             >
               Donate Now
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </motion.div>
       </motion.div>
 
@@ -486,19 +484,18 @@ export default function About() {
           </motion.div>
 
           <motion.div variants={contentVariants}>
-            <Button
-              size="lg"
-              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-8 font-lato text-[18px] font-[500]"
+            <Link
+              href="https://www.bercerita.org/"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <Link
-                href="https://www.bercerita.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-lato text-[18px] font-[500] leading-[120%] tracking-[-2%]"
+              <Button
+                size="lg"
+                className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-8 font-lato text-[18px] font-[500]"
               >
                 Learn More about Bercerita's Impact →
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </motion.div>
         </motion.div>
       )}
