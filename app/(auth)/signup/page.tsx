@@ -386,16 +386,28 @@ export default function SignupPage() {
           </CardContent>
 
           <CardFooter className="flex justify-center">
-            <p className="text-sm font-lato font-[400] text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-lato font-[500] hover:underline"
-                style={{ color: "#94b689" }}
-              >
-                Sign in
-              </Link>
-            </p>
+            <div className="text-center">
+              <p className="text-sm font-lato font-[400] text-muted-foreground mt-2">
+                Verification code expired?{" "}
+                <Link
+                  href="/resend-verification"
+                  className="font-lato font-[500] hover:underline"
+                  style={{ color: "#94b689" }}
+                >
+                  Resend verification code
+                </Link>
+              </p>
+              <p className="text-sm font-lato font-[400] text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-lato font-[500] hover:underline"
+                  style={{ color: "#94b689" }}
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </CardFooter>
         </Card>
       </div>
