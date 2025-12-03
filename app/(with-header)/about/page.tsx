@@ -159,10 +159,11 @@ export default function About() {
             href="https://www.bercerita.org/general-6"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:opacity-90 transition-opacity"
           >
             <Button
               size="lg"
-              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-6 font-lato text-[18px] font-[500]"
+              className="bg-[#2D7017] hover:bg-[#244011] text-white mt-6 font-lato text-[18px] font-[500]"
             >
               Support KIRA's Mission
             </Button>
@@ -273,10 +274,11 @@ export default function About() {
             href="https://www.bercerita.org/general-6"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:opacity-90 transition-opacity"
           >
             <Button
               size="lg"
-              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 font-lato text-[18px] font-[500]"
+              className="bg-[#2D7017] hover:bg-[#244011] text-white mt-12 font-lato text-[18px] font-[500]"
             >
               Donate Now
             </Button>
@@ -311,11 +313,11 @@ export default function About() {
           <div className="pointer-events-none absolute -left-6 sm:-left-8 md:-left-10 top-4 sm:top-5 md:top-6 h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
           <div className="pointer-events-none absolute right-2 sm:right-3 md:right-4 bottom-0 h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
 
-          <div className="absolute left-0 top-4 w-fit -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
+          <div className="absolute left-0 top-4 w-[50%] md:w-[52%] -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
             <img
               src="/assets/students_new_quiz.png"
               alt="New Quiz"
-              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-full object-fill"
               loading="lazy"
             />
           </div>
@@ -363,7 +365,7 @@ export default function About() {
         <motion.div variants={contentVariants}>
           <Button
             size="lg"
-            className="bg-[#5CA145] hover:bg-[#4a8a37] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
+            className="bg-[#5CA145] hover:bg-[#4a8135] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
           >
             Student Demo Coming Soon
           </Button>
@@ -396,12 +398,11 @@ export default function About() {
         >
           <div className="pointer-events-none absolute -left-6 sm:-left-8 md:-left-10 top-4 sm:top-5 md:top-6 h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 rounded-full bg-gradient-to-br from-amber-300/60 to-yellow-300/30 blur-3xl" />
           <div className="pointer-events-none absolute right-2 sm:right-3 md:right-4 bottom-0 h-56 w-56 sm:h-64 sm:w-64 md:h-72 md:w-72 rounded-full bg-gradient-to-br from-rose-400/60 to-pink-300/30 blur-3xl" />
-
-          <div className="absolute left-0 top-4 w-fit -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
+          <div className="absolute left-0 top-4 w-[50%] md:w-[52%] -translate-x-2 sm:-translate-x-3 md:-translate-x-4 -translate-y-2 rotate-[-0.5deg] scale-[0.94] md:top-2 rounded-2xl bg-white ring-1 ring-black/5 overflow-hidden shadow-[0_12px_45px_rgba(0,0,0,0.25)]">
             <img
               src="/assets/about/teachers/Admin Dash.png"
               alt="Upload bulk"
-              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-min object-fill"
+              className="h-[min(280px,26vh)] sm:h-[min(320px,30vh)] md:h-[min(380px,36vh)] w-full object-fill"
               loading="lazy"
             />
           </div>
@@ -488,10 +489,11 @@ export default function About() {
               href="https://www.bercerita.org/"
               target="_blank"
               rel="noopener noreferrer"
+              className="hover:opacity-90 transition-opacity"
             >
               <Button
                 size="lg"
-                className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-8 font-lato text-[18px] font-[500]"
+                className="bg-[#2D7017] hover:bg-[#244011] text-white mt-8 font-lato text-[18px] font-[500]"
               >
                 Learn More about Bercerita's Impact →
               </Button>

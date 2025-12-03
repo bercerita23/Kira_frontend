@@ -48,7 +48,7 @@ export default function StudentProfile() {
             {/* Left */}
             <div className="flex-1">
               <span
-                className="hover:cursor-pointer text-[#2D7017]"
+                className="hover:cursor-pointer text-[#2D7017] font-lato text-[16px] font-[400]"
                 onClick={() => router.back()}
               >
                 {"< "}Go Back to Home
@@ -69,46 +69,56 @@ export default function StudentProfile() {
             </div>
 
             {/* Right */}
-            <div className="flex-1 text-right text-white">
+            <div className="flex-1 text-right text-[#1C1C1C] font-lato text-[18px] font-[500]">
               {userDetails?.first_name} {userDetails?.last_name}
             </div>
           </div>
 
           <div className="bg-white w-[60%] self-center rounded-xl shadow-md border flex flex-col">
-            <span className="text-xl mt-3 self-center">My Account Details</span>
+            <span className="text-xl mt-3 self-center font-lato font-[700] text-[#1C1C1C]">
+              My Account Details
+            </span>
             <div className="h-[1px] w-[90%] bg-[#A5A2A8] mb-3 mt-1 self-center" />
             <div className="grid grid-cols-2 w-[90%] self-center gap-y-4 gap-x-4 mb-3">
               <div className="flex flex-col">
-                First Name
+                <span className="font-lato text-[14px] font-[500] text-[#1C1C1C] mb-1">
+                  First Name
+                </span>
                 <input
-                  className="rounded bg-[#D7D7D7] py-2 px-3 text-black"
+                  className="rounded bg-[#D7D7D7] py-2 px-3 text-black font-lato text-[16px] font-[400]"
                   placeholder="first name"
                   disabled
                   value={userDetails?.first_name ?? ""}
                 />
               </div>
               <div className="flex flex-col">
-                Last Name
+                <span className="font-lato text-[14px] font-[500] text-[#1C1C1C] mb-1">
+                  Last Name
+                </span>
                 <input
-                  className="rounded bg-[#D7D7D7] py-2 px-3"
+                  className="rounded bg-[#D7D7D7] py-2 px-3 font-lato text-[16px] font-[400]"
                   placeholder="last name"
                   disabled
                   value={userDetails?.last_name ?? ""}
                 />
               </div>
               <div className="flex flex-col">
-                Username
+                <span className="font-lato text-[14px] font-[500] text-[#1C1C1C] mb-1">
+                  Username
+                </span>
                 <input
-                  className="rounded bg-[#D7D7D7] py-2 px-3"
+                  className="rounded bg-[#D7D7D7] py-2 px-3 font-lato text-[16px] font-[400]"
                   placeholder="username"
                   disabled
                   value={userDetails?.username}
                 />
               </div>
               <div className="flex flex-col">
-                Grade
+                <span className="font-lato text-[14px] font-[500] text-[#1C1C1C] mb-1">
+                  Grade
+                </span>
                 <input
-                  className="rounded bg-[#D7D7D7] py-2 px-3"
+                  className="rounded bg-[#D7D7D7] py-2 px-3 font-lato text-[16px] font-[400]"
                   placeholder="grade"
                   disabled
                   value={userDetails?.grade ?? ""}
@@ -117,10 +127,12 @@ export default function StudentProfile() {
             </div>
           </div>
           <div className="bg-white w-[60%] self-center rounded-xl shadow-md border flex flex-col overflow-hidden mt-12 py-3">
-            <span className="text-xl mt-3 self-center">My Account Details</span>
+            <span className="text-xl mt-3 self-center font-lato font-[700] text-[#1C1C1C]">
+              My Account Details
+            </span>
             <div className="h-[1px] w-[90%] bg-[#A5A2A8] mb-3 mt-1 self-center" />
             <button
-              className="bg-[#2D7017] text-white w-[20%] self-center rounded py-3"
+              className="bg-[#2D7017] text-white w-[20%] self-center rounded py-3 font-lato text-[18px] font-[500]"
               onClick={logout}
             >
               Logout

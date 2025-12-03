@@ -91,7 +91,7 @@ export function LandingHero() {
             >
               <Button
                 size="lg"
-                className="bg-[#2D7017] hover:bg-[#1e4a0f] text-[#F5F5F5] font-lato text-[18px] font-[500]"
+                className="bg-[#2D7017] hover:bg-[#244011] text-[#F5F5F5] font-lato text-[18px] font-[500]"
                 asChild
               >
                 <Link
@@ -104,7 +104,7 @@ export function LandingHero() {
               </Button>
               <Button
                 size="lg"
-                className="border-2 border-[#2D7017] text-[#2D7017] hover:text-white hover:bg-[#2D7017] bg-white font-lato text-[18px] font-[500]"
+                className="border-2 border-[#2D7017] text-[#2D7017] hover:text-white hover:bg-[#244011] bg-white font-lato text-[18px] font-[500]"
                 asChild
               >
                 <Link href="/about">Learn More About Our Product</Link>
