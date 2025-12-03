@@ -71,7 +71,7 @@ export function LandingCTA() {
                 <Button
                   size="lg"
                   asChild
-                  className="bg-[#2D7017] hover:bg-[#45A049] font-lato text-[16px] font-medium px-8 py-3 rounded-lg"
+                  className="bg-[#2D7017] hover:bg-[#244011] font-lato text-[16px] font-medium px-8 py-3 rounded-lg"
                 >
                   <Link
                     href="https://www.bercerita.org/general-6"

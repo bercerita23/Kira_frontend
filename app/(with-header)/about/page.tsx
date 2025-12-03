@@ -159,10 +159,11 @@ export default function About() {
             href="https://www.bercerita.org/general-6"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:opacity-90 transition-opacity"
           >
             <Button
               size="lg"
-              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-6 font-lato text-[18px] font-[500]"
+              className="bg-[#2D7017] hover:bg-[#244011] text-white mt-6 font-lato text-[18px] font-[500]"
             >
               Support KIRA's Mission
             </Button>
@@ -273,10 +274,11 @@ export default function About() {
             href="https://www.bercerita.org/general-6"
             target="_blank"
             rel="noopener noreferrer"
+            className="hover:opacity-90 transition-opacity"
           >
             <Button
               size="lg"
-              className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-12 font-lato text-[18px] font-[500]"
+              className="bg-[#2D7017] hover:bg-[#244011] text-white mt-12 font-lato text-[18px] font-[500]"
             >
               Donate Now
             </Button>
@@ -363,7 +365,7 @@ export default function About() {
         <motion.div variants={contentVariants}>
           <Button
             size="lg"
-            className="bg-[#5CA145] hover:bg-[#4a8a37] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
+            className="bg-[#5CA145] hover:bg-[#4a8135] text-white mt-12 w-min self-center font-lato text-[18px] font-[500]"
           >
             Student Demo Coming Soon
           </Button>
@@ -487,10 +489,11 @@ export default function About() {
               href="https://www.bercerita.org/"
               target="_blank"
               rel="noopener noreferrer"
+              className="hover:opacity-90 transition-opacity"
             >
               <Button
                 size="lg"
-                className="bg-[#2D7017] hover:bg-[#1e4a0f] text-white mt-8 font-lato text-[18px] font-[500]"
+                className="bg-[#2D7017] hover:bg-[#244011] text-white mt-8 font-lato text-[18px] font-[500]"
               >
                 Learn More about Bercerita's Impact →
               </Button>
