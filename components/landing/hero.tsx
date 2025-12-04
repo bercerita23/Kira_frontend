@@ -118,6 +118,7 @@ export function LandingHero() {
             animate="visible"
           >
             {/* Background blur elements - moved before the main content */}
+            {/*test */}
             <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-purple-200 rounded-full blur-3xl opacity-70"></div>
             <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-200 rounded-full blur-3xl opacity-70"></div>
 
