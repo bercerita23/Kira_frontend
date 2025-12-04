@@ -1755,6 +1755,7 @@ function InviteAdminsTab() {
 }
 interface School {
   school_id: string;
+  display_id: string;
   name: string;
   email: string;
   status: string;
@@ -1876,11 +1877,26 @@ function ManageSchoolsTab({
       }
       const data = await response.json();
       const arr = Array.isArray(data) ? data : data.schools ?? [];
-      // Filter for inactive or suspended schools
-      const inactive = arr.filter(
-        (s: School) => s.status === "inactive" || s.status === "suspended"
-      );
-      setInactiveSchools(arr);
+
+      // Sort by display_id in ascending order
+      const sorted = arr.sort((a: School, b: School) => {
+        const idA = a.display_id.toLowerCase();
+        const idB = b.display_id.toLowerCase();
+
+        // Extract numbers if display_id follows "School X" pattern
+        const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
+        const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
+
+        // If both have numbers, sort numerically
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+
+        // Otherwise sort alphabetically
+        return idA.localeCompare(idB);
+      });
+
+      setInactiveSchools(sorted);
     } catch (error) {
       console.error("Error fetching inactive schools:", error);
       toast({
@@ -1892,7 +1908,6 @@ function ManageSchoolsTab({
       setLoadingInactive(false);
     }
   };
-
   useEffect(() => {
     fetchInactiveSchools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1926,20 +1941,43 @@ function ManageSchoolsTab({
 
   // Filter schools based on search term
   const filteredSchools = React.useMemo(() => {
-    if (!searchTerm.trim()) return Array.from(schoolAdminMap.values());
+    const filtered = !searchTerm.trim()
+      ? Array.from(schoolAdminMap.values())
+      : Array.from(schoolAdminMap.values()).filter(
+          (item) =>
+            item.school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.school.display_id
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            item.admins.some(
+              (admin: DbUser) =>
+                admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                admin.first_name
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) ||
+                admin.last_name
+                  ?.toLowerCase()
+                  .includes(searchTerm.toLowerCase())
+            )
+        );
 
-    const term = searchTerm.toLowerCase();
-    return Array.from(schoolAdminMap.values()).filter(
-      (item) =>
-        item.school.name.toLowerCase().includes(term) ||
-        item.school.school_id.toLowerCase().includes(term) ||
-        item.admins.some(
-          (admin: DbUser) =>
-            admin.email.toLowerCase().includes(term) ||
-            admin.first_name.toLowerCase().includes(term) ||
-            admin.last_name?.toLowerCase().includes(term)
-        )
-    );
+    // Sort by display_id in ascending order
+    return filtered.sort((a, b) => {
+      const idA = a.school.display_id.toLowerCase();
+      const idB = b.school.display_id.toLowerCase();
+
+      // Extract numbers if display_id follows "School X" pattern
+      const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
+      const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
+
+      // If both have numbers, sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+
+      // Otherwise sort alphabetically
+      return idA.localeCompare(idB);
+    });
   }, [schoolAdminMap, searchTerm]);
 
   // Validate email format
@@ -2629,7 +2667,7 @@ function ManageSchoolsTab({
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
-                                {school.school_id}
+                                {school.display_id}
                               </Badge>
                               {school.status === "suspended" && (
                                 <Badge className="bg-red-100 text-red-700 ml-2">
@@ -2817,7 +2855,7 @@ function ManageSchoolsTab({
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
-                                {school.school_id}
+                                {school.display_id}
                               </Badge>
                               {school.status === "suspended" && (
                                 <Badge className="bg-red-100 text-red-700 ml-2">
