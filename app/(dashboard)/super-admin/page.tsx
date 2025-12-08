@@ -2013,13 +2013,108 @@ function ManageSchoolsTab({
       email: "",
       telephone: "",
       address: "",
+      max_questions: "",
+      question_prompt: "",
+      image_prompt: "",
+      kira_chat_prompt: "",
     });
 
     const [isApproving, setIsApproving] = useState<boolean>(false);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // Add this
 
     const submit = async () => {
+      // ... existing validation code ...
+
+      // Validate required fields
+      if (
+        !newSchoolForm.name.trim() ||
+        !newSchoolForm.email.trim() ||
+        !newSchoolForm.telephone.trim() ||
+        !newSchoolForm.address.trim()
+      ) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please fill in name, email, telephone, and address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate email format
+      if (!isValidEmail(newSchoolForm.email.trim())) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If any prompt field is filled, all must be filled
+      const hasAnyPrompt =
+        newSchoolForm.question_prompt.trim() ||
+        newSchoolForm.image_prompt.trim() ||
+        newSchoolForm.kira_chat_prompt.trim();
+
+      if (hasAnyPrompt) {
+        if (
+          !newSchoolForm.question_prompt.trim() ||
+          !newSchoolForm.image_prompt.trim() ||
+          !newSchoolForm.kira_chat_prompt.trim()
+        ) {
+          toast({
+            title: "Incomplete Prompts",
+            description:
+              "If you fill any prompt field, all prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Validate max_questions if provided
+      if (
+        newSchoolForm.max_questions &&
+        (isNaN(Number(newSchoolForm.max_questions)) ||
+          Number(newSchoolForm.max_questions) < 0)
+      ) {
+        toast({
+          title: "Invalid Max Questions",
+          description: "Max questions must be a positive number.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsApproving(true);
       try {
+        // Build the request body
+        const requestBody: {
+          name: string;
+          email: string;
+          telephone: string;
+          address: string;
+          max_questions?: number;
+          question_prompt?: string;
+          image_prompt?: string;
+          kira_chat_prompt?: string;
+        } = {
+          name: newSchoolForm.name.trim(),
+          email: newSchoolForm.email.trim(),
+          telephone: newSchoolForm.telephone.trim(),
+          address: newSchoolForm.address.trim(),
+        };
+
+        // Add optional fields if provided
+        if (newSchoolForm.max_questions.trim()) {
+          requestBody.max_questions = Number(newSchoolForm.max_questions);
+        }
+        if (hasAnyPrompt) {
+          requestBody.question_prompt = newSchoolForm.question_prompt.trim();
+          requestBody.image_prompt = newSchoolForm.image_prompt.trim();
+          requestBody.kira_chat_prompt = newSchoolForm.kira_chat_prompt.trim();
+        }
+
         const response = await fetch("/api/super_admin/create-school", {
           method: "POST",
           headers: {
@@ -2028,13 +2123,12 @@ function ManageSchoolsTab({
               document.cookie.match(/token=([^;]+)/)?.[1] || ""
             }`,
           },
-          body: JSON.stringify(newSchoolForm),
+          body: JSON.stringify(requestBody),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          // Handle different error cases
           if (response.status === 409) {
             toast({
               title: "School Already Exists",
@@ -2055,7 +2149,6 @@ function ManageSchoolsTab({
           return;
         }
 
-        // Success case
         toast({
           title: "School Added Successfully",
           description: `${newSchoolForm.name} has been added to the system.`,
@@ -2067,7 +2160,12 @@ function ManageSchoolsTab({
           email: "",
           telephone: "",
           address: "",
+          max_questions: "",
+          question_prompt: "",
+          image_prompt: "",
+          kira_chat_prompt: "",
         });
+        setShowAdvancedOptions(false); // Reset toggle
       } catch (error) {
         console.error("Error adding school:", error);
         toast({
@@ -2087,82 +2185,219 @@ function ManageSchoolsTab({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-lato font-[600]">
             <School className="h-5 w-5 text-green-600" />
-            Add new school
+            Add New School
           </CardTitle>
           <CardDescription className="font-lato font-[400]">
-            Add a new school to the school list
+            Add a new school to the system
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="school name" className="font-lato font-[500]">
-                School Name *
+          <div className="space-y-6">
+            {/* Required Fields */}
+            <div className="space-y-4">
+              <Label className="text-base font-lato font-[500]">
+                Required Information
               </Label>
-              <Input
-                id="school name"
-                placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
-                value={newSchoolForm.name}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({ ...f, name: e.target.value }));
-                }}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="school-name" className="font-lato font-[500]">
+                    School Name *
+                  </Label>
+                  <Input
+                    id="school-name"
+                    placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
+                    value={newSchoolForm.name}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({ ...f, name: e.target.value }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-email"
+                    className="font-lato font-[500]"
+                  >
+                    School Email *
+                  </Label>
+                  <Input
+                    id="school-email"
+                    type="email"
+                    placeholder="sdn08@gmail.com"
+                    value={newSchoolForm.email}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        email: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-telephone"
+                    className="font-lato font-[500]"
+                  >
+                    School Telephone *
+                  </Label>
+                  <Input
+                    id="school-telephone"
+                    placeholder="+62 1234-5678-9101"
+                    type="tel"
+                    value={newSchoolForm.telephone}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        telephone: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-address"
+                    className="font-lato font-[500]"
+                  >
+                    School Address *
+                  </Label>
+                  <Input
+                    id="school-address"
+                    placeholder="Kalisongo, Jawa Timur"
+                    value={newSchoolForm.address}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        address: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school name" className="font-lato font-[500]">
-                School email *
-              </Label>
-              <Input
-                id="school email"
-                type="email"
-                placeholder="sdn08@gmail.com"
-                value={newSchoolForm.email}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({ ...f, email: e.target.value }));
-                }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="school telephone"
-                className="font-lato font-[500]"
+            {/* Advanced Options Toggle */}
+            <div className="pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                className="w-full flex items-center justify-between"
               >
-                School Telephone *
-              </Label>
-              <Input
-                id="school telephone"
-                placeholder="+62 1234-5678-9101"
-                type="tel"
-                value={newSchoolForm.telephone}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({
-                    ...f,
-                    telephone: e.target.value,
-                  }));
-                }}
-              />
+                <span className="flex items-center gap-2">
+                  {showAdvancedOptions ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  Advanced Options
+                </span>
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school address" className="font-lato font-[500]">
-                School Address *
-              </Label>
-              <Input
-                id="school address"
-                placeholder="Kalisongo, Jawa Timur"
-                value={newSchoolForm.address}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({
-                    ...f,
-                    address: e.target.value,
-                  }));
-                }}
-              />
-            </div>
+            {/* Advanced Options Content */}
+            {showAdvancedOptions && (
+              <div className="space-y-4 pt-4 border-t animate-in slide-in-from-top-2">
+                <Label className="text-base font-lato font-[500]">
+                  Optional Configuration
+                </Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="max-questions"
+                      className="font-lato font-[500]"
+                    >
+                      Max Questions
+                    </Label>
+                    <Input
+                      id="max-questions"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 10"
+                      value={newSchoolForm.max_questions}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          max_questions: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="question-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Question Prompt
+                    </Label>
+                    <textarea
+                      id="question-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the question prompt..."
+                      value={newSchoolForm.question_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          question_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="image-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Image Prompt
+                    </Label>
+                    <textarea
+                      id="image-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the image prompt..."
+                      value={newSchoolForm.image_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          image_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="kira-chat-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Kira Chat Prompt
+                    </Label>
+                    <textarea
+                      id="kira-chat-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the Kira chat prompt..."
+                      value={newSchoolForm.kira_chat_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          kira_chat_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-500 font-lato font-[400] bg-blue-50 p-3 rounded-md border border-blue-200">
+                    <strong>Note:</strong> If you fill any prompt field, all
+                    three prompt fields must be filled.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex justify-end mt-4">
+
+          <div className="flex justify-end mt-6">
             <Button
               onClick={submit}
               disabled={isApproving}
@@ -2171,10 +2406,13 @@ function ManageSchoolsTab({
               {isApproving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Adding School ....
+                  Adding School...
                 </>
               ) : (
-                <>Add School</>
+                <>
+                  <Plus className="h-4 w-4" />
+                  Add School
+                </>
               )}
             </Button>
           </div>
