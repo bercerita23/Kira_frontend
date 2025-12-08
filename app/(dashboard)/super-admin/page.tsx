@@ -501,9 +501,18 @@ export default function SuperAdminDashboardPage() {
                               <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
+                              {(user.school_name || user.school_id) && (
                                 <p className="text-xs font-lato font-[400] text-gray-400">
-                                  School ID: {user.school_id}
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -633,9 +642,18 @@ export default function SuperAdminDashboardPage() {
                               <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
+                              {(user.school_name || user.school_id) && (
                                 <p className="text-xs font-lato font-[400] text-gray-400">
-                                  School ID: {user.school_id}
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -747,9 +765,18 @@ export default function SuperAdminDashboardPage() {
                               <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
+                              {(user.school_name || user.school_id) && (
                                 <p className="text-xs font-lato font-[400] text-gray-400">
-                                  School ID: {user.school_id}
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -1755,7 +1782,6 @@ function InviteAdminsTab() {
 }
 interface School {
   school_id: string;
-  display_id: string;
   name: string;
   email: string;
   status: string;
@@ -1878,12 +1904,10 @@ function ManageSchoolsTab({
       const data = await response.json();
       const arr = Array.isArray(data) ? data : data.schools ?? [];
 
-      // Sort by display_id in ascending order
       const sorted = arr.sort((a: School, b: School) => {
-        const idA = a.display_id.toLowerCase();
-        const idB = b.display_id.toLowerCase();
+        const idA = a.school_id.toLowerCase();
+        const idB = b.school_id.toLowerCase();
 
-        // Extract numbers if display_id follows "School X" pattern
         const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
         const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
 
@@ -1946,7 +1970,7 @@ function ManageSchoolsTab({
       : Array.from(schoolAdminMap.values()).filter(
           (item) =>
             item.school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.school.display_id
+            item.school.school_id
               .toLowerCase()
               .includes(searchTerm.toLowerCase()) ||
             item.admins.some(
@@ -1961,12 +1985,10 @@ function ManageSchoolsTab({
             )
         );
 
-    // Sort by display_id in ascending order
     return filtered.sort((a, b) => {
-      const idA = a.school.display_id.toLowerCase();
-      const idB = b.school.display_id.toLowerCase();
+      const idA = a.school.school_id.toLowerCase();
+      const idB = b.school.school_id.toLowerCase();
 
-      // Extract numbers if display_id follows "School X" pattern
       const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
       const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
 
@@ -2667,7 +2689,7 @@ function ManageSchoolsTab({
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
-                                {school.display_id}
+                                {school.school_id}
                               </Badge>
                               {school.status === "suspended" && (
                                 <Badge className="bg-red-100 text-red-700 ml-2">
@@ -2855,7 +2877,7 @@ function ManageSchoolsTab({
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
-                                {school.display_id}
+                                {school.school_id}
                               </Badge>
                               {school.status === "suspended" && (
                                 <Badge className="bg-red-100 text-red-700 ml-2">
