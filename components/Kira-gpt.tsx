@@ -465,7 +465,7 @@ export default function KiraGpt({
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative"
+      className="fixed inset-0 z-50"
       style={{
         backgroundImage: "url('/assets/quiz/background.jpg')",
         backgroundSize: "cover",
@@ -476,58 +476,56 @@ export default function KiraGpt({
       <div className="absolute inset-0 bg-green-200/60"></div>
 
       {/* Chatbot Interface */}
-      <div className="relative z-10 w-full max-w-[800px] mx-4 mt-20">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[760px]">
+      <div className="relative h-full flex flex-col max-w-4xl mx-auto p-4">
+        {/* White Card Container */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full max-h-[90vh] my-auto">
           {/* Header */}
-          <div className="bg-white border-b border-gray-200 p-4 relative">
-            {/* Timer top-left */}
-            <div className="absolute top-6 left-4 flex items-center">
+          <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              {/* Timer */}
               <span className="text-sm font-semibold text-orange-600">
                 {formatTime(timer)}
               </span>
-            </div>
-            {/* Exit button top-right */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleExit}
-              className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
-            >
-              Exit <X className="h-4 w-4 ml-1" />
-            </Button>
 
-            {/* Centered Icon + Title */}
-            <div className="flex flex-col items-center space-y-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              {/* Centered Icon + Title */}
+              <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center pt-2">
                 <Image
                   src="/assets/quiz/kiragpt.png"
-                  alt="Kira Monkey"
-                  width={42}
-                  height={42}
-                  className="rounded"
+                  alt="Kira"
+                  width={40}
+                  height={40}
+                  className="rounded mb-1"
                 />
+                <h2 className="font-semibold text-gray-800">Kira</h2>
               </div>
-              <h2 className="font-semibold text-gray-800 text-base">Kira</h2>
+
+              {/* Exit Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExit}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                Exit <X className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
+          {/* Chat Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4 min-h-0">
             {chatMessages.map((msg, idx) => (
               <div key={msg.id} className="flex flex-col">
                 {msg.isBot ? (
                   <div
-                    className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]"
+                    className="bg-white border-2 border-red-500 rounded-3xl px-5 py-3 max-w-[80%] self-start"
                     ref={endRef}
                   >
-                    <p className="text-sm text-gray-800">
-                      {/* Show typer animation for the last bot message if typing */}
+                    <p className="text-sm text-gray-800 break-words">
                       {isTyping &&
                       idx === chatMessages.length - 1 &&
                       typingBotMessage !== null
                         ? typingBotMessage
                         : msg.text}
-                      {/* Blinking cursor */}
                       {isTyping &&
                         idx === chatMessages.length - 1 &&
                         typingBotMessage !== null && (
@@ -536,20 +534,19 @@ export default function KiraGpt({
                     </p>
                   </div>
                 ) : (
-                  <div className="self-end bg-orange-500 border-2 border-orange-600 text-white rounded-full px-6 py-3 max-w-[620px]">
-                    <p className="text-sm">{msg.text}</p>
+                  <div className="bg-orange-500 border-2 border-orange-600 text-white rounded-3xl px-5 py-3 max-w-[80%] self-end">
+                    <p className="text-sm break-words">{msg.text}</p>
                   </div>
                 )}
               </div>
             ))}
-            {/* If typing and no bot message yet, show the typing message separately */}
             {isTyping &&
               typingBotMessage !== null &&
               chatMessages.length > 0 &&
               chatMessages[chatMessages.length - 1].isBot === false && (
                 <div className="flex flex-col">
-                  <div className="bg-white border-2 border-red-500 rounded-full px-6 py-3 max-w-[620px]">
-                    <p className="text-sm text-gray-800">
+                  <div className="bg-white border-2 border-red-500 rounded-3xl px-5 py-3 max-w-[80%] self-start">
+                    <p className="text-sm text-gray-800 break-words">
                       {typingBotMessage}
                       <span className="animate-pulse">|</span>
                     </p>
@@ -559,14 +556,14 @@ export default function KiraGpt({
           </div>
 
           {/* Input Area */}
-          <div className="bg-white border-t border-gray-200 p-6">
-            <div className="flex items-center space-x-3">
-              {/* Input Field with Mic inside */}
-              <div className="flex-1 relative flex items-center border-2 border-red-400 rounded-full px-2 py-1 overflow-hidden">
+          <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              {/* Input with Mic */}
+              <div className="flex-1 flex items-center border-2 border-red-400 rounded-full overflow-hidden">
                 <button
                   onClick={handleMicClick}
                   disabled={transcribing || locked}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 m-1 transition-colors ${
                     locked
                       ? "bg-gray-400"
                       : transcribing
@@ -581,7 +578,7 @@ export default function KiraGpt({
                   ) : transcribing ? (
                     <Loader2 className="h-5 w-5 text-white animate-spin" />
                   ) : recording ? (
-                    <span className="w-3 h-3 bg-white"></span>
+                    <span className="w-3 h-3 bg-white rounded-sm"></span>
                   ) : (
                     <Mic className="h-5 w-5 text-black" />
                   )}
@@ -593,8 +590,7 @@ export default function KiraGpt({
                   onKeyPress={handleChatKeyPress}
                   placeholder={locked ? "Session locked" : "Type Here..."}
                   disabled={transcribing || locked}
-                  className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-500 disabled:bg-gray-50"
-                  style={{ minHeight: "44px" }}
+                  className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-400 disabled:bg-gray-50"
                 />
               </div>
 
@@ -602,14 +598,9 @@ export default function KiraGpt({
               <Button
                 onClick={handleChatSendMessage}
                 disabled={!chatMessage.trim() || transcribing || locked}
-                size="sm"
-                className={`w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white p-0 flex-shrink-0 ${
-                  !chatMessage.trim() || transcribing || locked
-                    ? "disabled:bg-gray-400"
-                    : ""
-                }`}
+                className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 p-0 flex-shrink-0 disabled:bg-gray-400"
               >
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-5 w-5 text-white" />
               </Button>
             </div>
             {locked && (

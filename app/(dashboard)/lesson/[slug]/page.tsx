@@ -367,12 +367,12 @@ export default function LessonPage() {
     switch (currentQuestion.question_type) {
       case "MCQ":
         return (
-          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-xl mx-auto">
             {currentQuestion.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(option)}
-                className={`p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs ${
+                className={`p-2 sm:p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs sm:text-sm ${
                   selectedAnswer === option
                     ? "border-orange-400 bg-orange-100 text-orange-800 shadow-md"
                     : "border-gray-300 bg-white hover:border-orange-300 hover:bg-orange-50 text-gray-700"
@@ -380,7 +380,7 @@ export default function LessonPage() {
               >
                 <span className="flex items-center justify-center">
                   <span
-                    className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
                       selectedAnswer === option
                         ? "border-orange-500 bg-orange-500 text-white"
                         : "border-gray-400 bg-white text-gray-600"
@@ -388,7 +388,7 @@ export default function LessonPage() {
                   >
                     {String.fromCharCode(65 + index)}
                   </span>
-                  {option}
+                  <span className="text-left flex-1">{option}</span>
                 </span>
               </button>
             ))}
@@ -397,12 +397,12 @@ export default function LessonPage() {
 
       case "FITB":
         return (
-          <div className="max-w-xl mx-auto relative">
+          <div className="max-w-xl mx-auto relative px-2 sm:px-0">
             <div className="relative">
-              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+              <div className="absolute -top-4 sm:-top-5 left-2 sm:left-4 bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
                 <textarea
                   value={
                     showResult &&
@@ -421,7 +421,7 @@ export default function LessonPage() {
                     }
                   }}
                   placeholder="Type Here..."
-                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                  className={`flex-1 p-3 sm:p-4 pt-5 sm:pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-xs sm:text-sm ${
                     showResult
                       ? isTypoTolerantMatch(
                           selectedAnswer,
@@ -432,14 +432,14 @@ export default function LessonPage() {
                       : "border-orange-400 bg-white text-gray-700"
                   } placeholder-gray-400`}
                   rows={1}
-                  style={{ minHeight: "50px" }}
+                  style={{ minHeight: "45px" }}
                   readOnly={showResult}
                 />
                 {!showResult && selectedAnswer.trim() && (
                   <Button
                     onClick={handleSubmit}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
-                    style={{ minHeight: "50px" }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap w-full sm:w-auto"
+                    style={{ minHeight: "45px" }}
                   >
                     Submit
                   </Button>
@@ -451,12 +451,12 @@ export default function LessonPage() {
 
       case "TRANS":
         return (
-          <div className="max-w-xl mx-auto relative">
+          <div className="max-w-xl mx-auto relative px-2 sm:px-0">
             <div className="relative">
-              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+              <div className="absolute -top-4 sm:-top-5 left-2 sm:left-4 bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
                 <textarea
                   value={
                     showResult &&
@@ -475,7 +475,7 @@ export default function LessonPage() {
                     }
                   }}
                   placeholder="Type Here..."
-                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                  className={`flex-1 p-3 sm:p-4 pt-5 sm:pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-xs sm:text-sm ${
                     showResult
                       ? isTypoTolerantMatch(
                           selectedAnswer,
@@ -486,14 +486,14 @@ export default function LessonPage() {
                       : "border-orange-400 bg-white text-gray-700"
                   } placeholder-gray-400`}
                   rows={1}
-                  style={{ minHeight: "50px" }}
+                  style={{ minHeight: "45px" }}
                   readOnly={showResult}
                 />
                 {!showResult && selectedAnswer.trim() && (
                   <Button
                     onClick={handleSubmit}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
-                    style={{ minHeight: "50px" }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap w-full sm:w-auto"
+                    style={{ minHeight: "45px" }}
                   >
                     Submit
                   </Button>
@@ -549,7 +549,7 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
         <div className="relative z-10 flex flex-col items-center">
           {/* Kira Monkey Image on top of white card - Made larger */}
-          <div className="mb-[-20px] z-20 ">
+          <div className="mb-[-20px] z-20">
             <Image
               src={
                 isHighScore
@@ -659,7 +659,7 @@ export default function LessonPage() {
       />
       {/* Top section with green background - Question and Image */}
       <div
-        className="flex-1 relative min-h-[60vh]"
+        className="flex-1 relative min-h-[35vh] sm:min-h-[50vh] md:min-h-[55vh]"
         style={{
           backgroundImage: "url('/assets/quiz/background.jpg')",
           backgroundSize: "cover",
@@ -671,11 +671,11 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14 mt-[80px]">
+        <div className="relative z-10 flex flex-col items-center justify-start px-2 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-6 md:space-y-10 mt-[50px] sm:mt-[70px] md:mt-[80px]">
           {/* Question text in white card at top */}
-          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 max-w-4xl w-full mx-2 sm:mx-4">
             <div className="text-center">
-              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
+              <h1 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-gray-800 leading-snug">
                 {currentQuestion.content}
               </h1>
             </div>
@@ -683,11 +683,11 @@ export default function LessonPage() {
 
           {/* Image directly on green background - responsive size */}
           {currentQuestion.image_url && (
-            <div className="mb-4">
+            <div className="mb-1 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-xl mx-auto shadow-lg w-full max-w-[25rem] h-[20rem] sm:max-w-[30rem] sm:h-[20rem] md:max-w-[35rem] md:h-[24rem] lg:max-w-[38rem] lg:h-[25rem] object-cover"
+                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[10rem] xs:h-[12rem] sm:h-[16rem] md:h-[20rem] lg:h-[24rem] object-cover"
               />
             </div>
           )}
@@ -695,9 +695,9 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom section with white background - Answer choices */}
-      <div className="bg-white min-h-[24vh] flex flex-col">
+      <div className="bg-white min-h-[15vh] sm:min-h-[20vh] flex flex-col">
         {/* Answer choices */}
-        <div className="flex-1 py-6 px-4">
+        <div className="flex-1 py-2 sm:py-4 md:py-6 px-2 sm:px-4">
           {renderQuestion()}
 
           {/* Result display */}
@@ -705,12 +705,12 @@ export default function LessonPage() {
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex justify-between items-center p-4 border-t border-gray-100">
+        <div className="flex justify-between items-center p-2 sm:p-3 md:p-4 border-t border-gray-100 gap-2">
           <Button
             variant="outline"
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}
-            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-6 py-2"
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm md:text-base"
           >
             ← Back
           </Button>
@@ -721,7 +721,7 @@ export default function LessonPage() {
               !selectedAnswer.trim() ||
               (currentQuestion.question_type === "FITB" && !showResult)
             }
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-3 sm:px-6 py-2 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs sm:text-sm md:text-base"
           >
             {currentQuestionIndex === quiz.questions.length - 1
               ? "Finish Quiz"
