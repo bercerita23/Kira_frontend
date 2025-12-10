@@ -1787,7 +1787,12 @@ interface School {
   status: string;
   telephone: string;
   address: string;
+  max_questions?: number;
+  question_prompt?: string;
+  image_prompt?: string;
+  kira_chat_prompt?: string;
 }
+
 function ManageSchoolsTab({
   allUsers,
   loadingUsers,
@@ -1819,14 +1824,22 @@ function ManageSchoolsTab({
     telephone: string;
     address: string;
     email: string;
+    max_questions: string;
+    question_prompt: string;
+    image_prompt: string;
+    kira_chat_prompt: string;
   }>({
     school_id: "",
     name: "",
     telephone: "",
     address: "",
     email: "",
+    max_questions: "",
+    question_prompt: "",
+    image_prompt: "",
+    kira_chat_prompt: "",
   });
-
+  const [showEditAdvanced, setShowEditAdvanced] = useState(false);
   const [inactiveSchools, setInactiveSchools] = useState<Array<School>>([]);
   const [loadingInactive, setLoadingInactive] = useState(true);
 
@@ -1853,9 +1866,12 @@ function ManageSchoolsTab({
         }
 
         const data: unknown = await response.json();
+        console.log("🔍 Raw API response:", data); // ADD THIS
         const arr = Array.isArray(data)
           ? data
           : (data as SchoolsResponse).schools ?? [];
+        console.log("🔍 Processed schools array:", arr); // ADD THIS
+        console.log("🔍 First school with all fields:", arr[0]); // ADD THIS
         setSchools(arr);
       } catch (error) {
         console.error("Error fetching schools:", error);
@@ -2644,7 +2660,17 @@ function ManageSchoolsTab({
   };
 
   const handleUpdateSchool = async () => {
-    const { school_id, name, email, telephone, address } = updatedSchoolFields;
+    const {
+      school_id,
+      name,
+      email,
+      telephone,
+      address,
+      max_questions,
+      question_prompt,
+      image_prompt,
+      kira_chat_prompt,
+    } = updatedSchoolFields;
 
     // Required fields
     if (!school_id?.trim()) {
@@ -2673,9 +2699,71 @@ function ManageSchoolsTab({
       return;
     }
 
+    // Validate max_questions if provided
+    if (
+      max_questions &&
+      (isNaN(Number(max_questions)) || Number(max_questions) < 0)
+    ) {
+      toast({
+        title: "Invalid Max Questions",
+        description: "Max questions must be a positive number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If any prompt field is filled, all must be filled
+    const hasAnyPrompt =
+      question_prompt.trim() || image_prompt.trim() || kira_chat_prompt.trim();
+
+    if (hasAnyPrompt) {
+      if (
+        !question_prompt.trim() ||
+        !image_prompt.trim() ||
+        !kira_chat_prompt.trim()
+      ) {
+        toast({
+          title: "Incomplete Prompts",
+          description:
+            "If you fill any prompt field, all prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsSavingEdit(true);
     try {
       const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+
+      // Build request body
+      const requestBody: {
+        school_id: string;
+        name: string;
+        email: string;
+        telephone: string;
+        address: string;
+        max_questions?: number;
+        question_prompt?: string;
+        image_prompt?: string;
+        kira_chat_prompt?: string;
+      } = {
+        school_id,
+        name,
+        email,
+        telephone,
+        address,
+      };
+
+      // Add optional fields if provided
+      if (max_questions.trim()) {
+        requestBody.max_questions = Number(max_questions);
+      }
+      if (hasAnyPrompt) {
+        requestBody.question_prompt = question_prompt.trim();
+        requestBody.image_prompt = image_prompt.trim();
+        requestBody.kira_chat_prompt = kira_chat_prompt.trim();
+      }
 
       const res = await fetch("/api/super_admin/update-school", {
         method: "POST",
@@ -2683,14 +2771,17 @@ function ManageSchoolsTab({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          school_id,
-          name,
-          email,
-          telephone,
-          address,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      if (!res.ok) {
+        let msg = "Failed to update school";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       toast({
         title: "School Updated",
@@ -2698,6 +2789,7 @@ function ManageSchoolsTab({
       });
 
       setIsEditOpen(false);
+      setShowEditAdvanced(false);
     } catch (error) {
       console.error("Update school failed:", error);
       toast({
@@ -2712,15 +2804,24 @@ function ManageSchoolsTab({
       setIsSavingEdit(false);
     }
   };
-
   const openEdit = (school: School) => {
+    // First, reset the toggle state BEFORE opening dialog
+    setShowEditAdvanced(false);
+
+    // Then set the form fields
     setUpdatedSchoolFields({
       school_id: school.school_id,
       name: school.name ?? "",
       email: school.email ?? "",
       telephone: school.telephone ?? "",
       address: school.address ?? "",
+      max_questions: school.max_questions?.toString() ?? "",
+      question_prompt: school.question_prompt ?? "",
+      image_prompt: school.image_prompt ?? "",
+      kira_chat_prompt: school.kira_chat_prompt ?? "",
     });
+
+    // Finally, open the dialog
     setIsEditOpen(true);
   };
 
@@ -2762,8 +2863,14 @@ function ManageSchoolsTab({
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          setIsEditOpen(open);
+          if (!open) setShowEditAdvanced(false);
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-lato font-[600]">
               Update School Information
@@ -2774,91 +2881,235 @@ function ManageSchoolsTab({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* use ids without spaces */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="school-id" className="font-lato font-[500]">
-                School ID
+          <div className="space-y-6">
+            {/* Required Fields */}
+            <div className="space-y-4">
+              <Label className="text-base font-lato font-[500]">
+                Required Information
               </Label>
-              <Input
-                id="school-id"
-                value={updatedSchoolFields.school_id}
-                disabled
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <Label
+                    htmlFor="edit-school-id"
+                    className="font-lato font-[500]"
+                  >
+                    School ID
+                  </Label>
+                  <Input
+                    id="edit-school-id"
+                    value={updatedSchoolFields.school_id}
+                    disabled
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-name"
+                    className="font-lato font-[500]"
+                  >
+                    School Name *
+                  </Label>
+                  <Input
+                    id="edit-school-name"
+                    value={updatedSchoolFields.name}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        name: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-email"
+                    className="font-lato font-[500]"
+                  >
+                    School Email *
+                  </Label>
+                  <Input
+                    id="edit-school-email"
+                    type="email"
+                    value={updatedSchoolFields.email}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        email: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-telephone"
+                    className="font-lato font-[500]"
+                  >
+                    School Telephone *
+                  </Label>
+                  <Input
+                    id="edit-school-telephone"
+                    type="tel"
+                    value={updatedSchoolFields.telephone}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        telephone: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-address"
+                    className="font-lato font-[500]"
+                  >
+                    School Address *
+                  </Label>
+                  <Input
+                    id="edit-school-address"
+                    value={updatedSchoolFields.address}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        address: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-name" className="font-lato font-[500]">
-                School Name *
-              </Label>
-              <Input
-                id="school-name"
-                value={updatedSchoolFields.name}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    name: e.target.value,
-                  }))
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="school-email" className="font-lato font-[500]">
-                School email *
-              </Label>
-              <Input
-                id="school-email"
-                type="email"
-                value={updatedSchoolFields.email}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    email: e.target.value,
-                  }))
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="school-telephone"
-                className="font-lato font-[500]"
+            {/* Advanced Options Toggle */}
+            <div className="pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEditAdvanced(!showEditAdvanced)}
+                className="w-full flex items-center justify-between"
               >
-                School Telephone *
-              </Label>
-              <Input
-                id="school-telephone"
-                type="tel"
-                value={updatedSchoolFields.telephone}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    telephone: e.target.value,
-                  }))
-                }
-              />
+                <span className="flex items-center gap-2">
+                  {showEditAdvanced ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  Advanced Options
+                </span>
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-address" className="font-lato font-[500]">
-                School Address *
-              </Label>
-              <Input
-                id="school-address"
-                value={updatedSchoolFields.address}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    address: e.target.value,
-                  }))
-                }
-              />
-            </div>
+            {/* Advanced Options Content */}
+            {showEditAdvanced && (
+              <div className="space-y-4 pt-4 border-t animate-in slide-in-from-top-2">
+                <Label className="text-base font-lato font-[500]">
+                  Optional Configuration
+                </Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-max-questions"
+                      className="font-lato font-[500]"
+                    >
+                      Max Questions
+                    </Label>
+                    <Input
+                      id="edit-max-questions"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 10"
+                      value={updatedSchoolFields.max_questions}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          max_questions: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-question-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Question Prompt
+                    </Label>
+                    <textarea
+                      id="edit-question-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the question prompt..."
+                      value={updatedSchoolFields.question_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          question_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-image-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Image Prompt
+                    </Label>
+                    <textarea
+                      id="edit-image-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the image prompt..."
+                      value={updatedSchoolFields.image_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          image_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-kira-chat-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Kira Chat Prompt
+                    </Label>
+                    <textarea
+                      id="edit-kira-chat-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the Kira chat prompt..."
+                      value={updatedSchoolFields.kira_chat_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          kira_chat_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-500 font-lato font-[400] bg-blue-50 p-3 rounded-md border border-blue-200">
+                    <strong>Note:</strong> If you fill any prompt field, all
+                    three prompt fields must be filled.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditOpen(false);
+                setShowEditAdvanced(false);
+              }}
+            >
               Cancel
             </Button>
             <Button onClick={handleUpdateSchool} disabled={isSavingEdit}>
