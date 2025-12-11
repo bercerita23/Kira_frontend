@@ -37,32 +37,32 @@ export default function LessonNavbar({
 
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm fixed top-0 left-0 w-full z-50">
-      <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between p-2 sm:p-4 max-w-6xl mx-auto">
         {/* Help button */}
         <Button
           variant="ghost"
           size="sm"
           asChild
-          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full px-2 sm:px-3 text-xs sm:text-sm"
         >
           <Link href="/dashboard">
-            <HelpCircle className="h-4 w-4 mr-1" />
-            Help
+            <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
+            <span className="hidden xs:inline">Help</span>
           </Link>
         </Button>
 
         {/* Progress indicators or timer bar */}
         {showProgressBar ? (
-          <div className="flex flex-col items-center w-[100%] max-w-md px-4">
+          <div className="flex flex-col items-center w-full max-w-[200px] sm:max-w-md px-2 sm:px-4">
             <div
-              className="w-full h-4 rounded-full flex items-center relative border-2 border-black p-2"
+              className="w-full h-3 sm:h-4 rounded-full flex items-center relative border border-black sm:border-2 p-1 sm:p-2"
               style={{
                 background: "#09360c", // dark green outline
               }}
             >
               {/* Progress bar overlay */}
               <div
-                className="absolute left-0 top-0 h-4 rounded-full transition-all duration-500"
+                className="absolute left-0 top-0 h-3 sm:h-4 rounded-full transition-all duration-500"
                 style={{
                   width: `${percent}%`,
                   background: "linear-gradient(90deg, #fff 0%, #22c55e 100%)",
@@ -71,28 +71,28 @@ export default function LessonNavbar({
               ></div>
               {/* Dots */}
               <div
-                className="absolute left-0 top-0 w-full h-4 flex items-center justify-between px-10"
+                className="absolute left-0 top-0 w-full h-3 sm:h-4 flex items-center justify-between px-4 sm:px-10"
                 style={{ zIndex: 2 }}
               >
                 {[...Array(6)].map((_, i) => (
                   <span
                     key={i}
-                    className="w-3 h-3 rounded-full bg-white shadow"
+                    className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white shadow"
                   ></span>
                 ))}
               </div>
             </div>
-            <div className="text-[10px] text-green-900 mt-3 font-semibold">
-              Time Remaining: {formatTime(timer ?? 0)}
+            <div className="text-[8px] sm:text-[10px] text-green-900 mt-1 sm:mt-3 font-semibold">
+              Time: {formatTime(timer ?? 0)}
             </div>
           </div>
         ) : (
-          <div className="flex space-x-2">
+          <div className="flex space-x-1 sm:space-x-2">
             {total &&
               Array.from({ length: total }).map((_, index) => (
                 <div
                   key={index}
-                  className={`w-10 h-10 rounded-full border-3 flex items-center justify-center text-sm font-bold ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border-2 sm:border-3 flex items-center justify-center text-xs sm:text-sm font-bold ${
                     current && index < current - 1
                       ? "bg-green-500 border-green-600 text-white"
                       : current && index === current - 1
@@ -111,16 +111,16 @@ export default function LessonNavbar({
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-full px-2 sm:px-3 text-xs sm:text-sm"
             onClick={onExit}
           >
-            Exit
-            <X className="h-4 w-4 ml-1" />
+            <span className="hidden xs:inline">Exit</span>
+            <X className="h-3 w-3 sm:h-4 sm:w-4 xs:ml-1" />
           </Button>
         ) : (
-          <Button variant="ghost" size="sm" className="invisible">
-            Exit
-            <X className="h-4 w-4 ml-1" />
+          <Button variant="ghost" size="sm" className="invisible px-2 sm:px-3">
+            <span className="hidden xs:inline">Exit</span>
+            <X className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         )}
       </div>
