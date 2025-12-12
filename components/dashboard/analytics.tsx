@@ -6,7 +6,6 @@ import Link from "next/link";
 import QuizAverageChart from "@/components/dashboard/line-graph";
 import { ExternalLink } from "lucide-react";
 import ScoreHistogram from "@/components/dashboard/bar-graph";
-import { isNull } from "util";
 
 interface QuizStats {
   quiz_id: number;
