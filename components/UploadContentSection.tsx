@@ -27,6 +27,7 @@ import {
   FileText,
 } from "lucide-react";
 import ReviewQuestions from "./ReviewQuestions";
+import * as pdfjs from "pdfjs-dist";
 
 interface Topic {
   topic_id: number;
@@ -63,6 +64,11 @@ export default function UploadContentSection({ onReview }: Props) {
   const [reviewData, setReviewData] = useState<any>(null);
   const [reviewTopicName, setReviewTopicName] = useState("");
   const [loadingReview, setLoadingReview] = useState(false);
+
+  // Configure PDF.js worker
+  useEffect(() => {
+    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+  }, []);
 
   // Extract fetch logic into a reusable function
   const fetchTopicsAndHashes = async () => {
@@ -174,58 +180,70 @@ export default function UploadContentSection({ onReview }: Props) {
 
     setBusy(true);
     try {
-      // ✅ STEP 1: Hash ORIGINAL file FIRST (before processing)
+      // ✅ STEP 1: Hash ORIGINAL file FIRST
       const hash_value = await computeSHA256Hex(file);
       const exists = hashes.includes(hash_value);
 
       let fileToUpload = file;
       const FILE_SIZE_LIMIT = 6 * 1024 * 1024; // 6MB
 
-      // STEP 2: Process large files (but keep original hash)
-      if (file.size > FILE_SIZE_LIMIT) {
+      // STEP 2: Process large PDF files client-side
+      if (file.size > FILE_SIZE_LIMIT && file.type === "application/pdf") {
         toast({
           title: "Processing large file",
           description: "Extracting text to reduce file size...",
         });
 
-        const pdfForm = new FormData();
-        pdfForm.append("file", file);
+        try {
+          // Extract text from PDF using PDF.js
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
 
-        const pdfRes = await fetch("/api/pdf", {
-          method: "POST",
-          body: pdfForm,
-        });
+          let extractedText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(" ");
+            extractedText += pageText + "\n\n";
+          }
 
-        if (!pdfRes.ok) {
-          throw new Error("Failed to process large PDF");
-        }
-
-        const pdfBlob = await pdfRes.blob();
-        fileToUpload = new File([pdfBlob], file.name, {
-          type: "application/pdf",
-        });
-
-        console.log(
-          `📉 File size reduced: ${formatBytes(file.size)} → ${formatBytes(
-            fileToUpload.size
-          )}`
-        );
-
-        // ✅ CHECK: Is processed file STILL too large?
-        if (fileToUpload.size > FILE_SIZE_LIMIT) {
-          throw new Error(
-            `File still too large after processing (${formatBytes(
-              fileToUpload.size
-            )}). The PDF contains too much text. Please split it into smaller documents.`
+          // Create a simple text file instead of PDF
+          const textBlob = new Blob([extractedText], { type: "text/plain" });
+          fileToUpload = new File(
+            [textBlob],
+            file.name.replace(".pdf", ".txt"),
+            {
+              type: "text/plain",
+            }
           );
-        }
 
-        toast({
-          title: "File processed",
-          description: `Size reduced from ${formatBytes(
-            file.size
-          )} to ${formatBytes(fileToUpload.size)}`,
-        });
+          console.log(
+            `📉 File size reduced: ${formatBytes(file.size)} → ${formatBytes(
+              fileToUpload.size
+            )}`
+          );
+
+          // ✅ CHECK: Is processed file STILL too large?
+          if (fileToUpload.size > FILE_SIZE_LIMIT) {
+            throw new Error(
+              `File still too large after processing (${formatBytes(
+                fileToUpload.size
+              )}). The PDF contains too much text. Please split it into smaller documents.`
+            );
+          }
+
+          toast({
+            title: "File processed",
+            description: `Size reduced from ${formatBytes(
+              file.size
+            )} to ${formatBytes(fileToUpload.size)}`,
+          });
+        } catch (pdfError) {
+          console.error("PDF processing error:", pdfError);
+          throw new Error("Failed to process PDF. Please try a smaller file.");
+        }
       }
 
       // ✅ hash_value already computed from ORIGINAL file above
