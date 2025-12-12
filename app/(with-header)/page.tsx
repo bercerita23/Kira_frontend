@@ -4,7 +4,6 @@ import { LandingHeader } from "@/components/landing/header";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingFeatures } from "@/components/landing/features";
 import { LandingCTA } from "@/components/landing/cta";
-import Support from "@/components/landing/support";
 
 export default function Home() {
   return (
@@ -12,7 +11,6 @@ export default function Home() {
       <LandingHero />
       <LandingFeatures />
       <LandingCTA />
-      <Support />
     </div>
   );
 }

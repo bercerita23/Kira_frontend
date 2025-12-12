@@ -82,19 +82,18 @@ export interface CurrentUser {
 export interface DbUser {
   user_id: string;
   email: string;
-  username?: string;
   first_name: string;
   last_name?: string;
-  hashed_password?: string;
+  username?: string;
+  school_id?: string;
+  school_name?: string; // Add this line
   is_admin: boolean;
   is_super_admin: boolean;
-  school_id?: string | null;
-  notes?: string | null;
   created_at?: string;
   last_login_time?: string;
-  grade?: string;
-  points?: number;
   deactivated?: boolean;
+  grade?: string;
+  notes?: string;
 }
 
 export const authApi = {

@@ -27,6 +27,13 @@ import {
   Plus,
   Trash2,
   Pencil,
+  Clock,
+  Activity,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,12 +85,27 @@ export default function SuperAdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
   const [allUsers, setAllUsers] = useState<DbUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [expandedSections, setExpandedSections] = useState({
+    students: false,
+    admins: false,
+    superAdmins: false,
+  });
   const [stats, setStats] = useState({
     totalUsers: 0,
     students: 0,
     admins: 0,
     superAdmins: 0,
     schools: 0,
+  });
+  const [activityStats, setActivityStats] = useState({
+    dau: 0,
+    wau: 0,
+    mau: 0,
+    highEngagement: 0,
+    lowEngagement: 0,
+    inactive7Days: [] as DbUser[],
+    inactive14Days: [] as DbUser[],
+    inactive30Days: [] as DbUser[],
   });
 
   console.log("🔒 Super Admin page render:", {
@@ -158,6 +180,88 @@ export default function SuperAdminDashboardPage() {
           schools: uniqueSchools.size,
         });
 
+        // Calculate activity analytics
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const monthAgo = new Date(today);
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const fourteenDaysAgo = new Date(today);
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // DAU/WAU/MAU calculation
+        const dau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= today;
+        }).length;
+
+        const wau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= weekAgo;
+        }).length;
+
+        const mau = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= monthAgo;
+        }).length;
+
+        // Engagement classification
+        // High engagement: logged in within last 7 days
+        // Low engagement: logged in more than 7 days ago or never
+        const highEngagement = users.filter((u) => {
+          if (!u.last_login_time) return false;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate >= weekAgo;
+        }).length;
+
+        const lowEngagement = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < weekAgo;
+        }).length;
+
+        // Inactive users
+        const inactive7Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < sevenDaysAgo;
+        });
+
+        const inactive14Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < fourteenDaysAgo;
+        });
+
+        const inactive30Days = users.filter((u) => {
+          if (!u.last_login_time) return true;
+          const loginDate = new Date(u.last_login_time);
+          return loginDate < thirtyDaysAgo;
+        });
+
+        setActivityStats({
+          dau,
+          wau,
+          mau,
+          highEngagement,
+          lowEngagement,
+          inactive7Days,
+          inactive14Days,
+          inactive30Days,
+        });
+
         console.log("📊 Super Admin Dashboard: Final stats:", {
           totalUsers: users.length,
           students: students.length,
@@ -193,7 +297,9 @@ export default function SuperAdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying super admin access...</p>
+          <p className="text-gray-600 font-lato font-[400]">
+            Verifying super admin access...
+          </p>
         </div>
       </div>
     );
@@ -208,10 +314,12 @@ export default function SuperAdminDashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">
+          <h1 className="text-2xl font-lato font-[600] mb-4">
             Super Admin Authentication Required
           </h1>
-          <p className="text-gray-600 mb-6">Redirecting to admin login...</p>
+          <p className="text-gray-600 mb-6 font-lato font-[400]">
+            Redirecting to admin login...
+          </p>
           <div className="space-x-4">
             <Button asChild>
               <Link href="/admin/login">Go to Admin Login</Link>
@@ -234,10 +342,10 @@ export default function SuperAdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4 text-red-600">
+          <h1 className="text-2xl font-lato font-[600] mb-4 text-red-600">
             Super Admin Access Required
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-6 font-lato font-[400]">
             You don't have permission to access the super admin dashboard.
           </p>
           <div className="space-x-4">
@@ -307,10 +415,10 @@ export default function SuperAdminDashboardPage() {
             <div className="flex items-center gap-3">
               <Crown className="h-8 w-8 text-yellow-300" />
               <div>
-                <h1 className="text-xl font-bold text-white">
+                <h1 className="text-xl font-lato font-[600] text-white">
                   Super Admin Dashboard
                 </h1>
-                <p className="text-sm text-purple-200">
+                <p className="text-sm font-lato font-[400] text-purple-200">
                   System-wide Management & Analytics
                 </p>
               </div>
@@ -318,10 +426,12 @@ export default function SuperAdminDashboardPage() {
 
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-lato font-[500] text-white">
                   {user.first_name}
                 </p>
-                <p className="text-xs text-purple-200">Super Administrator</p>
+                <p className="text-xs font-lato font-[400] text-purple-200">
+                  Super Administrator
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -339,61 +449,6 @@ export default function SuperAdminDashboardPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Students</CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.students}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Admins</CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.admins}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Super Admins
-              </CardTitle>
-              <Crown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.superAdmins}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Schools</CardTitle>
-              <School className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.schools}</div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Management</TabsTrigger>
@@ -407,11 +462,11 @@ export default function SuperAdminDashboardPage() {
             {/* Students Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <UserCheck className="h-5 w-5 text-green-600" />
                   Students ({stats.students})
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-lato font-[400]">
                   All student accounts in the system
                 </CardDescription>
               </CardHeader>
@@ -419,12 +474,15 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading students...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading students...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => !user.is_admin && !user.is_super_admin)
+                      .slice(0, expandedSections.students ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -437,15 +495,24 @@ export default function SuperAdminDashboardPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-lato font-[500] text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
-                                <p className="text-xs text-gray-400">
-                                  School ID: {user.school_id}
+                              {(user.school_name || user.school_id) && (
+                                <p className="text-xs font-lato font-[400] text-gray-400">
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -459,12 +526,12 @@ export default function SuperAdminDashboardPage() {
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -474,16 +541,51 @@ export default function SuperAdminDashboardPage() {
                       ))}
                     {allUsers.filter(
                       (user) => !user.is_admin && !user.is_super_admin
+                    ).length > 5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              students: !prev.students,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.students ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter(
+                                (user) => !user.is_admin && !user.is_super_admin
+                              ).length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {allUsers.filter(
+                      (user) => !user.is_admin && !user.is_super_admin
                     ).length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No students found</p>
-                        <p className="text-xs mt-2">
+                        <p className="font-lato font-[400]">
+                          No students found
+                        </p>
+                        <p className="text-xs mt-2 font-lato font-[400]">
                           Total users loaded: {allUsers.length}
                         </p>
                         {allUsers.length > 0 && (
                           <details className="mt-4 text-left">
-                            <summary className="cursor-pointer text-sm">
+                            <summary className="cursor-pointer text-sm font-lato font-[400]">
                               Debug: Show raw user data
                             </summary>
                             <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
@@ -501,11 +603,11 @@ export default function SuperAdminDashboardPage() {
             {/* Admins Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <Shield className="h-5 w-5 text-blue-600" />
                   Administrators ({stats.admins})
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-lato font-[400]">
                   All admin accounts in the system
                 </CardDescription>
               </CardHeader>
@@ -513,12 +615,15 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading admins...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => user.is_admin && !user.is_super_admin)
+                      .slice(0, expandedSections.admins ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -531,15 +636,24 @@ export default function SuperAdminDashboardPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-lato font-[500] text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
-                                <p className="text-xs text-gray-400">
-                                  School ID: {user.school_id}
+                              {(user.school_name || user.school_id) && (
+                                <p className="text-xs font-lato font-[400] text-gray-400">
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -550,12 +664,12 @@ export default function SuperAdminDashboardPage() {
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -565,10 +679,43 @@ export default function SuperAdminDashboardPage() {
                       ))}
                     {allUsers.filter(
                       (user) => user.is_admin && !user.is_super_admin
+                    ).length > 5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              admins: !prev.admins,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.admins ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter(
+                                (user) => user.is_admin && !user.is_super_admin
+                              ).length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {allUsers.filter(
+                      (user) => user.is_admin && !user.is_super_admin
                     ).length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No admins found</p>
+                        <p className="font-lato font-[400]">No admins found</p>
                       </div>
                     )}
                   </div>
@@ -579,11 +726,11 @@ export default function SuperAdminDashboardPage() {
             {/* Super Admins Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <Crown className="h-5 w-5 text-purple-600" />
                   Super Administrators ({stats.superAdmins})
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-lato font-[400]">
                   All super admin accounts in the system
                 </CardDescription>
               </CardHeader>
@@ -591,12 +738,15 @@ export default function SuperAdminDashboardPage() {
                 {loadingUsers ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading super admins...</p>
+                    <p className="text-gray-600 font-lato font-[400]">
+                      Loading super admins...
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {allUsers
                       .filter((user) => user.is_super_admin)
+                      .slice(0, expandedSections.superAdmins ? undefined : 5)
                       .map((user) => (
                         <div
                           key={user.user_id}
@@ -609,15 +759,24 @@ export default function SuperAdminDashboardPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-lato font-[500] text-gray-900">
                                 {getDisplayName(user)}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm font-lato font-[400] text-gray-500">
                                 {user.email}
                               </p>
-                              {user.school_id && (
-                                <p className="text-xs text-gray-400">
-                                  School ID: {user.school_id}
+                              {(user.school_name || user.school_id) && (
+                                <p className="text-xs font-lato font-[400] text-gray-400">
+                                  {user.school_name && user.school_id ? (
+                                    <>
+                                      School: {user.school_name} (
+                                      {user.school_id})
+                                    </>
+                                  ) : user.school_name ? (
+                                    <>School: {user.school_name}</>
+                                  ) : (
+                                    <>School ID: {user.school_id}</>
+                                  )}
                                 </p>
                               )}
                             </div>
@@ -628,12 +787,12 @@ export default function SuperAdminDashboardPage() {
                             </Badge>
                             <div className="text-right">
                               {user.created_at && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Joined {formatDate(user.created_at)}
                                 </p>
                               )}
                               {user.last_login_time && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs font-lato font-[400] text-gray-500">
                                   Last login: {formatDate(user.last_login_time)}
                                 </p>
                               )}
@@ -641,11 +800,44 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
+                    {allUsers.filter((user) => user.is_super_admin).length >
+                      5 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setExpandedSections((prev) => ({
+                              ...prev,
+                              superAdmins: !prev.superAdmins,
+                            }))
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          {expandedSections.superAdmins ? (
+                            <>
+                              <ChevronUp className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4" />
+                              Show More (
+                              {allUsers.filter((user) => user.is_super_admin)
+                                .length - 5}{" "}
+                              more)
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                     {allUsers.filter((user) => user.is_super_admin).length ===
                       0 && (
                       <div className="text-center py-8 text-gray-500">
                         <Crown className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No super admins found</p>
+                        <p className="font-lato font-[400]">
+                          No super admins found
+                        </p>
                       </div>
                     )}
                   </div>
@@ -663,23 +855,418 @@ export default function SuperAdminDashboardPage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Schools Analytics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                    <School className="h-5 w-5 text-blue-600" />
+                    Schools Analytics
+                  </CardTitle>
+                  <CardDescription className="font-lato font-[400]">
+                    Total number of registered schools in the system
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-lato font-[400] text-gray-600 mb-1">
+                          Total Schools
+                        </p>
+                        <p className="text-4xl font-lato font-[700] text-blue-600">
+                          {stats.schools}
+                        </p>
+                      </div>
+                      <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center">
+                        <School className="h-10 w-10 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t">
+                      <p className="text-xs font-lato font-[400] text-gray-500">
+                        Active educational institutions registered in the
+                        platform
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Students Analytics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    Students Analytics
+                  </CardTitle>
+                  <CardDescription className="font-lato font-[400]">
+                    Total number of active student accounts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-lato font-[400] text-gray-600 mb-1">
+                          Active Students
+                        </p>
+                        <p className="text-4xl font-lato font-[700] text-green-600">
+                          {stats.students}
+                        </p>
+                      </div>
+                      <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
+                        <UserCheck className="h-10 w-10 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t">
+                      <p className="text-xs font-lato font-[400] text-gray-500">
+                        Students currently using the learning platform
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* User Roles Overview */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <BarChart3 className="h-5 w-5" />
-                  System Analytics
+                  User Roles Overview
                 </CardTitle>
-                <CardDescription>
-                  Platform usage and performance metrics
+                <CardDescription className="font-lato font-[400]">
+                  Distribution of users by role and access level
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Advanced analytics dashboard coming soon...</p>
-                  <p className="text-sm">
-                    User activity, engagement metrics, and system performance
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Admins
+                      </p>
+                      <Shield className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-blue-600">
+                      {stats.admins}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      School administrators
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-purple-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Super Admins
+                      </p>
+                      <Crown className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-purple-600">
+                      {stats.superAdmins}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      System administrators
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Students
+                      </p>
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-green-600">
+                      {stats.students}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Active learners
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-orange-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Schools
+                      </p>
+                      <School className="h-4 w-4 text-orange-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-orange-600">
+                      {stats.schools}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Total institutions
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Total Users
+                      </p>
+                      <Users className="h-4 w-4 text-gray-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-gray-700">
+                      {stats.totalUsers}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      All accounts combined
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* User Activity Analytics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
+                  <Activity className="h-5 w-5 text-indigo-600" />
+                  User Activity Analytics
+                </CardTitle>
+                <CardDescription className="font-lato font-[400]">
+                  Daily, weekly, and monthly active users based on login
+                  activity
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="p-4 border rounded-lg bg-indigo-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Daily Active Users (DAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-indigo-600">
+                      {activityStats.dau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in today
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Weekly Active Users (WAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-blue-600">
+                      {activityStats.wau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in this week
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-purple-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Monthly Active Users (MAU)
+                      </p>
+                      <Calendar className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-purple-600">
+                      {activityStats.mau}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Logged in this month
+                    </p>
+                  </div>
+                </div>
+
+                {/* Engagement Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        High Engagement Users
+                      </p>
+                      <TrendingUp className="h-4 w-4 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-green-600">
+                      {activityStats.highEngagement}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Active within last 7 days
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg bg-red-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-lato font-[500] text-gray-700">
+                        Low Engagement Users
+                      </p>
+                      <TrendingDown className="h-4 w-4 text-red-600" />
+                    </div>
+                    <p className="text-3xl font-lato font-[700] text-red-600">
+                      {activityStats.lowEngagement}
+                    </p>
+                    <p className="text-xs font-lato font-[400] text-gray-500 mt-1">
+                      Inactive for 7+ days or never logged in
+                    </p>
+                  </div>
+                </div>
+
+                {/* Inactive Users List */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-lato font-[600] text-gray-700 mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Inactive Users
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            7+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-orange-50 text-orange-700"
+                          >
+                            {activityStats.inactive7Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 7 days
+                        </p>
+                        {activityStats.inactive7Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive7Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive7Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive7Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            14+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-red-50 text-red-700"
+                          >
+                            {activityStats.inactive14Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 14 days
+                        </p>
+                        {activityStats.inactive14Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive14Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive14Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive14Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-lato font-[500] text-gray-700">
+                            30+ Days Inactive
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-red-100 text-red-800"
+                          >
+                            {activityStats.inactive30Days.length}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-lato font-[400] text-gray-500">
+                          Users who haven't logged in for 30 days
+                        </p>
+                        {activityStats.inactive30Days.length > 0 && (
+                          <div className="mt-3 max-h-32 overflow-y-auto space-y-1">
+                            {activityStats.inactive30Days
+                              .slice(0, 5)
+                              .map((u) => (
+                                <div
+                                  key={u.user_id}
+                                  className="text-xs p-2 bg-gray-50 rounded flex items-center justify-between"
+                                >
+                                  <span className="font-lato font-[400] truncate">
+                                    {u.email ||
+                                      `${u.first_name} ${u.last_name}`}
+                                  </span>
+                                  {u.last_login_time && (
+                                    <span className="text-gray-400 ml-2">
+                                      {Math.floor(
+                                        (new Date().getTime() -
+                                          new Date(
+                                            u.last_login_time
+                                          ).getTime()) /
+                                          (1000 * 60 * 60 * 24)
+                                      )}{" "}
+                                      days
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            {activityStats.inactive30Days.length > 5 && (
+                              <p className="text-xs text-gray-400 text-center mt-1">
+                                +{activityStats.inactive30Days.length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -688,19 +1275,21 @@ export default function SuperAdminDashboardPage() {
           <TabsContent value="system" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                   <Database className="h-5 w-5" />
                   System Management
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-lato font-[400]">
                   Database management and system configuration
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8 text-gray-500">
                   <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>System management tools coming soon...</p>
-                  <p className="text-sm">
+                  <p className="font-lato font-[400]">
+                    System management tools coming soon...
+                  </p>
+                  <p className="text-sm font-lato font-[400]">
                     Database backups, system health, and maintenance tools
                   </p>
                 </div>
@@ -955,11 +1544,11 @@ function InviteAdminsTab() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-lato font-[600]">
             <UserPlus className="h-5 w-5 text-blue-600" />
             Invite New Administrators
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="font-lato font-[400]">
             Send registration invitations to new administrators. They will
             receive an email with a link to create their admin account.
           </CardDescription>
@@ -967,11 +1556,15 @@ function InviteAdminsTab() {
         <CardContent className="space-y-6">
           {/* Invitation Form */}
           <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-            <Label className="text-base font-medium">Add New Invitation</Label>
+            <Label className="text-base font-lato font-[500]">
+              Add New Invitation
+            </Label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="first-name">First Name *</Label>
+                <Label htmlFor="first-name" className="font-lato font-[500]">
+                  First Name *
+                </Label>
                 <Input
                   id="first-name"
                   placeholder="John"
@@ -987,7 +1580,9 @@ function InviteAdminsTab() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="last-name">Last Name *</Label>
+                <Label htmlFor="last-name" className="font-lato font-[500]">
+                  Last Name *
+                </Label>
                 <Input
                   id="last-name"
                   placeholder="Doe"
@@ -1004,7 +1599,9 @@ function InviteAdminsTab() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email-input">Email Address *</Label>
+              <Label htmlFor="email-input" className="font-lato font-[500]">
+                Email Address *
+              </Label>
               <Input
                 id="email-input"
                 type="email"
@@ -1021,7 +1618,9 @@ function InviteAdminsTab() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="school-id">School *</Label>
+              <Label htmlFor="school-id" className="font-lato font-[500]">
+                School *
+              </Label>
               <Select
                 value={invitationForm.school_id}
                 onValueChange={(value) =>
@@ -1047,7 +1646,7 @@ function InviteAdminsTab() {
               </Select>
               <div className="text-xs text-gray-500">
                 {schools.length > 0 && (
-                  <p className="mt-1">
+                  <p className="mt-1 font-lato font-[400]">
                     <strong>Available schools:</strong>{" "}
                     {schools && schools.map((s) => s.name).join(", ")}
                   </p>
@@ -1081,13 +1680,13 @@ function InviteAdminsTab() {
                     <div className="flex items-center gap-3">
                       <UserPlus className="h-4 w-4 text-blue-500" />
                       <div>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-lato font-[500]">
                           {invitation.first_name} {invitation.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs font-lato font-[400] text-gray-500">
                           {invitation.email}
                         </p>
-                        <p className="text-xs text-blue-600">
+                        <p className="text-xs font-lato font-[400] text-blue-600">
                           School: {invitation.school_id}
                         </p>
                       </div>
@@ -1140,7 +1739,7 @@ function InviteAdminsTab() {
       {/* Information Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-lato font-[600]">
             <Mail className="h-5 w-5 text-green-600" />
             How Invitations Work
           </CardTitle>
@@ -1149,28 +1748,28 @@ function InviteAdminsTab() {
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>
+              <p className="font-lato font-[400]">
                 Invited users will receive an email with a unique registration
                 link
               </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>
+              <p className="font-lato font-[400]">
                 They can use this link to create their admin account with a
                 secure password
               </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>
+              <p className="font-lato font-[400]">
                 Once registered, they will have administrative access to their
                 designated school
               </p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-              <p>
+              <p className="font-lato font-[400]">
                 You can track invitation status and manage admin permissions
                 from this dashboard
               </p>
@@ -1188,7 +1787,12 @@ interface School {
   status: string;
   telephone: string;
   address: string;
+  max_questions?: number;
+  question_prompt?: string;
+  image_prompt?: string;
+  kira_chat_prompt?: string;
 }
+
 function ManageSchoolsTab({
   allUsers,
   loadingUsers,
@@ -1206,7 +1810,7 @@ function ManageSchoolsTab({
     admin_first_name: "",
     admin_last_name: "",
   });
-  const [isApproving, setIsApproving] = useState(false);
+  const [isApproving, setIsApproving] = useState<boolean>(false);
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
   const [pending, setPending] = useState<{
     action: "deactivate" | "suspend";
@@ -1220,14 +1824,22 @@ function ManageSchoolsTab({
     telephone: string;
     address: string;
     email: string;
+    max_questions: string;
+    question_prompt: string;
+    image_prompt: string;
+    kira_chat_prompt: string;
   }>({
     school_id: "",
     name: "",
     telephone: "",
     address: "",
     email: "",
+    max_questions: "",
+    question_prompt: "",
+    image_prompt: "",
+    kira_chat_prompt: "",
   });
-
+  const [showEditAdvanced, setShowEditAdvanced] = useState(false);
   const [inactiveSchools, setInactiveSchools] = useState<Array<School>>([]);
   const [loadingInactive, setLoadingInactive] = useState(true);
 
@@ -1254,9 +1866,12 @@ function ManageSchoolsTab({
         }
 
         const data: unknown = await response.json();
+        console.log("🔍 Raw API response:", data); // ADD THIS
         const arr = Array.isArray(data)
           ? data
           : (data as SchoolsResponse).schools ?? [];
+        console.log("🔍 Processed schools array:", arr); // ADD THIS
+        console.log("🔍 First school with all fields:", arr[0]); // ADD THIS
         setSchools(arr);
       } catch (error) {
         console.error("Error fetching schools:", error);
@@ -1304,7 +1919,24 @@ function ManageSchoolsTab({
       }
       const data = await response.json();
       const arr = Array.isArray(data) ? data : data.schools ?? [];
-      setInactiveSchools(arr);
+
+      const sorted = arr.sort((a: School, b: School) => {
+        const idA = a.school_id.toLowerCase();
+        const idB = b.school_id.toLowerCase();
+
+        const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
+        const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
+
+        // If both have numbers, sort numerically
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+
+        // Otherwise sort alphabetically
+        return idA.localeCompare(idB);
+      });
+
+      setInactiveSchools(sorted);
     } catch (error) {
       console.error("Error fetching inactive schools:", error);
       toast({
@@ -1316,7 +1948,6 @@ function ManageSchoolsTab({
       setLoadingInactive(false);
     }
   };
-
   useEffect(() => {
     fetchInactiveSchools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1350,20 +1981,41 @@ function ManageSchoolsTab({
 
   // Filter schools based on search term
   const filteredSchools = React.useMemo(() => {
-    if (!searchTerm.trim()) return Array.from(schoolAdminMap.values());
+    const filtered = !searchTerm.trim()
+      ? Array.from(schoolAdminMap.values())
+      : Array.from(schoolAdminMap.values()).filter(
+          (item) =>
+            item.school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.school.school_id
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            item.admins.some(
+              (admin: DbUser) =>
+                admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                admin.first_name
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) ||
+                admin.last_name
+                  ?.toLowerCase()
+                  .includes(searchTerm.toLowerCase())
+            )
+        );
 
-    const term = searchTerm.toLowerCase();
-    return Array.from(schoolAdminMap.values()).filter(
-      (item) =>
-        item.school.name.toLowerCase().includes(term) ||
-        item.school.school_id.toLowerCase().includes(term) ||
-        item.admins.some(
-          (admin: DbUser) =>
-            admin.email.toLowerCase().includes(term) ||
-            admin.first_name.toLowerCase().includes(term) ||
-            admin.last_name?.toLowerCase().includes(term)
-        )
-    );
+    return filtered.sort((a, b) => {
+      const idA = a.school.school_id.toLowerCase();
+      const idB = b.school.school_id.toLowerCase();
+
+      const numA = parseInt(idA.match(/\d+/)?.[0] || "0");
+      const numB = parseInt(idB.match(/\d+/)?.[0] || "0");
+
+      // If both have numbers, sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+
+      // Otherwise sort alphabetically
+      return idA.localeCompare(idB);
+    });
   }, [schoolAdminMap, searchTerm]);
 
   // Validate email format
@@ -1377,13 +2029,109 @@ function ManageSchoolsTab({
       email: "",
       telephone: "",
       address: "",
+      max_questions: "",
+      question_prompt: "",
+      image_prompt: "",
+      kira_chat_prompt: "",
     });
 
-    const [isApproving, setIsApproving] = useState<false>(false);
+    const [isApproving, setIsApproving] = useState<boolean>(false);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // Add this
 
     const submit = async () => {
+      // ... existing validation code ...
+
+      // Validate required fields
+      if (
+        !newSchoolForm.name.trim() ||
+        !newSchoolForm.email.trim() ||
+        !newSchoolForm.telephone.trim() ||
+        !newSchoolForm.address.trim()
+      ) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please fill in name, email, telephone, and address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate email format
+      if (!isValidEmail(newSchoolForm.email.trim())) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If any prompt field is filled, all must be filled
+      const hasAnyPrompt =
+        newSchoolForm.question_prompt.trim() ||
+        newSchoolForm.image_prompt.trim() ||
+        newSchoolForm.kira_chat_prompt.trim();
+
+      if (hasAnyPrompt) {
+        if (
+          !newSchoolForm.question_prompt.trim() ||
+          !newSchoolForm.image_prompt.trim() ||
+          !newSchoolForm.kira_chat_prompt.trim()
+        ) {
+          toast({
+            title: "Incomplete Prompts",
+            description:
+              "If you fill any prompt field, all prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Validate max_questions if provided
+      if (
+        newSchoolForm.max_questions &&
+        (isNaN(Number(newSchoolForm.max_questions)) ||
+          Number(newSchoolForm.max_questions) < 0)
+      ) {
+        toast({
+          title: "Invalid Max Questions",
+          description: "Max questions must be a positive number.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsApproving(true);
       try {
-        await fetch("/api/super_admin/create-school", {
+        // Build the request body
+        const requestBody: {
+          name: string;
+          email: string;
+          telephone: string;
+          address: string;
+          max_questions?: number;
+          question_prompt?: string;
+          image_prompt?: string;
+          kira_chat_prompt?: string;
+        } = {
+          name: newSchoolForm.name.trim(),
+          email: newSchoolForm.email.trim(),
+          telephone: newSchoolForm.telephone.trim(),
+          address: newSchoolForm.address.trim(),
+        };
+
+        // Add optional fields if provided
+        if (newSchoolForm.max_questions.trim()) {
+          requestBody.max_questions = Number(newSchoolForm.max_questions);
+        }
+        if (hasAnyPrompt) {
+          requestBody.question_prompt = newSchoolForm.question_prompt.trim();
+          requestBody.image_prompt = newSchoolForm.image_prompt.trim();
+          requestBody.kira_chat_prompt = newSchoolForm.kira_chat_prompt.trim();
+        }
+
+        const response = await fetch("/api/super_admin/create-school", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1391,14 +2139,58 @@ function ManageSchoolsTab({
               document.cookie.match(/token=([^;]+)/)?.[1] || ""
             }`,
           },
-          body: JSON.stringify(newSchoolForm),
+          body: JSON.stringify(requestBody),
         });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 409) {
+            toast({
+              title: "School Already Exists",
+              description:
+                data.detail || "A school with this information already exists.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Failed to Add School",
+              description:
+                data.detail ||
+                data.message ||
+                "An error occurred while adding the school.",
+              variant: "destructive",
+            });
+          }
+          return;
+        }
+
         toast({
-          title: "School Added",
+          title: "School Added Successfully",
+          description: `${newSchoolForm.name} has been added to the system.`,
         });
+
+        // Reset form on success
+        setNewSchoolForm({
+          name: "",
+          email: "",
+          telephone: "",
+          address: "",
+          max_questions: "",
+          question_prompt: "",
+          image_prompt: "",
+          kira_chat_prompt: "",
+        });
+        setShowAdvancedOptions(false); // Reset toggle
       } catch (error) {
-        console.error(error);
+        console.error("Error adding school:", error);
+        toast({
+          title: "Network Error",
+          description: "Failed to connect to the server. Please try again.",
+          variant: "destructive",
+        });
       } finally {
+        setIsApproving(false);
         await fetchSchools();
         await fetchInactiveSchools();
       }
@@ -1407,71 +2199,221 @@ function ManageSchoolsTab({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-lato font-[600]">
             <School className="h-5 w-5 text-green-600" />
-            Add new school
+            Add New School
           </CardTitle>
-          <CardDescription>Add a new school to the school list</CardDescription>
+          <CardDescription className="font-lato font-[400]">
+            Add a new school to the system
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="school name">School Name *</Label>
-              <Input
-                id="school name"
-                placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
-                value={newSchoolForm.name}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({ ...f, name: e.target.value }));
-                }}
-              />
+          <div className="space-y-6">
+            {/* Required Fields */}
+            <div className="space-y-4">
+              <Label className="text-base font-lato font-[500]">
+                Required Information
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="school-name" className="font-lato font-[500]">
+                    School Name *
+                  </Label>
+                  <Input
+                    id="school-name"
+                    placeholder="KALISONGO, JAWA TIMUR, INDONESIA"
+                    value={newSchoolForm.name}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({ ...f, name: e.target.value }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-email"
+                    className="font-lato font-[500]"
+                  >
+                    School Email *
+                  </Label>
+                  <Input
+                    id="school-email"
+                    type="email"
+                    placeholder="sdn08@gmail.com"
+                    value={newSchoolForm.email}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        email: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-telephone"
+                    className="font-lato font-[500]"
+                  >
+                    School Telephone *
+                  </Label>
+                  <Input
+                    id="school-telephone"
+                    placeholder="+62 1234-5678-9101"
+                    type="tel"
+                    value={newSchoolForm.telephone}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        telephone: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="school-address"
+                    className="font-lato font-[500]"
+                  >
+                    School Address *
+                  </Label>
+                  <Input
+                    id="school-address"
+                    placeholder="Kalisongo, Jawa Timur"
+                    value={newSchoolForm.address}
+                    onChange={(e) => {
+                      setNewSchoolForm((f) => ({
+                        ...f,
+                        address: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school name">School email *</Label>
-              <Input
-                id="school email"
-                type="email"
-                placeholder="sdn08@gmail.com"
-                value={newSchoolForm.email}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({ ...f, email: e.target.value }));
-                }}
-              />
+            {/* Advanced Options Toggle */}
+            <div className="pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                className="w-full flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  {showAdvancedOptions ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  Advanced Options
+                </span>
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school telephone">School Telephone *</Label>
-              <Input
-                id="school telephone"
-                placeholder="+62 1234-5678-9101"
-                type="tel"
-                value={newSchoolForm.telephone}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({
-                    ...f,
-                    telephone: e.target.value,
-                  }));
-                }}
-              />
-            </div>
+            {/* Advanced Options Content */}
+            {showAdvancedOptions && (
+              <div className="space-y-4 pt-4 border-t animate-in slide-in-from-top-2">
+                <Label className="text-base font-lato font-[500]">
+                  Optional Configuration
+                </Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="max-questions"
+                      className="font-lato font-[500]"
+                    >
+                      Max Questions
+                    </Label>
+                    <Input
+                      id="max-questions"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 10"
+                      value={newSchoolForm.max_questions}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          max_questions: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school address">School Address *</Label>
-              <Input
-                id="school address"
-                placeholder="Kalisongo, Jawa Timur"
-                value={newSchoolForm.address}
-                onChange={(e) => {
-                  setNewSchoolForm((f) => ({
-                    ...f,
-                    address: e.target.value,
-                  }));
-                }}
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="question-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Question Prompt
+                    </Label>
+                    <textarea
+                      id="question-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the question prompt..."
+                      value={newSchoolForm.question_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          question_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="image-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Image Prompt
+                    </Label>
+                    <textarea
+                      id="image-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the image prompt..."
+                      value={newSchoolForm.image_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          image_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="kira-chat-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Kira Chat Prompt
+                    </Label>
+                    <textarea
+                      id="kira-chat-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the Kira chat prompt..."
+                      value={newSchoolForm.kira_chat_prompt}
+                      onChange={(e) => {
+                        setNewSchoolForm((f) => ({
+                          ...f,
+                          kira_chat_prompt: e.target.value,
+                        }));
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-500 font-lato font-[400] bg-blue-50 p-3 rounded-md border border-blue-200">
+                    <strong>Note:</strong> If you fill any prompt field, all
+                    three prompt fields must be filled.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex justify-end mt-4">
+
+          <div className="flex justify-end mt-6">
             <Button
               onClick={submit}
               disabled={isApproving}
@@ -1480,10 +2422,13 @@ function ManageSchoolsTab({
               {isApproving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Adding School ....
+                  Adding School...
                 </>
               ) : (
-                <>Add School</>
+                <>
+                  <Plus className="h-4 w-4" />
+                  Add School
+                </>
               )}
             </Button>
           </div>
@@ -1684,7 +2629,9 @@ function ManageSchoolsTab({
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading schools and administrators...</p>
+        <p className="text-gray-600 font-lato font-[400]">
+          Loading schools and administrators...
+        </p>
       </div>
     );
   }
@@ -1713,7 +2660,17 @@ function ManageSchoolsTab({
   };
 
   const handleUpdateSchool = async () => {
-    const { school_id, name, email, telephone, address } = updatedSchoolFields;
+    const {
+      school_id,
+      name,
+      email,
+      telephone,
+      address,
+      max_questions,
+      question_prompt,
+      image_prompt,
+      kira_chat_prompt,
+    } = updatedSchoolFields;
 
     // Required fields
     if (!school_id?.trim()) {
@@ -1742,9 +2699,71 @@ function ManageSchoolsTab({
       return;
     }
 
+    // Validate max_questions if provided
+    if (
+      max_questions &&
+      (isNaN(Number(max_questions)) || Number(max_questions) < 0)
+    ) {
+      toast({
+        title: "Invalid Max Questions",
+        description: "Max questions must be a positive number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If any prompt field is filled, all must be filled
+    const hasAnyPrompt =
+      question_prompt.trim() || image_prompt.trim() || kira_chat_prompt.trim();
+
+    if (hasAnyPrompt) {
+      if (
+        !question_prompt.trim() ||
+        !image_prompt.trim() ||
+        !kira_chat_prompt.trim()
+      ) {
+        toast({
+          title: "Incomplete Prompts",
+          description:
+            "If you fill any prompt field, all prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsSavingEdit(true);
     try {
       const token = document.cookie.match(/token=([^;]+)/)?.[1] || "";
+
+      // Build request body
+      const requestBody: {
+        school_id: string;
+        name: string;
+        email: string;
+        telephone: string;
+        address: string;
+        max_questions?: number;
+        question_prompt?: string;
+        image_prompt?: string;
+        kira_chat_prompt?: string;
+      } = {
+        school_id,
+        name,
+        email,
+        telephone,
+        address,
+      };
+
+      // Add optional fields if provided
+      if (max_questions.trim()) {
+        requestBody.max_questions = Number(max_questions);
+      }
+      if (hasAnyPrompt) {
+        requestBody.question_prompt = question_prompt.trim();
+        requestBody.image_prompt = image_prompt.trim();
+        requestBody.kira_chat_prompt = kira_chat_prompt.trim();
+      }
 
       const res = await fetch("/api/super_admin/update-school", {
         method: "POST",
@@ -1752,14 +2771,17 @@ function ManageSchoolsTab({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          school_id,
-          name,
-          email,
-          telephone,
-          address,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      if (!res.ok) {
+        let msg = "Failed to update school";
+        try {
+          const data = await res.json();
+          msg = data?.detail || data?.message || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       toast({
         title: "School Updated",
@@ -1767,6 +2789,7 @@ function ManageSchoolsTab({
       });
 
       setIsEditOpen(false);
+      setShowEditAdvanced(false);
     } catch (error) {
       console.error("Update school failed:", error);
       toast({
@@ -1781,15 +2804,24 @@ function ManageSchoolsTab({
       setIsSavingEdit(false);
     }
   };
-
   const openEdit = (school: School) => {
+    // First, reset the toggle state BEFORE opening dialog
+    setShowEditAdvanced(false);
+
+    // Then set the form fields
     setUpdatedSchoolFields({
       school_id: school.school_id,
       name: school.name ?? "",
       email: school.email ?? "",
       telephone: school.telephone ?? "",
       address: school.address ?? "",
+      max_questions: school.max_questions?.toString() ?? "",
+      question_prompt: school.question_prompt ?? "",
+      image_prompt: school.image_prompt ?? "",
+      kira_chat_prompt: school.kira_chat_prompt ?? "",
     });
+
+    // Finally, open the dialog
     setIsEditOpen(true);
   };
 
@@ -1831,88 +2863,253 @@ function ManageSchoolsTab({
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) => {
+          setIsEditOpen(open);
+          if (!open) setShowEditAdvanced(false);
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Update School Information</DialogTitle>
-            <DialogDescription>
-              Update the school’s details. Changes apply immediately after
+            <DialogTitle className="font-lato font-[600]">
+              Update School Information
+            </DialogTitle>
+            <DialogDescription className="font-lato font-[400]">
+              Update the school's details. Changes apply immediately after
               saving.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* use ids without spaces */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="school-id">School ID</Label>
-              <Input
-                id="school-id"
-                value={updatedSchoolFields.school_id}
-                disabled
-              />
+          <div className="space-y-6">
+            {/* Required Fields */}
+            <div className="space-y-4">
+              <Label className="text-base font-lato font-[500]">
+                Required Information
+              </Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
+                  <Label
+                    htmlFor="edit-school-id"
+                    className="font-lato font-[500]"
+                  >
+                    School ID
+                  </Label>
+                  <Input
+                    id="edit-school-id"
+                    value={updatedSchoolFields.school_id}
+                    disabled
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-name"
+                    className="font-lato font-[500]"
+                  >
+                    School Name *
+                  </Label>
+                  <Input
+                    id="edit-school-name"
+                    value={updatedSchoolFields.name}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        name: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-email"
+                    className="font-lato font-[500]"
+                  >
+                    School Email *
+                  </Label>
+                  <Input
+                    id="edit-school-email"
+                    type="email"
+                    value={updatedSchoolFields.email}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        email: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-telephone"
+                    className="font-lato font-[500]"
+                  >
+                    School Telephone *
+                  </Label>
+                  <Input
+                    id="edit-school-telephone"
+                    type="tel"
+                    value={updatedSchoolFields.telephone}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        telephone: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="edit-school-address"
+                    className="font-lato font-[500]"
+                  >
+                    School Address *
+                  </Label>
+                  <Input
+                    id="edit-school-address"
+                    value={updatedSchoolFields.address}
+                    onChange={(e) =>
+                      setUpdatedSchoolFields((f) => ({
+                        ...f,
+                        address: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-name">School Name *</Label>
-              <Input
-                id="school-name"
-                value={updatedSchoolFields.name}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    name: e.target.value,
-                  }))
-                }
-              />
+            {/* Advanced Options Toggle */}
+            <div className="pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowEditAdvanced(!showEditAdvanced)}
+                className="w-full flex items-center justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  {showEditAdvanced ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                  Advanced Options
+                </span>
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-email">School email *</Label>
-              <Input
-                id="school-email"
-                type="email"
-                value={updatedSchoolFields.email}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    email: e.target.value,
-                  }))
-                }
-              />
-            </div>
+            {/* Advanced Options Content */}
+            {showEditAdvanced && (
+              <div className="space-y-4 pt-4 border-t animate-in slide-in-from-top-2">
+                <Label className="text-base font-lato font-[500]">
+                  Optional Configuration
+                </Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-max-questions"
+                      className="font-lato font-[500]"
+                    >
+                      Max Questions
+                    </Label>
+                    <Input
+                      id="edit-max-questions"
+                      type="number"
+                      min="0"
+                      placeholder="e.g., 10"
+                      value={updatedSchoolFields.max_questions}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          max_questions: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-telephone">School Telephone *</Label>
-              <Input
-                id="school-telephone"
-                type="tel"
-                value={updatedSchoolFields.telephone}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    telephone: e.target.value,
-                  }))
-                }
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-question-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Question Prompt
+                    </Label>
+                    <textarea
+                      id="edit-question-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the question prompt..."
+                      value={updatedSchoolFields.question_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          question_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="school-address">School Address *</Label>
-              <Input
-                id="school-address"
-                value={updatedSchoolFields.address}
-                onChange={(e) =>
-                  setUpdatedSchoolFields((f) => ({
-                    ...f,
-                    address: e.target.value,
-                  }))
-                }
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-image-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Image Prompt
+                    </Label>
+                    <textarea
+                      id="edit-image-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the image prompt..."
+                      value={updatedSchoolFields.image_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          image_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="edit-kira-chat-prompt"
+                      className="font-lato font-[500]"
+                    >
+                      Kira Chat Prompt
+                    </Label>
+                    <textarea
+                      id="edit-kira-chat-prompt"
+                      className="w-full min-h-[100px] p-2 border rounded-md resize-y"
+                      placeholder="Enter the Kira chat prompt..."
+                      value={updatedSchoolFields.kira_chat_prompt}
+                      onChange={(e) =>
+                        setUpdatedSchoolFields((f) => ({
+                          ...f,
+                          kira_chat_prompt: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-500 font-lato font-[400] bg-blue-50 p-3 rounded-md border border-blue-200">
+                    <strong>Note:</strong> If you fill any prompt field, all
+                    three prompt fields must be filled.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditOpen(false);
+                setShowEditAdvanced(false);
+              }}
+            >
               Cancel
             </Button>
             <Button onClick={handleUpdateSchool} disabled={isSavingEdit}>
@@ -1927,11 +3124,11 @@ function ManageSchoolsTab({
         {display === "active" && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                 <School className="h-5 w-5 text-blue-600" />
                 Approved Schools ({filteredSchools.length})
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="font-lato font-[400]">
                 Manage currently approved schools and their administrators
               </CardDescription>
             </CardHeader>
@@ -1959,8 +3156,10 @@ function ManageSchoolsTab({
               {filteredSchools.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No approved schools found</p>
-                  <p className="text-sm">
+                  <p className="font-lato font-[400]">
+                    No approved schools found
+                  </p>
+                  <p className="text-sm font-lato font-[400]">
                     Use the form above to approve new schools
                   </p>
                 </div>
@@ -1975,12 +3174,17 @@ function ManageSchoolsTab({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-lg">
+                              <h3 className="font-lato font-[500] text-lg">
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
                                 {school.school_id}
                               </Badge>
+                              {school.status === "suspended" && (
+                                <Badge className="bg-red-100 text-red-700 ml-2">
+                                  Suspended
+                                </Badge>
+                              )}
                             </div>
 
                             {admins.length > 0 ? (
@@ -2003,14 +3207,14 @@ function ManageSchoolsTab({
                                           </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                          <p className="font-medium text-sm">
+                                          <p className="font-lato font-[500] text-sm">
                                             {admin.first_name} {admin.last_name}
                                           </p>
-                                          <p className="text-xs text-gray-500">
+                                          <p className="text-xs font-lato font-[400] text-gray-500">
                                             {admin.email}
                                           </p>
                                           {admin.last_login_time && (
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs font-lato font-[400] text-gray-400">
                                               Last login:{" "}
                                               {new Date(
                                                 admin.last_login_time
@@ -2040,10 +3244,10 @@ function ManageSchoolsTab({
                             ) : (
                               <div className="text-center py-4 text-gray-500">
                                 <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                                <p className="text-sm">
+                                <p className="text-sm font-lato font-[400]">
                                   No administrator assigned
                                 </p>
-                                <p className="text-xs">
+                                <p className="text-xs font-lato font-[400]">
                                   School is registered but has no admin access
                                 </p>
                               </div>
@@ -2116,11 +3320,11 @@ function ManageSchoolsTab({
         )}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-lato font-[600]">
               <School className="h-5 w-5 text-blue-600" />
               Inactive Schools ({inactiveSchools.length})
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="font-lato font-[400]">
               Schools that are currently inactive.
             </CardDescription>
           </CardHeader>
@@ -2129,12 +3333,16 @@ function ManageSchoolsTab({
             {loadingInactive ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-                <p className="text-gray-600">Loading inactive schools...</p>
+                <p className="text-gray-600 font-lato font-[400]">
+                  Loading inactive schools...
+                </p>
               </div>
             ) : inactiveSchools.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <School className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No inactive schools found</p>
+                <p className="font-lato font-[400]">
+                  No inactive schools found
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -2154,12 +3362,17 @@ function ManageSchoolsTab({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-lg">
+                              <h3 className="font-lato font-[500] text-lg">
                                 {school.name}
                               </h3>
                               <Badge variant="outline">
                                 {school.school_id}
                               </Badge>
+                              {school.status === "suspended" && (
+                                <Badge className="bg-red-100 text-red-700 ml-2">
+                                  Suspended
+                                </Badge>
+                              )}
                             </div>
 
                             {admins.length > 0 ? (
@@ -2180,10 +3393,10 @@ function ManageSchoolsTab({
                                         </AvatarFallback>
                                       </Avatar>
                                       <div>
-                                        <p className="font-medium text-sm">
+                                        <p className="font-lato font-[500] text-sm">
                                           {admin.first_name} {admin.last_name}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs font-lato font-[400] text-gray-500">
                                           {admin.email}
                                         </p>
                                       </div>
@@ -2194,7 +3407,7 @@ function ManageSchoolsTab({
                             ) : (
                               <div className="text-center py-4 text-gray-500">
                                 <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-orange-500" />
-                                <p className="text-sm">
+                                <p className="text-sm font-lato font-[400]">
                                   No administrator assigned
                                 </p>
                               </div>

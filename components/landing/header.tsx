@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 export function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +20,18 @@ export function LandingHeader() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isTeamPage = pathname === "/team" || pathname === "/team/";
+  const isLegalPage =
+    pathname === "/terms/" ||
+    pathname === "/privacy/" ||
+    pathname === "/cookies/";
+  const isDarkHeaderPage = isTeamPage || isLegalPage;
+
+  const linkTextColor =
+    isDarkHeaderPage && !isScrolled
+      ? "text-white hover:text-gray-200"
+      : "text-foreground hover:text-[#2D7017]";
 
   return (
     <header
@@ -44,35 +58,53 @@ export function LandingHeader() {
         <nav className="hidden md:flex items-center space-x-6">
           <Link
             href="/about"
-            className="text-foreground hover:text-button transition-colors"
+            className={cn(
+              linkTextColor,
+              "transition-colors font-lato text-[16px] font-[500]"
+            )}
           >
             About
           </Link>
           <Link
             href="/team"
-            className="text-foreground hover:text-button transition-colors"
+            className={cn(
+              linkTextColor,
+              "transition-colors font-lato text-[16px] font-[500]"
+            )}
           >
             Our Team
           </Link>
-          <Link
-            href="/support"
-            className="text-foreground hover:text-button transition-colors"
-          >
-            Support
-          </Link>
+
           <div className="ml-4 flex space-x-4">
-            <Button variant="greenoutline" asChild>
+            <Button
+              variant="greenoutline"
+              asChild
+              className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+            >
               <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild variant="defaultgreen">
-              <Link href="/support">Support KIRA</Link>
+            <Button
+              asChild
+              variant="defaultgreen"
+              className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+            >
+              <Link
+                href="https://www.bercerita.org/general-6"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Support KIRA
+              </Link>
             </Button>
           </div>
         </nav>
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-foreground"
+          className={cn(
+            "md:hidden",
+            isDarkHeaderPage && !isScrolled ? "text-white" : "text-foreground"
+          )}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -86,31 +118,56 @@ export function LandingHeader() {
           <div className="container mx-auto px-4 flex flex-col space-y-4">
             <Link
               href="/about"
-              className="text-foreground hover:text-button transition-colors py-2"
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/team"
-              className="text-foreground hover:text-button transition-colors py-2"
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Our Team
             </Link>
             <Link
-              href="/support"
-              className="text-foreground hover:text-button transition-colors py-2"
+              href="https://www.bercerita.org/general-6"
+              className={cn(
+                linkTextColor,
+                "transition-colors py-2 font-lato text-[16px] font-[500]"
+              )}
               onClick={() => setIsMobileMenuOpen(false)}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Support
             </Link>
             <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="greenoutline" asChild>
+              <Button
+                variant="greenoutline"
+                asChild
+                className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+              >
                 <Link href="/login">Log In</Link>
               </Button>
-              <Button asChild variant="defaultgreen">
-                <Link href="/support">Support KIRA</Link>
+              <Button
+                asChild
+                variant="defaultgreen"
+                className="font-lato text-[16px] font-[500] hover:bg-[#1e4a0f]"
+              >
+                <Link
+                  href="https://www.bercerita.org/general-6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support KIRA
+                </Link>
               </Button>
             </div>
           </div>

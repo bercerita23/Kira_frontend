@@ -861,13 +861,15 @@ export default function AdminDashboardPage() {
                 marginBottom: 0,
               }}
             />
-            <span className="text-gray-700 font-medium">Admin Dashboard</span>
+            <span className="text-gray-700 font-lato font-[500]">
+              Admin Dashboard
+            </span>
           </div>
 
           {/* Middle: Tabs */}
           <div className="flex bg-[#f1f1f1] p-1 rounded-[8px] ">
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+              className={`px-4 py-1 text-sm font-lato font-[500] rounded-[8px] ${
                 activeTab === "students"
                   ? "bg-white shadow text-gray-900"
                   : "text-gray-500"
@@ -877,7 +879,7 @@ export default function AdminDashboardPage() {
               My Students
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+              className={`px-4 py-1 text-sm font-lato font-[500] rounded-[8px] ${
                 activeTab === "analytics"
                   ? "bg-white shadow text-gray-900"
                   : "text-gray-500"
@@ -887,7 +889,7 @@ export default function AdminDashboardPage() {
               Usage Analytics
             </button>
             <button
-              className={`px-4 py-1 text-sm font-medium rounded-[8px] ${
+              className={`px-4 py-1 text-sm font-lato font-[500] rounded-[8px] ${
                 activeTab === "upload"
                   ? "bg-white shadow text-gray-900"
                   : "text-gray-500"
@@ -901,10 +903,12 @@ export default function AdminDashboardPage() {
           {/* Right side: User info */}
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-lato font-[500] text-gray-900">
                 {user.first_name} {user.last_name}
               </p>
-              <p className="text-xs text-[#006400]">Administrator</p>
+              <p className="text-xs font-lato font-[400] text-[#006400]">
+                Administrator
+              </p>
             </div>
 
             <DropdownMenu>
@@ -955,7 +959,7 @@ export default function AdminDashboardPage() {
             {/* Students Tab */}
             <TabsContent value="students" className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-lato font-[600] text-gray-900">
                   {schoolName} students
                 </h2>
                 <div className="flex items-center gap-2 w-full md:w-auto">
@@ -989,14 +993,16 @@ export default function AdminDashboardPage() {
                   {showFilter && (
                     <div className="absolute mt-[280px] mr-12 w-64 right-0 bg-white rounded-lg shadow-xl p-4 z-50 border border-gray-200">
                       <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-md font-semibold">
+                        <h3 className="text-md font-lato font-[600]">
                           Filter Results
                         </h3>
                         <button onClick={() => setShowFilter(false)}>✕</button>
                       </div>
                       <hr className="mb-3" />
                       <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">Grade</p>
+                        <p className="text-sm font-lato font-[500] mb-2">
+                          Grade
+                        </p>
                         {["3rd", "4th", "5th", "6th", "7th"].map((grade) => (
                           <label
                             key={grade}
@@ -1026,12 +1032,12 @@ export default function AdminDashboardPage() {
                       </div>
                       <Button
                         onClick={() => setShowFilter(false)}
-                        className="w-full bg-green-600 text-white rounded-sm"
+                        className="w-full bg-green-600 text-white rounded-sm font-lato font-[500]"
                       >
                         Apply
                       </Button>
                       <button
-                        className="mt-2 text-sm text-green-600 underline w-full"
+                        className="mt-2 text-sm text-green-600 underline w-full font-lato font-[400]"
                         onClick={() => setSelectedGrades([])}
                       >
                         Clear Filters
@@ -1062,7 +1068,7 @@ export default function AdminDashboardPage() {
                     </button>
                   </div>
                   <Button
-                    className="ml-2 bg-green-600 hover:bg-green-700"
+                    className="ml-2 bg-green-600 hover:bg-green-700 font-lato font-[500]"
                     onClick={() => setStudentsActiveTab("add-student")}
                   >
                     Add a Student
@@ -1080,10 +1086,10 @@ export default function AdminDashboardPage() {
                 <Card>
                   <CardContent className="text-center py-12">
                     <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">
+                    <h3 className="text-xl font-lato font-[500] text-gray-900 mb-2">
                       No Students Found
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 font-lato font-[400]">
                       There are currently no students registered in the system.
                     </p>
                   </CardContent>
@@ -1104,10 +1110,10 @@ export default function AdminDashboardPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg truncate">
+                            <CardTitle className="text-lg truncate font-lato font-[500]">
                               {getDisplayName(student)}
                             </CardTitle>
-                            <CardDescription className="text-sm truncate">
+                            <CardDescription className="text-sm truncate font-lato font-[400]">
                               {student.username}
                             </CardDescription>
                           </div>
@@ -1123,11 +1129,11 @@ export default function AdminDashboardPage() {
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="flex items-center gap-4 mt-2">
-                          <span className="flex items-center text-xs text-gray-600">
+                          <span className="flex items-center text-xs text-gray-600 font-lato font-[400]">
                             <UserIcon className="h-4 w-4 mr-1" />{" "}
                             {student.grade ? student.grade + " grade" : "-"}
                           </span>
-                          <span className="flex items-center text-xs text-gray-600">
+                          <span className="flex items-center text-xs text-gray-600 font-lato font-[400]">
                             <Star className="h-4 w-4 mr-1" />{" "}
                             {typeof student.points === "number"
                               ? student.points
@@ -1155,21 +1161,21 @@ export default function AdminDashboardPage() {
                               {getUserInitials(student)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium text-base text-gray-900 whitespace-nowrap">
+                          <span className="font-lato font-[500] text-base text-gray-900 whitespace-nowrap">
                             {getDisplayName(student)}
                           </span>
                         </div>
                         {/* Username */}
-                        <span className="text-gray-500 text-base whitespace-nowrap min-w-[120px] ml-[100px] text-center">
+                        <span className="text-gray-500 text-base whitespace-nowrap min-w-[120px] ml-[100px] text-center font-lato font-[400]">
                           {student.username}
                         </span>
                         {/* Grade */}
-                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
+                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center font-lato font-[400]">
                           <UserIcon className="h-5 w-5 mr-1" />{" "}
                           {student.grade ? student.grade + " grade" : "-"}
                         </span>
                         {/* Points */}
-                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center">
+                        <span className="flex items-center text-gray-400 text-base whitespace-nowrap min-w-[110px] ml-[100px] justify-center font-lato font-[400]">
                           <Star className="h-5 w-5 mr-1" />{" "}
                           {typeof student.points === "number"
                             ? student.points
@@ -1192,11 +1198,11 @@ export default function AdminDashboardPage() {
             <TabsContent value="add-student" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 font-lato font-[600]">
                     <UserPlus className="h-5 w-5 text-green-600" />
                     Add New Student
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="font-lato font-[400]">
                     Fill in the student's credentials below.
                   </CardDescription>
                 </CardHeader>
@@ -1204,7 +1210,12 @@ export default function AdminDashboardPage() {
                   <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="first_name">First Name *</Label>
+                        <Label
+                          htmlFor="first_name"
+                          className="font-lato font-[500]"
+                        >
+                          First Name *
+                        </Label>
                         <Input
                           id="first_name"
                           placeholder="John"
@@ -1220,7 +1231,12 @@ export default function AdminDashboardPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="last_name">Last Name *</Label>
+                        <Label
+                          htmlFor="last_name"
+                          className="font-lato font-[500]"
+                        >
+                          Last Name *
+                        </Label>
                         <Input
                           id="last_name"
                           placeholder="Doe"
@@ -1237,7 +1253,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="username">Username *</Label>
+                      <Label
+                        htmlFor="username"
+                        className="font-lato font-[500]"
+                      >
+                        Username *
+                      </Label>
                       <Input
                         id="username"
                         placeholder="student123"
@@ -1253,7 +1274,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password *</Label>
+                      <Label
+                        htmlFor="password"
+                        className="font-lato font-[500]"
+                      >
+                        Password *
+                      </Label>
                       <Input
                         id="password"
                         type="password"
@@ -1275,7 +1301,10 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">
+                      <Label
+                        htmlFor="confirmPassword"
+                        className="font-lato font-[500]"
+                      >
                         Confirm Password *
                       </Label>
                       <Input
@@ -1297,14 +1326,16 @@ export default function AdminDashboardPage() {
                         }
                       />
                       {!passwordMatch && (
-                        <p className="text-sm text-red-500">
+                        <p className="text-sm text-red-500 font-lato font-[400]">
                           Passwords do not match
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="grade">Grade</Label>
+                      <Label htmlFor="grade" className="font-lato font-[500]">
+                        Grade
+                      </Label>
                       <Select
                         value={addStudentForm.grade}
                         onValueChange={(value) =>
@@ -1336,7 +1367,7 @@ export default function AdminDashboardPage() {
                       <Button
                         onClick={addStudent}
                         disabled={isAddingStudent}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 font-lato font-[500]"
                       >
                         {isAddingStudent ? "Adding..." : "Add Student"}
                       </Button>
@@ -1350,12 +1381,17 @@ export default function AdminDashboardPage() {
             {showModal && selectedStudent && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h2 className="text-lg font-semibold mb-4">
+                  <h2 className="text-lg font-lato font-[600] mb-4">
                     Reset Password for {selectedStudent.username}
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="new_password">New Password</Label>
+                      <Label
+                        htmlFor="new_password"
+                        className="font-lato font-[500]"
+                      >
+                        New Password
+                      </Label>
                       <Input
                         id="new_password"
                         type="password"
@@ -1367,7 +1403,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div>
-                      <Label htmlFor="confirm_password">Confirm Password</Label>
+                      <Label
+                        htmlFor="confirm_password"
+                        className="font-lato font-[500]"
+                      >
+                        Confirm Password
+                      </Label>
                       <Input
                         id="confirm_password"
                         type="password"
@@ -1382,13 +1423,14 @@ export default function AdminDashboardPage() {
                       <Button
                         variant="outline"
                         onClick={() => setShowModal(false)}
+                        className="font-lato font-[500]"
                       >
                         Cancel
                       </Button>
                       <Button
                         onClick={resetStudentPassword}
                         disabled={isResettingPassword}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 font-lato font-[500]"
                       >
                         {isResettingPassword
                           ? "Resetting..."
@@ -1413,10 +1455,10 @@ export default function AdminDashboardPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h2 className="text-1xl font-bold">
+                        <h2 className="text-1xl font-lato font-[600]">
                           {getDisplayName(editStudent)}
                         </h2>
-                        <p className="text-gray-500 text-[13px]">
+                        <p className="text-gray-500 text-[13px] font-lato font-[400]">
                           {editStudent.username}
                         </p>
                       </div>
@@ -1448,8 +1490,8 @@ export default function AdminDashboardPage() {
                             {studentQuizAttempts && (
                               <Card className="rounded-2xl shadow-sm">
                                 <CardHeader className="pb-2">
-                                  <CardTitle className="text-center text-base font-medium">
-                                    This Week’s Progress
+                                  <CardTitle className="text-center text-base font-lato font-[500]">
+                                    This Week's Progress
                                   </CardTitle>
                                 </CardHeader>
 
@@ -1488,10 +1530,10 @@ export default function AdminDashboardPage() {
                                 {/* Left: Total Points Circle */}
                                 <div className="flex justify-center md:justify-start md:w-[180px] ">
                                   <div className="w-36 h-36 rounded-full border-[10px] border-emerald-400 bg-emerald-100 flex flex-col items-center justify-center text-center shadow-lg">
-                                    <div className="text-sm text-emerald-700 font-semibold">
+                                    <div className="text-sm text-emerald-700 font-lato font-[600]">
                                       Total Points
                                     </div>
-                                    <div className="text-3xl font-bold text-black">
+                                    <div className="text-3xl font-lato font-[600] text-black">
                                       {studentQuizAttempts?.total_points}
                                     </div>
                                   </div>
@@ -1511,13 +1553,13 @@ export default function AdminDashboardPage() {
                                         key={idx}
                                         className="flex justify-between items-center px-4 py-2 text-sm bg-white"
                                       >
-                                        <span className="font-medium text-black">
+                                        <span className="font-lato font-[500] text-black">
                                           {entry.points} points
                                         </span>
-                                        <span className="text-muted-foreground">
+                                        <span className="text-muted-foreground font-lato font-[400]">
                                           {formatDate(entry.date)}
                                         </span>
-                                        <span className="text-muted-foreground">
+                                        <span className="text-muted-foreground font-lato font-[400]">
                                           {entry.description}
                                         </span>
                                       </div>
@@ -1526,7 +1568,7 @@ export default function AdminDashboardPage() {
 
                                   {/* View Details Link */}
                                   <div
-                                    className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                                    className="text-right mt-2 text-sm text-purple-700 font-lato font-[500] cursor-pointer hover:underline"
                                     onClick={() =>
                                       setShowAllPointsHistory(
                                         !showAllPointsHistory
@@ -1582,10 +1624,10 @@ export default function AdminDashboardPage() {
                                           key={idx}
                                           className="grid grid-cols-4 gap-4 items-center px-4 py-2 text-sm bg-white"
                                         >
-                                          <span className="text-black">
+                                          <span className="text-black font-lato font-[400]">
                                             {quiz.quiz_name}
                                           </span>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground font-lato font-[400]">
                                             {new Date(
                                               quiz.date
                                             ).toLocaleDateString("en-US", {
@@ -1594,10 +1636,10 @@ export default function AdminDashboardPage() {
                                               day: "numeric",
                                             })}
                                           </span>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground font-lato font-[400]">
                                             {quiz.grade}
                                           </span>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground font-lato font-[400]">
                                             {quiz.retakes} retakes
                                           </span>
                                         </div>
@@ -1606,7 +1648,7 @@ export default function AdminDashboardPage() {
 
                                     {/* View Details Link */}
                                     <div
-                                      className="text-right mt-2 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                                      className="text-right mt-2 text-sm text-purple-700 font-lato font-[500] cursor-pointer hover:underline"
                                       onClick={() =>
                                         setShowAllQuizHistory(
                                           !showAllQuizHistory
@@ -1628,10 +1670,10 @@ export default function AdminDashboardPage() {
                                 {/* Left: Badges & Achievements Circle */}
                                 <div className="flex justify-center md:justify-start md:w-[180px]">
                                   <div className="w-36 h-36 rounded-full border-[10px] border-yellow-400 bg-yellow-100 flex flex-col items-center justify-center text-center shadow-lg">
-                                    <div className="text-sm text-yellow-700 font-semibold">
+                                    <div className="text-sm text-yellow-700 font-lato font-[600]">
                                       Badges & Achievements
                                     </div>
-                                    <div className="text-3xl font-bold text-black">
+                                    <div className="text-3xl font-lato font-[600] text-black">
                                       {(studentQuizAttempts?.badges.length ||
                                         0) +
                                         (studentQuizAttempts?.achievements
@@ -1656,10 +1698,10 @@ export default function AdminDashboardPage() {
                                           key={idx}
                                           className="flex justify-between items-center px-4 py-2 text-sm bg-white"
                                         >
-                                          <span className="text-black">
+                                          <span className="text-black font-lato font-[400]">
                                             {badge.name}
                                           </span>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground font-lato font-[400]">
                                             {new Date(
                                               badge.earned_at
                                             ).toLocaleDateString("en-US", {
@@ -1687,10 +1729,10 @@ export default function AdminDashboardPage() {
                                           key={idx}
                                           className="flex justify-between items-center px-4 py-2 text-sm bg-white"
                                         >
-                                          <span className="text-black">
+                                          <span className="text-black font-lato font-[400]">
                                             {ach.name}
                                           </span>
-                                          <span className="text-muted-foreground">
+                                          <span className="text-muted-foreground font-lato font-[400]">
                                             {new Date(
                                               ach.completed_at
                                             ).toLocaleDateString("en-US", {
@@ -1708,7 +1750,7 @@ export default function AdminDashboardPage() {
 
                               {/* View Details Link */}
                               <div
-                                className="text-right mt-4 text-sm text-purple-700 font-medium cursor-pointer hover:underline"
+                                className="text-right mt-4 text-sm text-purple-700 font-lato font-[500] cursor-pointer hover:underline"
                                 onClick={() => setShowAllAwards(!showAllAwards)}
                               >
                                 {showAllAwards
@@ -1727,13 +1769,13 @@ export default function AdminDashboardPage() {
                             {/* Account Details Section */}
                             <div className="bg-white border rounded-lg p-6 mb-6">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold">
+                                <h3 className="text-lg font-lato font-[600]">
                                   Account Details
                                 </h3>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="text-green-600 border-green-600 hover:bg-green-50"
+                                  className="text-green-600 border-green-600 hover:bg-green-50 font-lato font-[500]"
                                 >
                                   Edit
                                 </Button>
@@ -1741,7 +1783,9 @@ export default function AdminDashboardPage() {
 
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label>First Name</Label>
+                                  <Label className="font-lato font-[500]">
+                                    First Name
+                                  </Label>
                                   <Input
                                     value={editForm.first_name}
                                     onChange={(e) =>
@@ -1755,7 +1799,9 @@ export default function AdminDashboardPage() {
                                   />
                                 </div>
                                 <div>
-                                  <Label>Last Name</Label>
+                                  <Label className="font-lato font-[500]">
+                                    Last Name
+                                  </Label>
                                   <Input
                                     value={editForm.last_name}
                                     onChange={(e) =>
@@ -1771,7 +1817,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label>Email</Label>
+                                <Label className="font-lato font-[500]">
+                                  Email
+                                </Label>
                                 <Input
                                   value={editForm.email}
                                   onChange={(e) =>
@@ -1786,7 +1834,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label>Username</Label>
+                                <Label className="font-lato font-[500]">
+                                  Username
+                                </Label>
                                 <Input
                                   value={editForm.username}
                                   onChange={(e) =>
@@ -1799,7 +1849,7 @@ export default function AdminDashboardPage() {
                                   placeholder="Username"
                                 />
                                 {editForm.username !== editStudent.username && (
-                                  <p className="text-sm text-orange-600 mt-1">
+                                  <p className="text-sm text-orange-600 mt-1 font-lato font-[400]">
                                     ⚠️ Changing username will affect student
                                     login credentials
                                   </p>
@@ -1808,13 +1858,17 @@ export default function AdminDashboardPage() {
 
                               <div className="grid grid-cols-2 gap-4 mt-4">
                                 <div>
-                                  <Label>School</Label>
+                                  <Label className="font-lato font-[500]">
+                                    School
+                                  </Label>
                                   <div className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900">
                                     {schoolName || "Not assigned"}
                                   </div>
                                 </div>
                                 <div>
-                                  <Label>Grade</Label>
+                                  <Label className="font-lato font-[500]">
+                                    Grade
+                                  </Label>
                                   <select
                                     value={editForm.grade || ""}
                                     onChange={(e) =>
@@ -1836,7 +1890,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="mt-4">
-                                <Label>Notes</Label>
+                                <Label className="font-lato font-[500]">
+                                  Notes
+                                </Label>
                                 <hr className="my-2 w-full border-t border-gray-300 mb-4 mt-3" />
                                 <textarea
                                   value={
@@ -1860,13 +1916,13 @@ export default function AdminDashboardPage() {
                             {/* Account Options Section */}
                             <div className="bg-white border rounded-lg p-6 mb-5">
                               <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold">
+                                <h3 className="text-lg font-lato font-[600]">
                                   Account Options
                                 </h3>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className={`border-green-600 hover:bg-green-50 ${
+                                  className={`border-green-600 hover:bg-green-50 font-lato font-[500] ${
                                     studentQuizAttempts?.student_info
                                       .deactivated
                                       ? "text-green-600"
@@ -1900,13 +1956,14 @@ export default function AdminDashboardPage() {
                     <Button
                       variant="outline"
                       onClick={() => setEditStudent(null)}
+                      className="font-lato font-[500]"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleUpdateStudent}
                       disabled={isUpdating}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 font-lato font-[500]"
                     >
                       {isUpdating ? "Updating..." : "Save Changes"}
                     </Button>
