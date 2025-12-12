@@ -174,15 +174,68 @@ export default function UploadContentSection({ onReview }: Props) {
 
     setBusy(true);
     try {
+      // ✅ STEP 1: Hash ORIGINAL file FIRST (before processing)
       const hash_value = await computeSHA256Hex(file);
       const exists = hashes.includes(hash_value);
+
+      let fileToUpload = file;
+      const FILE_SIZE_LIMIT = 6 * 1024 * 1024; // 6MB
+
+      // STEP 2: Process large files (but keep original hash)
+      if (file.size > FILE_SIZE_LIMIT) {
+        toast({
+          title: "Processing large file",
+          description: "Extracting text to reduce file size...",
+        });
+
+        const pdfForm = new FormData();
+        pdfForm.append("file", file);
+
+        const pdfRes = await fetch("/api/pdf", {
+          method: "POST",
+          body: pdfForm,
+        });
+
+        if (!pdfRes.ok) {
+          throw new Error("Failed to process large PDF");
+        }
+
+        const pdfBlob = await pdfRes.blob();
+        fileToUpload = new File([pdfBlob], file.name, {
+          type: "application/pdf",
+        });
+
+        console.log(
+          `📉 File size reduced: ${formatBytes(file.size)} → ${formatBytes(
+            fileToUpload.size
+          )}`
+        );
+
+        // ✅ CHECK: Is processed file STILL too large?
+        if (fileToUpload.size > FILE_SIZE_LIMIT) {
+          throw new Error(
+            `File still too large after processing (${formatBytes(
+              fileToUpload.size
+            )}). The PDF contains too much text. Please split it into smaller documents.`
+          );
+        }
+
+        toast({
+          title: "File processed",
+          description: `Size reduced from ${formatBytes(
+            file.size
+          )} to ${formatBytes(fileToUpload.size)}`,
+        });
+      }
+
+      // ✅ hash_value already computed from ORIGINAL file above
 
       if (exists) {
         // Use upload-content-lite endpoint for existing files
         const form = new FormData();
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
-        form.append("hash_value", hash_value);
+        form.append("hash_value", hash_value); // ✅ Original file's hash
 
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/admin/upload-content-lite`,
@@ -207,7 +260,7 @@ export default function UploadContentSection({ onReview }: Props) {
       } else {
         // Use content-upload endpoint for new files
         const form = new FormData();
-        form.append("file", file);
+        form.append("file", fileToUpload); // Upload processed file
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
         form.append("hash_value", hash_value);
