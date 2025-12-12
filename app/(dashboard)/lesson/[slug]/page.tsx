@@ -687,7 +687,7 @@ export default function LessonPage() {
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[20rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
+                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[30rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
               />
             </div>
           )}

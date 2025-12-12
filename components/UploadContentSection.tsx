@@ -82,11 +82,7 @@ export default function UploadContentSection({ onReview }: Props) {
       console.error("Error fetching data:", error);
       // Only show toast on initial load, not on auto-refresh
       if (topics.length === 0) {
-        toast({
-          title: "Error",
-          description: "Could not load existing topics or hash values.",
-          variant: "destructive",
-        });
+        console.log("Could not load existing topics or hash values.");
       }
     }
   };
