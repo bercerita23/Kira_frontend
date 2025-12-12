@@ -4,6 +4,7 @@ import { Inter, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
+import PendoProvider from "@/components/pendo-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,12 +37,14 @@ export default function RootLayout({
       className={`${inter.variable} ${lato.variable}`}
     >
       <body>
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <PendoProvider apiKey={process.env.PENDO_API_KEY || ""}>
+            <ThemeProvider>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </PendoProvider>
+        </AuthProvider>
       </body>
     </html>
   );
