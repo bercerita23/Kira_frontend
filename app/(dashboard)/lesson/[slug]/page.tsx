@@ -659,7 +659,7 @@ export default function LessonPage() {
       />
       {/* Top section with green background - Question and Image */}
       <div
-        className="flex-1 relative min-h-[35vh] sm:min-h-[50vh] md:min-h-[55vh]"
+        className="flex-1 relative min-h-[60vh] sm:min-h-[60vh] md:min-h-[65vh]"
         style={{
           backgroundImage: "url('/assets/quiz/background.jpg')",
           backgroundSize: "cover",
@@ -671,23 +671,23 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-start px-2 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-6 md:space-y-10 mt-[50px] sm:mt-[70px] md:mt-[80px]">
+        <div className="relative z-10 flex flex-col items-center justify-start px-2 sm:px-4 py-6 sm:py-6 space-y-4 sm:space-y-6 md:space-y-10 mt-20 sm:mt-[70px] md:mt-[80px]">
           {/* Question text in white card at top */}
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-4 md:p-6 max-w-4xl w-full mx-2 sm:mx-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-4 md:p-6 max-w-4xl w-full mx-2 sm:mx-4">
             <div className="text-center">
-              <h1 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-gray-800 leading-snug">
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 leading-snug">
                 {currentQuestion.content}
               </h1>
             </div>
           </div>
 
-          {/* Image directly on green background - responsive size */}
+          {/* Image directly on green background - responsive size with better mobile height */}
           {currentQuestion.image_url && (
-            <div className="mb-1 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
+            <div className="mb-2 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[10rem] xs:h-[12rem] sm:h-[16rem] md:h-[20rem] lg:h-[24rem] object-cover"
+                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[30rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
               />
             </div>
           )}
@@ -695,9 +695,9 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom section with white background - Answer choices */}
-      <div className="bg-white min-h-[15vh] sm:min-h-[20vh] flex flex-col">
+      <div className="bg-white min-h-[18vh] sm:min-h-[20vh] flex flex-col">
         {/* Answer choices */}
-        <div className="flex-1 py-2 sm:py-4 md:py-6 px-2 sm:px-4">
+        <div className="flex-1 py-3 sm:py-4 md:py-6 px-2 sm:px-4">
           {renderQuestion()}
 
           {/* Result display */}
@@ -705,7 +705,7 @@ export default function LessonPage() {
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex justify-between items-center p-2 sm:p-3 md:p-4 border-t border-gray-100 gap-2">
+        <div className="flex justify-between items-center p-3 sm:p-3 md:p-4 border-t border-gray-100 gap-2">
           <Button
             variant="outline"
             onClick={handlePrevious}

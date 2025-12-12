@@ -387,16 +387,16 @@ export default function DashboardPage() {
     >
       <div className="h-screen bg-[#113604] flex flex-col select-none">
         <DashboardHeader hidden={showChatbot} />
-        <div className={`flex-1 min-h-0 ${showChatbot ? "" : "pt-6"}`}>
+        <div className={`flex-1 min-h-0 ${showChatbot ? "" : "pt-2 md:pt-6"}`}>
           <div className="flex flex-col md:flex-row bg-white rounded-2xl w-[95%] mx-auto h-full overflow-auto items-start">
-            <div className="grid grid-cols-2 gap-4 w-full max-w-[90%] mx-auto mt-3 mb-3">
-              <div className="col-span-2 border-[#5CA145] border-2 border-solid rounded-2xl overflow-hidden flex flex-col md:flex-row h-40">
-                <div className="flex-1 flex flex-col justify-center ml-12">
-                  <span className="text-black text-xl font-lato font-[500]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-4 w-full max-w-[95%] md:max-w-[90%] mx-auto mt-2 md:mt-3 mb-2 md:mb-3">
+              <div className="col-span-1 lg:col-span-2 border-[#5CA145] border-2 border-solid rounded-2xl overflow-hidden flex flex-col md:flex-row h-auto min-h-[200px] md:h-40 p-3 md:p-0">
+                <div className="flex-1 flex flex-col justify-center md:ml-12 mb-3 md:mb-0">
+                  <span className="text-black text-lg md:text-xl font-lato font-[500]">
                     Hi, {user.first_name}
                     {user.last_name ? user.last_name : ""}
                   </span>
-                  <span className="text-black text-3xl font-lato font-[600]">
+                  <span className="text-black text-xl md:text-3xl font-lato font-[600]">
                     For the week of{" "}
                     {nextSunday.toLocaleDateString("en-US", {
                       month: "short",
@@ -407,63 +407,63 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                <div className="bg-[#E7F7E2] flex-1 mr-8 mt-6 mb-6 rounded-xl flex flex-row overflow-hidden border-[#AFD8A1] border-2 border-solid whitespace-nowrap">
-                  <div className="flex-1 flex items-center justify-center space-x-2">
+                <div className="bg-[#E7F7E2] flex-1 md:mr-8 md:mt-6 md:mb-6 rounded-xl flex flex-col md:flex-row overflow-hidden border-[#AFD8A1] border-2 border-solid p-3 md:p-0 gap-3 md:gap-0">
+                  <div className="flex-1 flex items-center justify-center space-x-2 py-2 md:py-0">
                     <img
                       src="/assets/dashboard/points_icon.png"
-                      className="w-8"
+                      className="w-6 md:w-8"
                     />
-                    <span className="text-xl font-lato font-[500]">
+                    <span className="text-base md:text-xl font-lato font-[500]">
                       {userPoints?.points ?? 0} Points
                     </span>
                   </div>
-                  <div className="flex-1 flex items-center justify-center space-x-2r">
+                  <div className="flex-1 flex items-center justify-center space-x-2 py-2 md:py-0">
                     <img
                       src="/assets/dashboard/medals_icon.png"
-                      className="w-8"
+                      className="w-6 md:w-8"
                     />
-                    <span className="text-xl font-lato font-[500]">
+                    <span className="text-base md:text-xl font-lato font-[500]">
                       {userAwards.userBadges.length ?? 0} Medals
                     </span>
                   </div>
-                  <div className="flex-1 flex items-center justify-center space-x-2r mr-3">
+                  <div className="flex-1 flex items-center justify-center space-x-2 md:mr-3 py-2 md:py-0">
                     <img
                       src="/assets/dashboard/trophy_icon.png"
-                      className="w-8"
+                      className="w-6 md:w-8"
                     />
-                    <span className="text-xl font-lato font-[500]">
+                    <span className="text-base md:text-xl font-lato font-[500]">
                       {userAwards.userAchievements.length ?? 0} Achievements
                     </span>
                   </div>
                 </div>
               </div>
               {nextQuiz ? (
-                <div className="col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-row">
-                  <div className="items-center w-[60%] flex flex-row justify-center ">
+                <div className="col-span-1 lg:col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-col md:flex-row p-4 md:p-0">
+                  <div className="items-center w-full md:w-[60%] flex flex-col md:flex-row justify-center mb-4 md:mb-0">
                     <img
                       src="/assets/dashboard/head_surprised.png"
-                      className="w-40 ml-10 mt-10 mb-10"
+                      className="w-24 md:w-40 md:ml-10 md:mt-10 md:mb-10 mb-4 md:mb-0"
                     />
-                    <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
+                    <div className="relative bg-white rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow items-center align-center min-h-20 w-full md:w-[60%]">
                       {/* Bubble content */}
-                      <p className="text-center text-green-900 font-lato font-[500]">
+                      <p className="text-center text-green-900 text-sm md:text-base font-lato font-[500]">
                         There is a new quiz available:
                       </p>
-                      <p className="text-center text-green-900 text-lg font-lato font-[600]">
+                      <p className="text-center text-green-900 text-base md:text-lg font-lato font-[600]">
                         {nextQuiz?.name}
                       </p>
-                      {/* Bubble tail (left side) */}
-                      <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
+                      {/* Bubble tail (left side) - hide on mobile */}
+                      <div className="hidden md:block absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
                     </div>
                   </div>
                   <div className="flex flex-1 justify-center items-center">
                     <button
-                      className="bg-green-700 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-[60%] text-center justify-center"
+                      className="bg-green-700 text-white px-4 md:px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-full md:w-[60%] text-center justify-center"
                       onClick={() => {
                         router.push(`/lesson/${nextQuiz!.quiz_id}`);
                       }}
                     >
-                      <span className="text-xl font-lato font-[500]">
+                      <span className="text-base md:text-xl font-lato font-[500]">
                         Go to Quiz →
                       </span>
                     </button>
@@ -471,32 +471,32 @@ export default function DashboardPage() {
                 </div>
               ) : isBintangAvailable?.chat_unlocked &&
                 isBintangAvailable.recent_quiz ? (
-                <div className="col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-row">
-                  <div className="items-center w-[60%] flex flex-row justify-center ">
+                <div className="col-span-1 lg:col-span-2 rounded-xl bg-[#AFD8A1] border-4 border-[#5CA145] min-h-40 flex flex-col md:flex-row p-4 md:p-0">
+                  <div className="items-center w-full md:w-[60%] flex flex-col md:flex-row justify-center mb-4 md:mb-0">
                     <img
                       src="/assets/dashboard/head_surprised.png"
-                      className="w-40 ml-10 mt-10 mb-10"
+                      className="w-24 md:w-40 md:ml-10 md:mt-10 md:mb-10 mb-4 md:mb-0"
                     />
-                    <div className="relative bg-white rounded-2xl px-6 py-4 shadow items-center align-center h-20 w-[60%]">
+                    <div className="relative bg-white rounded-2xl px-4 md:px-6 py-3 md:py-4 shadow items-center align-center min-h-20 w-full md:w-[60%]">
                       {/* Bubble content */}
-                      <p className="text-center text-green-900 text-lg font-lato font-[600]">
+                      <p className="text-center text-green-900 text-base md:text-lg font-lato font-[600]">
                         Great Job!
                       </p>
-                      <p className="text-center text-green-900 text-lg font-lato font-[500]">
+                      <p className="text-center text-green-900 text-base md:text-lg font-lato font-[500]">
                         You Unlocked Kira!
                       </p>
-                      {/* Bubble tail (left side) */}
-                      <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
+                      {/* Bubble tail (left side) - hide on mobile */}
+                      <div className="hidden md:block absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
                     </div>
                   </div>
                   <div className="flex flex-1 justify-center items-center">
                     <button
-                      className="bg-green-700 text-white px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-[60%] text-center justify-center"
+                      className="bg-green-700 text-white px-4 md:px-6 py-2 rounded-full flex items-center space-x-2 hover:bg-green-800 transition w-full md:w-[60%] text-center justify-center"
                       onClick={() => {
                         setShowChatbot(true);
                       }}
                     >
-                      <span className="text-xl font-lato font-[500]">
+                      <span className="text-base md:text-xl font-lato font-[500]">
                         Talk to Kira →
                       </span>
                     </button>
@@ -505,13 +505,13 @@ export default function DashboardPage() {
               ) : (
                 <></>
               )}
-              <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
-                <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
-                  <span className="text-black text-xl flex-1 font-lato font-[600]">
+              <div className="col-span-1 min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
+                <div className="rounded-lg p-3 md:p-4 mb-2 md:mb-4 h-auto flex flex-col sm:flex-row items-start sm:items-center w-[90%] mt-2 gap-2">
+                  <span className="text-black text-lg md:text-xl flex-1 font-lato font-[600]">
                     Past Quizzes
                   </span>
                   <span
-                    className="text-[#2D7017] justify-end hover:cursor-pointer font-lato font-[500]"
+                    className="text-[#2D7017] hover:cursor-pointer font-lato font-[500] text-sm md:text-base whitespace-nowrap"
                     onClick={() => {
                       router.push("/dashboard/quizzes-and-awards?r=quizzes");
                     }}
@@ -524,12 +524,8 @@ export default function DashboardPage() {
                     const attempt = attempts.find(
                       (a) => a.quiz_id === quiz.quiz_id
                     );
-                    const totalQuestions = quiz.questions?.length || 10; // Use actual quiz length instead of hardcoded 5
+                    const totalQuestions = quiz.questions?.length || 10;
                     const score = attempt ? attempt.pass_count : 0;
-                    // Lock quiz if:
-                    // 1. Quiz is inherently locked, OR
-                    // 2. User has reached max attempts (2) for this quiz, OR
-                    // 3. User has used their daily retry and hasn't maxed out this quiz
                     const hasMaxedAttempts =
                       attempt && attempt.attempt_count >= 2;
                     const hasUsedDailyRetry = globalDailyRetryCount >= 1;
@@ -561,36 +557,36 @@ export default function DashboardPage() {
                     return shouldLock ? (
                       <div
                         key={quiz.quiz_id}
-                        className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
+                        className="bg-white rounded-lg p-3 md:p-4 shadow-sm border mb-2 h-auto flex flex-col sm:flex-row gap-2 sm:gap-0 items-start sm:items-center border-black w-[90%]"
                       >
-                        <span className="text-black self-center flex-1 font-lato font-[500]">
+                        <span className="text-black flex-1 font-lato font-[500] text-sm md:text-base">
                           {quiz.name}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
+                        <span className="text-black flex-1 text-xs text-left sm:text-center font-lato font-[400]">
                           {displayGrade}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
+                        <span className="text-black flex-1 text-xs text-left sm:text-center font-lato font-[400]">
                           {date ? takenDate : "N/A"}
                         </span>
-                        <div className="flex flex-1  justify-center items-center mx-auto"></div>
+                        <div className="flex flex-1 justify-start sm:justify-center items-center w-full sm:w-auto"></div>
                       </div>
                     ) : (
                       <div
                         key={quiz.quiz_id}
-                        className="bg-white rounded-lg p-4 shadow-sm border mb-2 h-[15] flex flex-row align-center border-black w-[90%]"
+                        className="bg-white rounded-lg p-3 md:p-4 shadow-sm border mb-2 h-auto flex flex-col sm:flex-row gap-2 sm:gap-0 items-start sm:items-center border-black w-[90%]"
                       >
-                        <span className="text-black self-center flex-1 font-lato font-[500]">
+                        <span className="text-black flex-1 font-lato font-[500] text-sm md:text-base">
                           {quiz.name}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
+                        <span className="text-black flex-1 text-xs text-left sm:text-center font-lato font-[400]">
                           {displayGrade}
                         </span>
-                        <span className="text-black self-center flex-1 text-xs text-center font-lato font-[400]">
+                        <span className="text-black flex-1 text-xs text-left sm:text-center font-lato font-[400]">
                           {date ? takenDate : ""}
                         </span>
-                        <div className="flex flex-1  justify-center items-center mx-auto">
+                        <div className="flex flex-1 justify-start sm:justify-center items-center w-full sm:w-auto">
                           <button
-                            className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid font-lato font-[500]`}
+                            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm text-[#2D7017] border-[#2D7017] border border-solid font-lato font-[500] w-full sm:w-auto"
                             onClick={() => {
                               router.push(`/lesson/${quiz.quiz_id}`);
                             }}
@@ -606,18 +602,18 @@ export default function DashboardPage() {
                     );
                   })
                 ) : (
-                  <p className="text-gray-500 font-lato font-[400]">
+                  <p className="text-gray-500 font-lato font-[400] text-sm md:text-base">
                     No quizzes available.
                   </p>
                 )}
               </div>
-              <div className="min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
-                <div className="rounded-lg p-4 mb-4 h-[15] flex flex-row items-center w-[90%] mt-2">
-                  <span className="flex-1 text-xl font-lato font-[600]">
+              <div className="col-span-1 min-h-80 rounded-xl border-[#113604] border-2 border-solid overflow-hidden flex flex-col items-center justify-start">
+                <div className="rounded-lg p-3 md:p-4 mb-2 md:mb-4 h-auto flex flex-col sm:flex-row items-start sm:items-center w-[90%] mt-2 gap-2">
+                  <span className="flex-1 text-lg md:text-xl font-lato font-[600]">
                     Medals & Achievements
                   </span>
                   <span
-                    className="hover:cursor-pointer text-[#2D7017] font-lato font-[500]"
+                    className="hover:cursor-pointer text-[#2D7017] font-lato font-[500] text-sm md:text-base whitespace-nowrap"
                     onClick={() => {
                       router.push("/dashboard/quizzes-and-awards?r=awards");
                     }}
@@ -625,7 +621,7 @@ export default function DashboardPage() {
                     See All Awards {">"}
                   </span>
                 </div>
-                <div className="flex flex-1 flex-col xl:flex-row mt-3 mr-3 w-full items-stretch overflow-y-auto overflow-x-hidden ">
+                <div className="flex flex-1 flex-col md:flex-row lg:flex-row mt-3 mr-3 w-full items-stretch overflow-y-auto overflow-x-hidden gap-4 md:gap-0 px-4 md:px-0">
                   {displayAwards.map((d) => (
                     <div
                       key={d.id}
@@ -633,22 +629,22 @@ export default function DashboardPage() {
                     >
                       {/* Name */}
                       <div className="min-h-[40px] flex items-center">
-                        <span className="bg-[#FEB030] rounded-full px-3 py-1 text-center font-lato font-[500]">
+                        <span className="bg-[#FEB030] rounded-full px-2 md:px-3 py-1 text-center font-lato font-[500] text-xs md:text-sm">
                           {d.name.toUpperCase()}
                         </span>
                       </div>
 
                       {/* Icon fills the middle row */}
                       <div className="flex items-center justify-center">
-                        <AwardDisplay name={d.id} size={90} />
+                        <AwardDisplay name={d.id} size={70} className="md:w-[90px] md:h-[90px]" />
                       </div>
 
                       {/* Date */}
                       <div className="mt-4 mb-4">
-                        <span className="border border-black px-3 rounded-full whitespace-nowrap font-lato font-[400]">
+                        <span className="border border-black px-2 md:px-3 py-1 rounded-full whitespace-nowrap font-lato font-[400] text-xs md:text-sm">
                           {d.dateAwarded.toLocaleDateString("en-US", {
                             year: "numeric",
-                            month: "long",
+                            month: "short",
                             day: "numeric",
                           })}
                         </span>

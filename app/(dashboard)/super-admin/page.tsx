@@ -2712,20 +2712,18 @@ function ManageSchoolsTab({
       return;
     }
 
-    // If any prompt field is filled, all must be filled
-    const hasAnyPrompt =
-      question_prompt.trim() || image_prompt.trim() || kira_chat_prompt.trim();
+    // Check if any prompt field has content
+    const hasQuestionPrompt = question_prompt.trim().length > 0;
+    const hasImagePrompt = image_prompt.trim().length > 0;
+    const hasKiraChatPrompt = kira_chat_prompt.trim().length > 0;
 
-    if (hasAnyPrompt) {
-      if (
-        !question_prompt.trim() ||
-        !image_prompt.trim() ||
-        !kira_chat_prompt.trim()
-      ) {
+    // If any prompt field is filled, all must be filled
+    if (hasQuestionPrompt || hasImagePrompt || hasKiraChatPrompt) {
+      if (!hasQuestionPrompt || !hasImagePrompt || !hasKiraChatPrompt) {
         toast({
           title: "Incomplete Prompts",
           description:
-            "If you fill any prompt field, all prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled.",
+            "If you fill any prompt field, all three prompt fields (Question Prompt, Image Prompt, Kira Chat Prompt) must be filled. To remove custom prompts, empty all three fields.",
           variant: "destructive",
         });
         return;
@@ -2759,11 +2757,22 @@ function ManageSchoolsTab({
       if (max_questions.trim()) {
         requestBody.max_questions = Number(max_questions);
       }
-      if (hasAnyPrompt) {
+
+      // Always send prompt fields if they were in advanced options
+      // This allows users to clear them by sending empty strings
+      if (hasQuestionPrompt || hasImagePrompt || hasKiraChatPrompt) {
+        // All three are filled (validated above)
         requestBody.question_prompt = question_prompt.trim();
         requestBody.image_prompt = image_prompt.trim();
         requestBody.kira_chat_prompt = kira_chat_prompt.trim();
+      } else if (!hasQuestionPrompt && !hasImagePrompt && !hasKiraChatPrompt) {
+        // All three are empty - user wants to clear custom prompts
+        requestBody.question_prompt = "";
+        requestBody.image_prompt = "";
+        requestBody.kira_chat_prompt = "";
       }
+
+      console.log("🔄 Update School Request Body:", requestBody);
 
       const res = await fetch("/api/super_admin/update-school", {
         method: "POST",
