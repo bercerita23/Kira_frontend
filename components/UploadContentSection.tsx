@@ -27,7 +27,6 @@ import {
   FileText,
 } from "lucide-react";
 import ReviewQuestions from "./ReviewQuestions";
-import * as pdfjs from "pdfjs-dist";
 
 interface Topic {
   topic_id: number;
@@ -42,6 +41,7 @@ type SortDir = "asc" | "desc";
 type Step = 1 | 2;
 type OnReviewArg = { topic_id: number; topic_name: string };
 type Props = { onReview?: (topic: OnReviewArg) => void };
+
 export default function UploadContentSection({ onReview }: Props) {
   const { toast } = useToast();
 
@@ -65,9 +65,17 @@ export default function UploadContentSection({ onReview }: Props) {
   const [reviewTopicName, setReviewTopicName] = useState("");
   const [loadingReview, setLoadingReview] = useState(false);
 
-  // Configure PDF.js worker
+  // ✅ Add state for PDF.js
+  const [pdfjs, setPdfjs] = useState<any>(null);
+
+  // ✅ Load PDF.js dynamically (only in browser)
   useEffect(() => {
-    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+    if (typeof window !== "undefined") {
+      import("pdfjs-dist").then((pdfjsLib) => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        setPdfjs(pdfjsLib);
+      });
+    }
   }, []);
 
   // Extract fetch logic into a reusable function
@@ -189,6 +197,10 @@ export default function UploadContentSection({ onReview }: Props) {
 
       // STEP 2: Process large PDF files client-side
       if (file.size > FILE_SIZE_LIMIT && file.type === "application/pdf") {
+        if (!pdfjs) {
+          throw new Error("PDF processing library not loaded. Please try again.");
+        }
+
         toast({
           title: "Processing large file",
           description: "Extracting text to reduce file size...",
