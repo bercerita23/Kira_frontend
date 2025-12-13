@@ -538,7 +538,8 @@ export default function UploadContentSection({ onReview }: Props) {
                   />
                 </div>
                 <div className="sm:col-span-3">
-                  <Label htmlFor="file">File (Max 100MB)</Label> {/* ✅ Fixed */}
+                  <Label htmlFor="file">File (Max 100MB)</Label>{" "}
+                  {/* ✅ Fixed */}
                   <Input
                     id="file"
                     type="file"
