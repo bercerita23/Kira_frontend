@@ -198,7 +198,9 @@ export default function UploadContentSection({ onReview }: Props) {
       // STEP 2: Process large PDF files client-side
       if (file.size > FILE_SIZE_LIMIT && file.type === "application/pdf") {
         if (!pdfjs) {
-          throw new Error("PDF processing library not loaded. Please try again.");
+          throw new Error(
+            "PDF processing library not loaded. Please try again."
+          );
         }
 
         toast({
