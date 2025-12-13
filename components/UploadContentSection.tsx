@@ -142,12 +142,12 @@ export default function UploadContentSection({ onReview }: Props) {
       return;
     }
 
-    const maxSize = 100 * 1024 * 1024; // 10MB limit
+    const maxSize = 100 * 1024 * 1024; // 100MB limit
 
     if (selectedFile.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Please select a file smaller than 10MB.",
+        description: "Please select a file smaller than 100MB.", // ✅ Fixed
         variant: "destructive",
       });
       return;
@@ -538,7 +538,7 @@ export default function UploadContentSection({ onReview }: Props) {
                   />
                 </div>
                 <div className="sm:col-span-3">
-                  <Label htmlFor="file">File (Max 10MB)</Label>
+                  <Label htmlFor="file">File (Max 100MB)</Label> {/* ✅ Fixed */}
                   <Input
                     id="file"
                     type="file"
