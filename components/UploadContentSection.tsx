@@ -142,7 +142,7 @@ export default function UploadContentSection({ onReview }: Props) {
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    const maxSize = 100 * 1024 * 1024; // 10MB limit
 
     if (selectedFile.size > maxSize) {
       toast({
