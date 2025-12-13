@@ -41,7 +41,6 @@ type SortDir = "asc" | "desc";
 type Step = 1 | 2;
 type OnReviewArg = { topic_id: number; topic_name: string };
 type Props = { onReview?: (topic: OnReviewArg) => void };
-
 export default function UploadContentSection({ onReview }: Props) {
   const { toast } = useToast();
 
@@ -64,19 +63,6 @@ export default function UploadContentSection({ onReview }: Props) {
   const [reviewData, setReviewData] = useState<any>(null);
   const [reviewTopicName, setReviewTopicName] = useState("");
   const [loadingReview, setLoadingReview] = useState(false);
-
-  // ✅ Add state for PDF.js
-  const [pdfjs, setPdfjs] = useState<any>(null);
-
-  // ✅ Load PDF.js dynamically (only in browser)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      import("pdfjs-dist").then((pdfjsLib) => {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-        setPdfjs(pdfjsLib);
-      });
-    }
-  }, []);
 
   // Extract fetch logic into a reusable function
   const fetchTopicsAndHashes = async () => {
@@ -142,12 +128,12 @@ export default function UploadContentSection({ onReview }: Props) {
       return;
     }
 
-    const maxSize = 100 * 1024 * 1024; // 100MB limit
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
 
     if (selectedFile.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Please select a file smaller than 100MB.", // ✅ Fixed
+        description: "Please select a file smaller than 10MB.",
         variant: "destructive",
       });
       return;
@@ -188,86 +174,15 @@ export default function UploadContentSection({ onReview }: Props) {
 
     setBusy(true);
     try {
-      // ✅ STEP 1: Hash ORIGINAL file FIRST
       const hash_value = await computeSHA256Hex(file);
       const exists = hashes.includes(hash_value);
-
-      let fileToUpload = file;
-      const FILE_SIZE_LIMIT = 6 * 1024 * 1024; // 6MB
-
-      // STEP 2: Process large PDF files client-side
-      if (file.size > FILE_SIZE_LIMIT && file.type === "application/pdf") {
-        if (!pdfjs) {
-          throw new Error(
-            "PDF processing library not loaded. Please try again."
-          );
-        }
-
-        toast({
-          title: "Processing large file",
-          description: "Extracting text to reduce file size...",
-        });
-
-        try {
-          // Extract text from PDF using PDF.js
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-
-          let extractedText = "";
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(" ");
-            extractedText += pageText + "\n\n";
-          }
-
-          // Create a simple text file instead of PDF
-          const textBlob = new Blob([extractedText], { type: "text/plain" });
-          fileToUpload = new File(
-            [textBlob],
-            file.name.replace(".pdf", ".txt"),
-            {
-              type: "text/plain",
-            }
-          );
-
-          console.log(
-            `📉 File size reduced: ${formatBytes(file.size)} → ${formatBytes(
-              fileToUpload.size
-            )}`
-          );
-
-          // ✅ CHECK: Is processed file STILL too large?
-          if (fileToUpload.size > FILE_SIZE_LIMIT) {
-            throw new Error(
-              `File still too large after processing (${formatBytes(
-                fileToUpload.size
-              )}). The PDF contains too much text. Please split it into smaller documents.`
-            );
-          }
-
-          toast({
-            title: "File processed",
-            description: `Size reduced from ${formatBytes(
-              file.size
-            )} to ${formatBytes(fileToUpload.size)}`,
-          });
-        } catch (pdfError) {
-          console.error("PDF processing error:", pdfError);
-          throw new Error("Failed to process PDF. Please try a smaller file.");
-        }
-      }
-
-      // ✅ hash_value already computed from ORIGINAL file above
 
       if (exists) {
         // Use upload-content-lite endpoint for existing files
         const form = new FormData();
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
-        form.append("hash_value", hash_value); // ✅ Original file's hash
+        form.append("hash_value", hash_value);
 
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/admin/upload-content-lite`,
@@ -292,7 +207,7 @@ export default function UploadContentSection({ onReview }: Props) {
       } else {
         // Use content-upload endpoint for new files
         const form = new FormData();
-        form.append("file", fileToUpload); // Upload processed file
+        form.append("file", file);
         form.append("title", title.trim());
         form.append("week_number", weekNumber);
         form.append("hash_value", hash_value);
@@ -538,8 +453,7 @@ export default function UploadContentSection({ onReview }: Props) {
                   />
                 </div>
                 <div className="sm:col-span-3">
-                  <Label htmlFor="file">File (Max 100MB)</Label>{" "}
-                  {/* ✅ Fixed */}
+                  <Label htmlFor="file">File (Max 10MB)</Label>
                   <Input
                     id="file"
                     type="file"
