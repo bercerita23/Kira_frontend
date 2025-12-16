@@ -1800,6 +1800,30 @@ function ManageSchoolsTab({
   allUsers: DbUser[];
   loadingUsers: boolean;
 }) {
+  const [defaultPrompts, setDefaultPrompts] = useState<{
+    default_max_questions?: number;
+    default_question_prompt?: string;
+    default_image_prompt?: string;
+    default_kira_chat_prompt?: string;
+  }>({});
+
+  useEffect(() => {
+    const fetchDefaults = async () => {
+      try {
+        const res = await fetch("/api/super_admin/default-prompts", {
+          credentials: "same-origin",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Fetched default prompts:", data);
+          setDefaultPrompts(data);
+        }
+      } catch (e) {
+        // Optionally handle error
+      }
+    };
+    fetchDefaults();
+  }, []);
   const { toast } = useToast();
   const [schools, setSchools] = useState<Array<School>>([]);
   const [loadingSchools, setLoadingSchools] = useState(true);
@@ -2023,18 +2047,17 @@ function ManageSchoolsTab({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const AddNewSchool = () => {
+  const AddNewSchool = ({ defaultPrompts }: { defaultPrompts: any }) => {
     const [newSchoolForm, setNewSchoolForm] = useState({
       name: "",
       email: "",
       telephone: "",
       address: "",
-      max_questions: "",
-      question_prompt: "",
-      image_prompt: "",
-      kira_chat_prompt: "",
+      max_questions: defaultPrompts.default_max_questions?.toString() || "",
+      question_prompt: defaultPrompts.default_question_prompt || "",
+      image_prompt: defaultPrompts.default_image_prompt || "",
+      kira_chat_prompt: defaultPrompts.default_kira_chat_prompt || "",
     });
-
     const [isApproving, setIsApproving] = useState<boolean>(false);
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // Add this
 
@@ -3129,7 +3152,7 @@ function ManageSchoolsTab({
       </Dialog>
       {/* Main content */}
       <div className="space-y-6">
-        <AddNewSchool />
+        <AddNewSchool defaultPrompts={defaultPrompts} />
         {display === "active" && (
           <Card>
             <CardHeader>

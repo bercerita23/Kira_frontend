@@ -97,7 +97,7 @@ export default function UploadContentSection({ onReview }: Props) {
     const interval = setInterval(() => {
       console.log("🔄 Auto-refreshing topics...");
       fetchTopicsAndHashes();
-    }, 10000); // 60000ms = 1 minute
+    }, 3000); // 60000ms = 1 minute
 
     // Cleanup interval on unmount
     return () => clearInterval(interval);
