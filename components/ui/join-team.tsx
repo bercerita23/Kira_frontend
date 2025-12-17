@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function JoinTeam() {
@@ -10,8 +11,8 @@ export function JoinTeam() {
             Want to join our team?
           </h1>
           <p className=""> We need volunteers!</p>
-          <Button className="bg-[#2D7017] hover:bg-[#255c13]">
-            See Internship Opportunities
+          <Button className="bg-[#2D7017] hover:bg-[#255c13]" asChild>
+            <Link href="/opportunities/">See Internship Opportunities</Link>
           </Button>
         </section>
       </div>

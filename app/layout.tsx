@@ -4,6 +4,7 @@ import { Inter, Lato } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
+import PendoProvider from "@/components/pendo-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,7 +13,7 @@ const inter = Inter({
 });
 
 const lato = Lato({
-  weight: "400",
+  weight: ["300", "400", "700"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-lato",
@@ -30,14 +31,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${lato.variable}`}>
-      <body className={inter.className}>
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${lato.variable}`}
+    >
+      <body>
+        <AuthProvider>
+          <PendoProvider apiKey={process.env.PENDO_API_KEY || ""}>
+            <ThemeProvider>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </PendoProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
@@ -26,7 +27,18 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) throw new Error("Failed to send request to admin");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        if (
+          response.status === 404 ||
+          errorData.message?.includes("not found") ||
+          errorData.message?.includes("not registered")
+        ) {
+          throw new Error("Username not found. Please check and try again.");
+        }
+        throw new Error("Unable to send request to admin. Please try again.");
+      }
 
       localStorage.setItem("resetUsername", username);
       setCodeSent(true);
@@ -37,70 +49,117 @@ export default function ForgotPasswordPage() {
       });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to send request. Please try again.");
+      const errorMessage =
+        err.message || "Unable to send request. Please try again.";
+      setError(errorMessage);
+
+      // Show detailed toast for better user guidance
+      toast({
+        variant: "destructive",
+        title: "Request failed",
+        description: errorMessage.includes("Username not found")
+          ? "Please verify your username is correct and registered with us."
+          : "There was an issue sending your request. Please check your connection and try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FFF4F6] px-4">
-      <div className="bg-white p-12 rounded-[8px] shadow-md w-full max-w-md text-center">
-        <h1 className="text-4xl font-bold text-[#B71C3B] mb-1">KIRA</h1>
-        <h2 className="text-[24px] font-medium text-black mb-10">
-          Forgot Password
-        </h2>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ background: "#f5f5f5" }}
+    >
+      <div className="w-full max-w-md">
+        <div
+          className="bg-white rounded-sm shadow-lg px-10 py-10 flex flex-col items-center"
+          style={{ minWidth: 400 }}
+        >
+          <img
+            src="/assets/auth.png"
+            alt="Kira Auth"
+            className="mb-1"
+            style={{ width: 44, height: 44, objectFit: "contain" }}
+          />
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-6">
+            Forgot Password
+          </span>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mb-14">
-          <div className="text-left mb-4">
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Enter your username to send a request
-            </label>
-            <Input
-              id="username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-[7px]"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-[#B71C3B] hover:bg-[#a0152f] text-white font-semibold rounded-[7px]"
-            disabled={isLoading || codeSent}
+          <form
+            onSubmit={handleSubmit}
+            className="w-full flex flex-col gap-4 mt-4"
           >
-            {codeSent
-              ? "Code has been sent ✓"
-              : isLoading
-              ? "Sending..."
-              : "Send Code"}
-          </Button>
-        </form>
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="username"
+                className="text-sm font-lato font-[500] text-[#2D0B18]"
+              >
+                Enter your username to send a request
+              </label>
+              <input
+                id="username"
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-[4px] border border-[#E5E7EB] px-3 py-2 text-[#2D0B18] bg-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#2d7017] focus:border-[#2d7017]"
+                style={{ fontSize: "1rem" }}
+              />
+            </div>
 
-        {error && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {codeSent && (
-          <p className="text-sm text-gray-700 mt-4">
-            If you haven’t heard back for a while,{" "}
             <button
-              className="text-[#B71C3B] underline"
-              onClick={() => {
-                setCodeSent(false);
-                setUsername("");
+              type="submit"
+              className="w-full text-white text-base font-lato font-[600] py-2 rounded-[4px] transition-colors duration-200 mt-4"
+              style={{
+                background: "#2d7017",
+                color: "#fff",
               }}
+              disabled={isLoading || codeSent}
             >
-              Resend your request
+              {codeSent
+                ? "Code has been sent ✓"
+                : isLoading
+                ? "Sending..."
+                : "Send Code"}
             </button>
-          </p>
-        )}
+          </form>
+
+          {codeSent && (
+            <p className="text-sm font-lato font-[400] text-[#2D0B18] mt-4 text-center">
+              If you haven't heard back for a while,{" "}
+              <button
+                className="font-lato font-[500] hover:underline"
+                style={{ color: "#94b689" }}
+                onClick={() => {
+                  setCodeSent(false);
+                  setUsername("");
+                }}
+              >
+                Resend your request
+              </button>
+            </p>
+          )}
+
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="text-center mt-6">
+            <span className="text-[#2D0B18] text-sm font-lato font-[400]">
+              Remember your password?{" "}
+            </span>
+            <Link
+              href="/login"
+              className="font-lato font-[500] hover:underline text-sm"
+              style={{ color: "#94b689" }}
+            >
+              Back to Login
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

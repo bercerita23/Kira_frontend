@@ -1,6 +1,6 @@
 export const mentors = [
   {
-    imageUrl: "/team/anoop.jpg",
+    imageUrl: "/team/Anoop Sreedhar.jpg",
     title: "Technical Lead",
     subtitle: "Anoop Sreedhar",
   },
@@ -8,6 +8,11 @@ export const mentors = [
     imageUrl: "/team/Ilma Chairani.jpg",
     title: "Program Manager",
     subtitle: "Ilma Chairani",
+  },
+  {
+    imageUrl: "/team/Suliati Boentaran.jpg",
+    title: "Advisor",
+    subtitle: "Suliati Boentaran",
   },
 ];
 
@@ -28,18 +33,18 @@ export const interns = [
     subtitle: "Khashayar Moradpour",
   },
   {
+    imageUrl: "/team/rheniro.jpg",
+    title: "Software Engineer Intern",
+    subtitle: "Rhenjiro Gunawan",
+  },
+  {
     imageUrl: "/team/Nadia Corral.jpg",
     title: "UX Designer",
     subtitle: "Nadia Corral",
   },
   {
-    imageUrl: "/team/anika.jpg",
+    imageUrl: "/team/anika Nambiar.jpg",
     title: "Product Manager",
     subtitle: "Anika Nambiar",
-  },
-  {
-    imageUrl: "/team/rheniro.jpg",
-    title: "Software Engineer Intern",
-    subtitle: "Rhenjiro Gunawan",
   },
 ];

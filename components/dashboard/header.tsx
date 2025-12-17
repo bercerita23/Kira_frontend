@@ -111,40 +111,42 @@ export function DashboardHeader({ hidden = false }: DashboardHeaderProps) {
 
   return (
     <header
-      className={`sticky w-[95%] max-w-screen-2xl bg-white border-b border-gray-100 z-40 h-12 rounded-2xl min-h-max p-4 top-3 justify-self-center self-center ${
+      className={`sticky w-[95%] max-w-none bg-white border-b border-gray-100 z-40 h-auto min-h-12 rounded-2xl p-2 md:p-4 top-3 mb-3 md:mb-0 justify-self-center self-center ${
         hidden && hidden === true ? "hidden" : ""
       }`}
     >
-      <div className="px-4 h-full flex items-center justify-between min-h-min">
+      <div className="px-2 md:px-4 h-full flex items-center justify-between min-h-min">
         <div className="flex items-center">
           <Link href="/dashboard" className="flex items-center space-x-2">
             {
               <img
                 src="/assets/dashboard/kira_logo.png"
                 alt="Kira Logo"
-                className="max-h-12"
+                className="max-h-8 md:max-h-12"
               />
             }
           </Link>
         </div>
 
         <div className="">
-          <span className="text-2xl hidden md:block">{currentPath ?? ""}</span>
+          <span className="text-lg md:text-2xl font-lato font-[600] hidden md:block">
+            {currentPath ?? ""}
+          </span>
         </div>
 
         <div
-          className="flex items-center gap-2  hover:cursor-pointer"
+          className="flex items-center gap-1 md:gap-2 hover:cursor-pointer"
           onClick={() => {
             router.push(`/studentprofile`);
           }}
         >
           {/** Name and school name */}
-          <div className="flex flex-row gap-3">
+          <div className="flex flex-row gap-2 md:gap-3">
             <div className="flex flex-col text-right">
-              <span className="text-2xl hidden md:block">
+              <span className="text-sm md:text-2xl font-lato font-[500] hidden lg:block">
                 {`${userInfo.firstName} ${userInfo.lastName}`}
               </span>
-              <span className="text-l justify-self-endsafe hidden md:block">
+              <span className="text-xs md:text-l font-lato font-[400] justify-self-endsafe hidden lg:block">
                 {`${userInfo.school}`}
               </span>
             </div>
@@ -152,10 +154,10 @@ export function DashboardHeader({ hidden = false }: DashboardHeaderProps) {
               <img
                 src={userProfilePicture}
                 alt="user default logo"
-                className="w-14 h-14 rounded-full object-cover2 bg-black"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-full object-cover2 bg-black"
               />
             ) : (
-              <User2Icon className="w-14 h-14 rounded-full object-cover2 bg-black text-white" />
+              <User2Icon className="w-10 h-10 md:w-14 md:h-14 rounded-full object-cover2 bg-black text-white p-1 md:p-2" />
             )}
           </div>
         </div>

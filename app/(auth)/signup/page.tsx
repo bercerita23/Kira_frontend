@@ -71,17 +71,24 @@ export default function SignupPage() {
   useEffect(() => {
     const loadSchools = async () => {
       try {
-        const res = await fetch("/api/auth/schools");
+        const res = await fetch("/api/auth/school", {
+          cache: "no-store", // Force fresh data
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
         if (!res.ok) throw new Error("Failed to load schools");
 
         const data = await res.json();
-        console.log(data);
-        //setSchools(data); // expected: [{ school_id: "...", name: "..." }]
+        console.log("Signup page - fresh school data:", data);
 
-        setSchools(data);
+        // ✅ FIX: Handle the nested structure properly
+        const schoolsArray = Array.isArray(data) ? data : data.schools || [];
+        setSchools(schoolsArray);
       } catch (err) {
         console.warn("Using temporarily stored schools due to error:", err);
-        //setSchools([]);
+        // Optional: Set fallback data on error
+        // setSchools(dummySchools);
       }
     };
 
@@ -164,14 +171,14 @@ export default function SignupPage() {
             style={{ width: 64, height: 64, objectFit: "contain" }}
             className="mb-1"
           />
-          <span className="text-xl font-medium text-[#2D0B18] mb-2">
+          <span className="text-xl font-lato font-[500] text-[#2D0B18] mb-2">
             Create Admin Account
           </span>
         </div>
         <Card className="bg-white">
           <CardHeader>
             {/* Remove icon and duplicate title, keep only description */}
-            <CardDescription className="text-center">
+            <CardDescription className="text-center font-lato font-[400]">
               Register to access the Kira admin dashboard.
             </CardDescription>
           </CardHeader>
@@ -186,31 +193,37 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName" className="font-lato font-[500]">
+                    First Name
+                  </Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     required
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName" className="font-lato font-[500]">
+                    Last Name
+                  </Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     required
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="font-lato font-[500]">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -218,12 +231,14 @@ export default function SignupPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                  className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="font-lato font-[500]">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -237,12 +252,22 @@ export default function SignupPage() {
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500") +
-                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    " focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   }
                 />
+                {formData.password && formData.password.length < 8 && (
+                  <span className="text-sm font-lato font-[400] text-red-500">
+                    Password must be at least 8 characters
+                  </span>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label
+                  htmlFor="confirmPassword"
+                  className="font-lato font-[500]"
+                >
+                  Confirm Password
+                </Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -256,22 +281,29 @@ export default function SignupPage() {
                       : passwordsMatch
                       ? "border-green-500 focus-visible:ring-green-500"
                       : "border-red-500 focus-visible:ring-red-500") +
-                    " focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    " focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   }
                 />
+                {formData.confirmPassword && !passwordsMatch && (
+                  <span className="text-sm font-lato font-[400] text-red-500">
+                    Passwords do not match
+                  </span>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="schoolId">Select School</Label>
+                <Label htmlFor="schoolId" className="font-lato font-[500]">
+                  Select School
+                </Label>
                 <Select
                   value={formData.schoolId}
                   onValueChange={handleSchoolChange}
                 >
-                  <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017]">
+                  <SelectTrigger className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]">
                     <SelectValue placeholder="Choose a school" />
                   </SelectTrigger>
                   <SelectContent
                     position="popper"
-                    className="max-h-80 overflow-y-auto z-[100] bg-white"
+                    className="max-h-80 overflow-y-auto z-[100] bg-white rounded-[8px]"
                   >
                     {schools.map((school) => (
                       <SelectItem
@@ -288,14 +320,16 @@ export default function SignupPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="code">Verification Code</Label>
+                  <Label htmlFor="code" className="font-lato font-[500]">
+                    Verification Code
+                  </Label>
                   <Input
                     id="code"
                     name="code"
                     required
                     value={formData.code}
                     onChange={handleChange}
-                    className="focus:ring-[#2d7017] focus:border-[#2d7017]"
+                    className="focus:ring-[#2d7017] focus:border-[#2d7017] rounded-[8px]"
                   />
                 </div>
               </div>
@@ -314,11 +348,11 @@ export default function SignupPage() {
                     }))
                   }
                 />
-                <Label htmlFor="terms" className="text-sm font-normal">
+                <Label htmlFor="terms" className="text-sm font-lato font-[400]">
                   I agree to the{" "}
                   <Link
                     href="/terms"
-                    className="font-medium hover:underline"
+                    className="font-lato font-[500] hover:underline"
                     style={{ color: "#94b689" }}
                   >
                     Terms of Service
@@ -326,7 +360,7 @@ export default function SignupPage() {
                   and{" "}
                   <Link
                     href="/privacy"
-                    className="font-medium hover:underline"
+                    className="font-lato font-[500] hover:underline"
                     style={{ color: "#94b689" }}
                   >
                     Privacy Policy
@@ -336,7 +370,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full text-white"
+                className="w-full text-white font-lato font-[500]"
                 style={{ background: "#2d7017" }}
                 disabled={isLoading || !formData.terms}
               >
@@ -352,16 +386,28 @@ export default function SignupPage() {
           </CardContent>
 
           <CardFooter className="flex justify-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-medium hover:underline"
-                style={{ color: "#94b689" }}
-              >
-                Sign in
-              </Link>
-            </p>
+            <div className="text-center">
+              <p className="text-sm font-lato font-[400] text-muted-foreground mt-2">
+                Verification code expired?{" "}
+                <Link
+                  href="/resend-verification"
+                  className="font-lato font-[500] hover:underline"
+                  style={{ color: "#94b689" }}
+                >
+                  Resend verification code
+                </Link>
+              </p>
+              <p className="text-sm font-lato font-[400] text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-lato font-[500] hover:underline"
+                  style={{ color: "#94b689" }}
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </CardFooter>
         </Card>
       </div>

@@ -64,30 +64,44 @@ export default function UploadContentSection({ onReview }: Props) {
   const [reviewTopicName, setReviewTopicName] = useState("");
   const [loadingReview, setLoadingReview] = useState(false);
 
+  // Extract fetch logic into a reusable function
+  const fetchTopicsAndHashes = async () => {
+    try {
+      const [contentsRes, hashesRes] = await Promise.all([
+        fetch("/api/admin/contents", { cache: "no-store" }),
+        fetch("/api/admin/hash-values", { cache: "no-store" }),
+      ]);
+      if (!contentsRes.ok) throw new Error("Failed to fetch topics");
+      const contents = await contentsRes.json();
+      setTopics(Array.isArray(contents) ? contents : []);
+
+      if (!hashesRes.ok) throw new Error("Failed to fetch hash values");
+      const hashList = await hashesRes.json();
+      setHashes(Array.isArray(hashList) ? hashList : []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // Only show toast on initial load, not on auto-refresh
+      if (topics.length === 0) {
+        console.log("Could not load existing topics or hash values.");
+      }
+    }
+  };
+
   // fetch contents + hash values on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const [contentsRes, hashesRes] = await Promise.all([
-          fetch("/api/admin/contents", { cache: "no-store" }),
-          fetch("/api/admin/hash-values", { cache: "no-store" }),
-        ]);
-        if (!contentsRes.ok) throw new Error("Failed to fetch topics");
-        const contents = await contentsRes.json();
-        setTopics(Array.isArray(contents) ? contents : []);
-
-        if (!hashesRes.ok) throw new Error("Failed to fetch hash values");
-        const hashList = await hashesRes.json();
-        setHashes(Array.isArray(hashList) ? hashList : []);
-      } catch {
-        toast({
-          title: "Error",
-          description: "Could not load existing topics or hash values.",
-          variant: "destructive",
-        });
-      }
-    })();
+    fetchTopicsAndHashes();
   }, [toast]);
+
+  // Auto-refresh every 60 seconds (1 minute)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("🔄 Auto-refreshing topics...");
+      fetchTopicsAndHashes();
+    }, 3000); // 60000ms = 1 minute
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, []);
 
   // helpers
   const formatBytes = (bytes?: number) => {
@@ -591,14 +605,17 @@ export default function UploadContentSection({ onReview }: Props) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          console.log("Review button clicked for topic:", t);
-                          handleReviewClick(t);
-                        }}
-                      >
-                        Review
-                      </DropdownMenuItem>
+                      {(t.state === "READY_FOR_REVIEW" ||
+                        t.state === "DONE") && (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            console.log("Review button clicked for topic:", t);
+                            handleReviewClick(t);
+                          }}
+                        >
+                          Review
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDeleteClick(t)}>
                         Delete
                       </DropdownMenuItem>

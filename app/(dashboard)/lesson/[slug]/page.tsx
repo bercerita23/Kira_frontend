@@ -21,6 +21,8 @@ import KiraGpt from "@/components/Kira-gpt";
 import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import LessonNavbar from "@/components/LessonNavbar"; // Add this import
+import { distance } from "fastest-levenshtein";
+
 type Question = {
   question_id: number;
   content: string;
@@ -48,6 +50,46 @@ type Attempt = {
   attempt_count: number;
 };
 
+function isTypoTolerantMatch(input: string, correct: string): boolean {
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^A-Za-z\s]/g, "")
+      .trim()
+      .replace(/\s+/g, " ");
+
+  const a = normalize(input);
+  const b = normalize(correct);
+
+  const compactA = a.replace(/\s+/g, "");
+  const compactB = b.replace(/\s+/g, "");
+  const overallDist = distance(compactA, compactB);
+
+  if (overallDist <= 2 && correct.length >= 4) return true;
+
+  const wordsA = a.split(" ");
+  const wordsB = b.split(" ");
+
+  let matches = 0;
+  let comparisons = Math.max(wordsA.length, wordsB.length);
+
+  for (const wordA of wordsA) {
+    let bestDistance = Infinity;
+    for (const wordB of wordsB) {
+      const d = distance(wordA, wordB);
+      bestDistance = Math.min(bestDistance, d);
+    }
+
+    const allowedTypos = wordA.length <= 4 ? 0 : wordA.length <= 8 ? 1 : 2;
+    if (bestDistance <= allowedTypos) matches++;
+  }
+
+  const ratio = matches / comparisons;
+  console.log(ratio);
+
+  return ratio >= 0.8;
+}
+
 export default function LessonPage() {
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -69,15 +111,9 @@ export default function LessonPage() {
   const [quizStartTime, setQuizStartTime] = useState<Date | null>(null);
   const [showChatbot, setShowChatbot] = useState(false);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
-  const [chatEligibility, setChatEligibility] = useState<{
-    chat_unlocked: boolean;
-    quizzes_needed?: number;
-    minutes_used?: number;
-    minutes_remaining?: number;
-  } | null>(null);
 
   // Add state for chat timer (sync with KiraGpt timer duration)
-  const CHAT_SESSION_LIMIT_MINUTES = 60;
+  const CHAT_SESSION_LIMIT_MINUTES = 5;
   const [chatTimer, setChatTimer] = useState(CHAT_SESSION_LIMIT_MINUTES * 60);
 
   useEffect(() => {
@@ -156,22 +192,9 @@ export default function LessonPage() {
   const currentAttempt = attempts.find((a) => a.quiz_id === parseInt(quizId));
   const attemptCount = currentAttempt ? currentAttempt.attempt_count : 0;
 
-  useEffect(() => {
-    if (quizCompleted) {
-      fetch("/api/users/chat/eligibility")
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Chat eligibility result:", data);
-          setChatEligibility(data);
-        })
-        .catch(() => setChatEligibility(null));
-    }
-  }, [quizCompleted]);
-
   // When chatbot is shown, start the timer countdown
   useEffect(() => {
     if (!showChatbot) return;
-    setChatTimer(CHAT_SESSION_LIMIT_MINUTES * 60);
     const interval = setInterval(() => {
       setChatTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -263,13 +286,11 @@ export default function LessonPage() {
   };
 
   const handleNext = () => {
+    console.log("User answers", userAnswers);
     if (!selectedAnswer.trim()) return;
 
     // Trigger confetti if current answer is correct before moving to next question
-    if (
-      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
-      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
-    ) {
+    if (isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)) {
       confetti({
         particleCount: 100,
         spread: 70,
@@ -284,8 +305,7 @@ export default function LessonPage() {
     } else {
       const finalScore = userAnswers.reduce(
         (acc, answer, index) =>
-          answer.toLowerCase().trim() ===
-          quiz.questions[index].answer.toLowerCase().trim()
+          isTypoTolerantMatch(answer, quiz.questions[index].answer)
             ? acc + 1
             : acc,
         0
@@ -301,13 +321,8 @@ export default function LessonPage() {
 
   const submitQuizResults = async (finalScore: number) => {
     try {
-      const correctAnswers = userAnswers.filter(
-        (answer, index) =>
-          answer.toLowerCase().trim().replace(/\s+/g, " ") ===
-          quiz!.questions[index].answer
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, " ")
+      const correctAnswers = userAnswers.filter((ans, index) =>
+        isTypoTolerantMatch(ans, quiz!.questions[index].answer)
       ).length;
 
       const submissionData = {
@@ -346,24 +361,18 @@ export default function LessonPage() {
 
   const handleSubmit = () => {
     setShowResult(true);
-
-    if (
-      selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") ===
-      currentQuestion.answer.toLowerCase().trim().replace(/\s+/g, " ")
-    ) {
-    }
   };
 
   const renderQuestion = () => {
     switch (currentQuestion.question_type) {
       case "MCQ":
         return (
-          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-xl mx-auto">
             {currentQuestion.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswerSelect(option)}
-                className={`p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs ${
+                className={`p-2 sm:p-3 rounded-full border-2 transition-all duration-200 font-medium text-xs sm:text-sm ${
                   selectedAnswer === option
                     ? "border-orange-400 bg-orange-100 text-orange-800 shadow-md"
                     : "border-gray-300 bg-white hover:border-orange-300 hover:bg-orange-50 text-gray-700"
@@ -371,7 +380,7 @@ export default function LessonPage() {
               >
                 <span className="flex items-center justify-center">
                   <span
-                    className={`w-5 h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
+                    className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 mr-2 flex items-center justify-center text-xs font-bold ${
                       selectedAnswer === option
                         ? "border-orange-500 bg-orange-500 text-white"
                         : "border-gray-400 bg-white text-gray-600"
@@ -379,7 +388,7 @@ export default function LessonPage() {
                   >
                     {String.fromCharCode(65 + index)}
                   </span>
-                  {option}
+                  <span className="text-left flex-1">{option}</span>
                 </span>
               </button>
             ))}
@@ -388,20 +397,16 @@ export default function LessonPage() {
 
       case "FITB":
         return (
-          <div className="max-w-xl mx-auto relative">
+          <div className="max-w-xl mx-auto relative px-2 sm:px-0">
             <div className="relative">
-              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+              <div className="absolute -top-4 sm:-top-5 left-2 sm:left-4 bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
                 <textarea
                   value={
                     showResult &&
-                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
-                      currentQuestion.answer
-                        .toLowerCase()
-                        .trim()
-                        .replace(/\s+/g, " ")
+                    !isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)
                       ? `Incorrect - Correct answer: ${currentQuestion.answer}`
                       : selectedAnswer
                   }
@@ -416,29 +421,25 @@ export default function LessonPage() {
                     }
                   }}
                   placeholder="Type Here..."
-                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                  className={`flex-1 p-3 sm:p-4 pt-5 sm:pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-xs sm:text-sm ${
                     showResult
-                      ? selectedAnswer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ") ===
-                        currentQuestion.answer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ")
+                      ? isTypoTolerantMatch(
+                          selectedAnswer,
+                          currentQuestion.answer
+                        )
                         ? "border-green-400 bg-green-50 text-green-800"
                         : "border-red-400 bg-red-50 text-red-800"
                       : "border-orange-400 bg-white text-gray-700"
                   } placeholder-gray-400`}
                   rows={1}
-                  style={{ minHeight: "50px" }}
+                  style={{ minHeight: "45px" }}
                   readOnly={showResult}
                 />
                 {!showResult && selectedAnswer.trim() && (
                   <Button
                     onClick={handleSubmit}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
-                    style={{ minHeight: "50px" }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap w-full sm:w-auto"
+                    style={{ minHeight: "45px" }}
                   >
                     Submit
                   </Button>
@@ -450,20 +451,16 @@ export default function LessonPage() {
 
       case "TRANS":
         return (
-          <div className="max-w-xl mx-auto relative">
+          <div className="max-w-xl mx-auto relative px-2 sm:px-0">
             <div className="relative">
-              <div className="absolute -top-5 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+              <div className="absolute -top-4 sm:-top-5 left-2 sm:left-4 bg-orange-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-medium">
                 My Answer:
               </div>
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
                 <textarea
                   value={
                     showResult &&
-                    selectedAnswer.toLowerCase().trim().replace(/\s+/g, " ") !==
-                      currentQuestion.answer
-                        .toLowerCase()
-                        .trim()
-                        .replace(/\s+/g, " ")
+                    !isTypoTolerantMatch(selectedAnswer, currentQuestion.answer)
                       ? `Incorrect - Correct answer: ${currentQuestion.answer}`
                       : selectedAnswer
                   }
@@ -478,29 +475,25 @@ export default function LessonPage() {
                     }
                   }}
                   placeholder="Type Here..."
-                  className={`flex-1 p-4 pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-sm ${
+                  className={`flex-1 p-3 sm:p-4 pt-5 sm:pt-6 border-2 rounded-full resize-none focus:border-orange-500 focus:outline-none text-xs sm:text-sm ${
                     showResult
-                      ? selectedAnswer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ") ===
-                        currentQuestion.answer
-                          .toLowerCase()
-                          .trim()
-                          .replace(/\s+/g, " ")
+                      ? isTypoTolerantMatch(
+                          selectedAnswer,
+                          currentQuestion.answer
+                        )
                         ? "border-green-400 bg-green-50 text-green-800"
                         : "border-red-400 bg-red-50 text-red-800"
                       : "border-orange-400 bg-white text-gray-700"
                   } placeholder-gray-400`}
                   rows={1}
-                  style={{ minHeight: "50px" }}
+                  style={{ minHeight: "45px" }}
                   readOnly={showResult}
                 />
                 {!showResult && selectedAnswer.trim() && (
                   <Button
                     onClick={handleSubmit}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-sm whitespace-nowrap"
-                    style={{ minHeight: "50px" }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap w-full sm:w-auto"
+                    style={{ minHeight: "45px" }}
                   >
                     Submit
                   </Button>
@@ -521,7 +514,7 @@ export default function LessonPage() {
     const hasMaxedAttempts = attemptCount >= 1;
 
     // Show chatbot component if showChatbot is true and chat is unlocked
-    if (showChatbot && chatEligibility?.chat_unlocked) {
+    if (showChatbot) {
       // Show the navbar with timer bar above the chatbot
       return (
         <div className="min-h-screen flex flex-col">
@@ -532,7 +525,9 @@ export default function LessonPage() {
           />
           <KiraGpt
             isOpen={showChatbot}
-            onClose={() => setShowChatbot(false)}
+            onClose={() => {
+              setShowChatbot(false);
+            }}
             initialTopic={`${quiz.name} topics`}
             remainingTime={chatTimer}
           />
@@ -554,7 +549,7 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
         <div className="relative z-10 flex flex-col items-center">
           {/* Kira Monkey Image on top of white card - Made larger */}
-          <div className="mb-[-20px] z-20 ">
+          <div className="mb-[-20px] z-20">
             <Image
               src={
                 isHighScore
@@ -631,58 +626,12 @@ export default function LessonPage() {
                   </>
                 )}
                 <Button
-                  className={`w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0 flex items-center justify-center ${
-                    chatEligibility && !chatEligibility.chat_unlocked
-                      ? "bg-green-100 text-green-400 cursor-not-allowed"
-                      : ""
-                  }`}
+                  className={`w-full bg-green-600 hover:bg-green-700 text-white rounded-full py-4 font-semibold text-lg border-0 flex items-center justify-center`}
                   onClick={() => {
-                    if (chatEligibility && !chatEligibility.chat_unlocked) {
-                      toast({
-                        title: "Chat Locked",
-                        description: `Complete ${
-                          chatEligibility.quizzes_needed ?? 0
-                        } more quiz${
-                          (chatEligibility.quizzes_needed ?? 0) > 1 ? "zes" : ""
-                        } to unlock chat.`,
-                        variant: "destructive",
-                      });
-                    } else {
-                      setShowChatbot(true);
-                    }
+                    setShowChatbot(true);
                   }}
-                  disabled={
-                    !!(chatEligibility && !chatEligibility.chat_unlocked)
-                  }
                 >
                   Ask Kira
-                  {chatEligibility && !chatEligibility.chat_unlocked && (
-                    <span className="ml-2">
-                      {/* Lock icon */}
-                      <svg
-                        width="20"
-                        height="20"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="#888"
-                          strokeWidth="2"
-                          d="M7 10V7a5 5 0 0110 0v3"
-                        />
-                        <rect
-                          x="5"
-                          y="10"
-                          width="14"
-                          height="10"
-                          rx="2"
-                          stroke="#888"
-                          strokeWidth="2"
-                        />
-                        <circle cx="12" cy="15" r="1.5" fill="#888" />
-                      </svg>
-                    </span>
-                  )}
                 </Button>
 
                 <Button
@@ -710,7 +659,7 @@ export default function LessonPage() {
       />
       {/* Top section with green background - Question and Image */}
       <div
-        className="flex-1 relative min-h-[60vh]"
+        className="flex-1 relative min-h-[60vh] sm:min-h-[60vh] md:min-h-[65vh]"
         style={{
           backgroundImage: "url('/assets/quiz/background.jpg')",
           backgroundSize: "cover",
@@ -722,23 +671,23 @@ export default function LessonPage() {
         <div className="absolute inset-0 bg-green-200/60"></div>
 
         {/* Question content - question above image */}
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 space-y-14 mt-[80px]">
+        <div className="relative z-10 flex flex-col items-center justify-start px-2 sm:px-4 py-6 sm:py-6 space-y-4 sm:space-y-6 md:space-y-10 mt-20 sm:mt-[70px] md:mt-[80px]">
           {/* Question text in white card at top */}
-          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8 max-w-4xl w-full mx-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-4 md:p-6 max-w-4xl w-full mx-2 sm:mx-4">
             <div className="text-center">
-              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 leading-snug">
                 {currentQuestion.content}
               </h1>
             </div>
           </div>
 
-          {/* Image directly on green background - responsive size */}
+          {/* Image directly on green background - responsive size with better mobile height */}
           {currentQuestion.image_url && (
-            <div className="mb-4">
+            <div className="mb-2 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
               <img
                 src={imgBlobUrl || currentQuestion.image_url}
                 alt="Question image"
-                className="rounded-xl mx-auto shadow-lg w-full max-w-[25rem] h-[20rem] sm:max-w-[30rem] sm:h-[20rem] md:max-w-[35rem] md:h-[24rem] lg:max-w-[38rem] lg:h-[25rem] object-cover"
+                className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[30rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
               />
             </div>
           )}
@@ -746,9 +695,9 @@ export default function LessonPage() {
       </div>
 
       {/* Bottom section with white background - Answer choices */}
-      <div className="bg-white min-h-[24vh] flex flex-col">
+      <div className="bg-white min-h-[18vh] sm:min-h-[20vh] flex flex-col">
         {/* Answer choices */}
-        <div className="flex-1 py-6 px-4">
+        <div className="flex-1 py-3 sm:py-4 md:py-6 px-2 sm:px-4">
           {renderQuestion()}
 
           {/* Result display */}
@@ -756,12 +705,12 @@ export default function LessonPage() {
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex justify-between items-center p-4 border-t border-gray-100">
+        <div className="flex justify-between items-center p-3 sm:p-3 md:p-4 border-t border-gray-100 gap-2">
           <Button
             variant="outline"
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}
-            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-6 py-2"
+            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm md:text-base"
           >
             ← Back
           </Button>
@@ -772,7 +721,7 @@ export default function LessonPage() {
               !selectedAnswer.trim() ||
               (currentQuestion.question_type === "FITB" && !showResult)
             }
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-3 sm:px-6 py-2 disabled:bg-gray-400 disabled:cursor-not-allowed text-xs sm:text-sm md:text-base"
           >
             {currentQuestionIndex === quiz.questions.length - 1
               ? "Finish Quiz"

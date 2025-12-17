@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/admin/reactivate_student`,
+      `${process.env.NEXT_PUBLIC_API_URL}/admin/reactivate-student`,
       {
         method: "PATCH",
         headers: {
