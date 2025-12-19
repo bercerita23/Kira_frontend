@@ -26,7 +26,7 @@ import {
   UploadCloud,
   FileText,
 } from "lucide-react";
-import ReviewQuestions from "./ReviewQuestions";
+import ReviewQuestions from "../ReviewQuestions";
 
 interface Topic {
   topic_id: number;
