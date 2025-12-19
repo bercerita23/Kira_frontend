@@ -447,7 +447,7 @@ export default function KiraGpt({
     const interval = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
-          setLocked(true);
+          setLocked(false);
           endChatSession(); // End session when timer locks
           return 0;
         }
