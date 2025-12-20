@@ -128,14 +128,32 @@ export default function UploadContentSection({ onReview }: Props) {
       return;
     }
 
+    // Only allow .pdf, .doc, .docx
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Only PDF, DOC, or DOCX files are allowed.",
+        variant: "destructive",
+      });
+      setFile(null);
+      return;
+    }
+
     const maxSize = 10 * 1024 * 1024; // 10MB limit
 
     if (selectedFile.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Please select a file smaller than 10MB.",
+        description:
+          "Currently, files larger than 10MB are not supported. Support for larger files is coming soon.",
         variant: "destructive",
       });
+      setFile(null);
       return;
     }
 
@@ -150,6 +168,17 @@ export default function UploadContentSection({ onReview }: Props) {
     return tokenCookie ? tokenCookie.split("=")[1] : null;
   };
 
+  // Helper to split a file into chunks
+  function splitFileIntoChunks(file: File, chunkSize: number): Blob[] {
+    const chunks: Blob[] = [];
+    let offset = 0;
+    while (offset < file.size) {
+      chunks.push(file.slice(offset, offset + chunkSize));
+      offset += chunkSize;
+    }
+    return chunks;
+  }
+
   // submit - call backend API directly
   const handleSubmit = async () => {
     if (!file || !title || !weekNumber) {
@@ -159,6 +188,16 @@ export default function UploadContentSection({ onReview }: Props) {
         variant: "destructive",
       });
       setStep(1);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description:
+          "Currently, files larger than 10MB are not supported. Support for larger files is coming soon.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -205,6 +244,16 @@ export default function UploadContentSection({ onReview }: Props) {
           description: "Found an existing file, creating a content.",
         });
       } else {
+        // CHUNKED UPLOAD LOGIC (disabled for now)
+        // if (file.size > 10 * 1024 * 1024) {
+        //   toast({
+        //     title: "File too large",
+        //     description: "Currently, files larger than 10MB are not supported. Support for larger files is coming soon.",
+        //     variant: "destructive",
+        //   });
+        //   setBusy(false);
+        //   return;
+        // } else {
         // Use content-upload endpoint for new files
         const form = new FormData();
         form.append("file", file);
@@ -242,6 +291,7 @@ export default function UploadContentSection({ onReview }: Props) {
           description: "Content uploaded successfully",
         });
         setHashes((prev) => [...prev, hash_value]);
+        // }
       }
 
       // refresh list
@@ -252,6 +302,11 @@ export default function UploadContentSection({ onReview }: Props) {
 
       // reset the form & go back to step 1
       setFile(null);
+      // Reset file input value
+      const fileInput = document.getElementById(
+        "file"
+      ) as HTMLInputElement | null;
+      if (fileInput) fileInput.value = "";
       setTitle("");
       setWeekNumber("");
       setStep(1);
