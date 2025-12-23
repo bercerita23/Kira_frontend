@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
 import PendoProvider from "@/components/pendo-provider";
+import { GoogleAnalytics } from "@next/third-parties/google"
+import GAUser from "@/components/ga-analytics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,14 +39,17 @@ export default function RootLayout({
       className={`${inter.variable} ${lato.variable}`}
     >
       <body>
+        
         <AuthProvider>
           <PendoProvider apiKey={process.env.PENDO_API_KEY || ""}>
+            <GAUser/>
             <ThemeProvider>
               {children}
               <Toaster />
             </ThemeProvider>
           </PendoProvider>
         </AuthProvider>
+        <GoogleAnalytics gaId="G-5QXFD717FT"/>
       </body>
     </html>
   );
