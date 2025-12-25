@@ -542,6 +542,14 @@ export default function ReviewQuestions({
     };
   }, [imageCacheUrls]);
 
+  const handleApprove = async () => {
+    if (editingId) {
+      setIsDoneEditing({ state: "DONE", id: null });
+    } else {
+      await approve();
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -600,7 +608,7 @@ export default function ReviewQuestions({
                   }
                 }}
               >
-                yes
+                Yes
               </Button>
               <Button
                 className="w-min"
@@ -608,7 +616,7 @@ export default function ReviewQuestions({
                   setIsDoneEditing({ id: null, state: null });
                 }}
               >
-                no
+                No
               </Button>
             </div>
           </AlertDialogFooter>
@@ -901,7 +909,7 @@ export default function ReviewQuestions({
             </Button>
             <Button
               className="bg-[#0FA958] hover:bg-[#0c8b4a]"
-              onClick={approve}
+              onClick={handleApprove}
               disabled={!quizName.trim()}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
