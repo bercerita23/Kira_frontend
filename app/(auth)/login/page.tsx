@@ -84,6 +84,16 @@ export default function LoginPage() {
 
     try {
       if (loginType === "student") {
+        if (!formData.schoolId) {
+          setError("Please select a school.");
+          toast({
+            title: "School Required",
+            description: "Please select a school to continue.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
         const credentials = getLoginCredentials(
           formData.identifier,
           formData.password,
@@ -97,8 +107,10 @@ export default function LoginPage() {
       } else {
         const credentials = getLoginCredentials(
           formData.identifier,
-          formData.password
+          formData.password,
+          formData.schoolId
         );
+        console.log("Admin login credentials:", credentials);
         await loginAdmin(credentials);
         toast({
           title: "Admin login successful",
@@ -352,7 +364,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {loginType === "student" && (
+            {(loginType === "student" || loginType === "admin") && (
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="schoolId"
