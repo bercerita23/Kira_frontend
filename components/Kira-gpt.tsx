@@ -107,7 +107,7 @@ export default function KiraGpt({
 
       setTranscribing(true);
 
-      console.log("Audio chunks count:", audioChunksRef.current.length);
+      //console.log("Audio chunks count:", audioChunksRef.current.length);
       if (audioChunksRef.current.length === 0) {
         alert(
           "No audio data recorded. Please check your microphone permissions and try again."
@@ -129,7 +129,7 @@ export default function KiraGpt({
           return;
         }
 
-        console.log("Total audio samples:", totalSamples);
+        //console.log("Total audio samples:", totalSamples);
 
         // Combine all audio chunks into a single Float32Array
         const combinedAudio = new Float32Array(totalSamples);
@@ -141,12 +141,12 @@ export default function KiraGpt({
           offset += float32Chunk.length;
         }
 
-        console.log("Combined audio length:", combinedAudio.length);
+        //console.log("Combined audio length:", combinedAudio.length);
 
         // Create proper WAV file with reduced sample rate to make it smaller
         const wavBuffer = createWAVFile(combinedAudio, 16000); // Reduced from 44100 to 16000
 
-        console.log("Sending audio to transcribe, size:", wavBuffer.byteLength);
+        //console.log("Sending audio to transcribe, size:", wavBuffer.byteLength);
 
         const res = await fetch("/api/transcribe/stream", {
           method: "POST",
@@ -157,23 +157,23 @@ export default function KiraGpt({
         });
 
         const data = await res.json();
-        console.log("Transcription response:", data);
+        //console.log("Transcription response:", data);
 
         if (data.transcript) {
           // Remove duplicate words/phrases
           const cleanTranscript = removeDuplicateWords(data.transcript);
           setChatMessage(cleanTranscript);
         } else if (data.error) {
-          console.error("Transcription error:", data.error);
+          //console.error("Transcription error:", data.error);
           alert(`Transcription failed: ${data.error}`);
         } else {
-          console.log("No transcript received");
+          //console.log("No transcript received");
           alert(
             "No speech detected. Please try speaking louder or closer to the microphone."
           );
         }
       } catch (err) {
-        console.error("Transcription request failed:", err);
+        //console.error("Transcription request failed:", err);
         alert("Transcription failed. Please try again.");
       }
 
@@ -223,10 +223,10 @@ export default function KiraGpt({
 
       setRecording(true);
       setRecordingStartTime(Date.now());
-      console.log(
-        "Recording started, audio context state:",
-        audioContext.state
-      );
+      // console.log(
+      //   "Recording started, audio context state:",
+      //   audioContext.state
+      // );
     } catch (error) {
       console.error("Error starting recording:", error);
       alert("Error accessing microphone. Please check permissions.");
@@ -237,12 +237,12 @@ export default function KiraGpt({
   useEffect(() => {
     const startSession = async () => {
       try {
-        console.log("Starting chat session with initialTopic:", initialTopic);
+        //console.log("Starting chat session with initialTopic:", initialTopic);
 
         // Extract quiz ID from initialTopic, e.g. "Quiz 98 topics"
-        console.log(initialTopic);
+        //console.log(initialTopic);
         const match = initialTopic.match(/Quiz (\d+)/);
-        console.log(match);
+        //console.log(match);
         const quizId = match ? parseInt(match[1], 10) : null;
 
         if (!quizId) {
@@ -254,10 +254,10 @@ export default function KiraGpt({
         }
 
         const requestBody = { quiz_id: quizId };
-        console.log(
-          "Request body being sent to /start API:",
-          JSON.stringify(requestBody, null, 2)
-        );
+        // console.log(
+        //   "Request body being sent to /start API:",
+        //   JSON.stringify(requestBody, null, 2)
+        // );
 
         const res = await fetch("/api/users/chat/start", {
           method: "POST",
@@ -268,8 +268,8 @@ export default function KiraGpt({
         });
 
         const data = await res.json();
-        console.log("Frontend: Response status:", res.status);
-        console.log("Frontend: Response data:", data);
+        //console.log("Frontend: Response status:", res.status);
+        //console.log("Frontend: Response data:", data);
 
         if (res.ok) {
           setSessionId(data.session_id);

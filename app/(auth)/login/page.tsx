@@ -110,7 +110,7 @@ export default function LoginPage() {
           formData.password,
           formData.schoolId
         );
-        console.log("Admin login credentials:", credentials);
+        // console.log("Admin login credentials:", credentials);
         await loginAdmin(credentials);
         toast({
           title: "Admin login successful",
@@ -123,8 +123,8 @@ export default function LoginPage() {
       setError(errorMessage);
 
       // Add this to debug
-      console.log("Full error object:", error);
-      console.log("Error message:", errorMessage);
+      //console.log("Full error object:", error);
+      //console.log("Error message:", errorMessage);
 
       // Show specific error messages - CHECK DEACTIVATED FIRST
       if (

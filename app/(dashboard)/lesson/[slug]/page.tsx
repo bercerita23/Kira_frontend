@@ -85,7 +85,7 @@ function isTypoTolerantMatch(input: string, correct: string): boolean {
   }
 
   const ratio = matches / comparisons;
-  console.log(ratio);
+  //console.log(ratio);
 
   return ratio >= 0.8;
 }
@@ -130,7 +130,7 @@ export default function LessonPage() {
         const blobUrl = await getS3BlobUrl(key);
         if (alive) setImgBlobUrl(blobUrl);
       } catch (e) {
-        console.error("S3 image fetch failed:", e);
+        //console.error("S3 image fetch failed:", e);
         if (alive) setImgBlobUrl(url);
       }
     }
@@ -165,7 +165,7 @@ export default function LessonPage() {
           setError("No questions found for this quiz");
         }
       } catch (err) {
-        console.error("Error fetching quiz:", err);
+        // console.error("Error fetching quiz:", err);
         setError("Failed to load quiz");
       } finally {
         setLoading(false);
@@ -183,7 +183,7 @@ export default function LessonPage() {
         const data = await res.json();
         setAttempts(data.attempts || []);
       } catch (err) {
-        console.error("Error fetching attempts:", err);
+        // console.error("Error fetching attempts:", err);
       }
     }
     fetchAttempts();
@@ -286,7 +286,7 @@ export default function LessonPage() {
   };
 
   const handleNext = () => {
-    console.log("User answers", userAnswers);
+    //console.log("User answers", userAnswers);
     if (!selectedAnswer.trim()) return;
 
     // Trigger confetti if current answer is correct before moving to next question
@@ -342,12 +342,12 @@ export default function LessonPage() {
       });
 
       if (!response.ok) {
-        console.error("Failed to submit quiz results:", await response.json());
+        //console.error("Failed to submit quiz results:", await response.json());
       } else {
-        console.log("Quiz results submitted successfully");
+        //console.log("Quiz results submitted successfully");
       }
     } catch (error) {
-      console.error("Error submitting quiz results:", error);
+      //console.error("Error submitting quiz results:", error);
     }
   };
 

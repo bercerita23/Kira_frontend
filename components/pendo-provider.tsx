@@ -60,7 +60,7 @@ export default function PendoProvider({
         z = e.getElementsByTagName(n)[0]!;
         z.parentNode!.insertBefore(y, z);
       })(window, document, "script", "pendo");
-      console.log("Pendo loaded");
+      //console.log("Pendo loaded");
     })(apiKey);
   }, [apiKey]);
 
@@ -89,7 +89,7 @@ export default function PendoProvider({
         },
       });
     }
-    console.log("Pendo initialized");
+    //console.log("Pendo initialized");
   }, [user]);
 
   return <>{children}</>;
