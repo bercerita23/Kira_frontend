@@ -119,9 +119,9 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
         setAttempts(data.attempts || []);
-        console.log("attempts ", data.attempts);
+        //console.log("attempts ", data.attempts);
       } catch (err) {
-        console.error("Error fetching attempts:", err);
+        //console.error("Error fetching attempts:", err);
       }
     }
 
@@ -167,10 +167,10 @@ export default function DashboardPage() {
         setUserPoints(data);
         // Log points to the console
         // eslint-disable-next-line no-console
-        console.log("User points:", data);
+        //console.log("User points:", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
+        //console.error("Error fetching points:", err);
       }
     }
     setIsLoading(true);
@@ -236,10 +236,10 @@ export default function DashboardPage() {
         );
 
         // eslint-disable-next-line no-console
-        console.log("User quizzes:", data);
+        //console.log("User quizzes:", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Error fetching quizzes or questions:", err);
+        //console.error("Error fetching quizzes or questions:", err);
       }
     }
     fetchQuizzes();
@@ -251,14 +251,14 @@ export default function DashboardPage() {
         const res = await fetch("/api/users/chat/eligibility");
         if (!res.ok) throw new Error("Failed to fetch bintang status");
         const data = await res.json();
-        console.log("bintang status", data);
+        //console.log("bintang status", data);
         setIsBintangAvailable(data);
         // Log points to the console
         // eslint-disable-next-line no-console
-        console.log("User points:", data);
+        //console.log("User points:", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
+        //console.error("Error fetching points:", err);
       }
     }
     fetchBintangStatus();
@@ -304,7 +304,7 @@ export default function DashboardPage() {
         .sort((a, b) => b.dateAwarded.getTime() - a.dateAwarded.getTime())
         .slice(0, 3);
 
-      console.log(top3);
+      //console.log(top3);
 
       setDisplayAwards(top3);
     }
@@ -370,8 +370,8 @@ export default function DashboardPage() {
 
   const router = useRouter();
   if (showChatbot) {
-    console.log("isBintangAvailable ", isBintangAvailable);
-    console.log("request:", isBintangAvailable?.recent_quiz);
+    //console.log("isBintangAvailable ", isBintangAvailable);
+    //console.log("request:", isBintangAvailable?.recent_quiz);
     return (
       <KiraGpt
         isOpen={showChatbot}
@@ -636,7 +636,11 @@ export default function DashboardPage() {
 
                       {/* Icon fills the middle row */}
                       <div className="flex items-center justify-center">
-                        <AwardDisplay name={d.id} size={70} className="md:w-[90px] md:h-[90px]" />
+                        <AwardDisplay
+                          name={d.id}
+                          size={70}
+                          className="md:w-[90px] md:h-[90px]"
+                        />
                       </div>
 
                       {/* Date */}

@@ -90,43 +90,43 @@ export default function ReviewQuestions({
     id: number | null;
   }>({ state: null, id: null });
 
-  console.log("ReviewQuestions component mounted with topicId:", topicId);
+  //console.log("ReviewQuestions component mounted with topicId:", topicId);
 
   // Fetch questions using useEffect like lesson page
   useEffect(() => {
     async function fetchQuestions() {
       if (!topicId) return;
 
-      console.log("=== FETCHING QUESTIONS IN REVIEWQUESTIONS ===");
-      console.log("Topic ID:", topicId);
+      //console.log("=== FETCHING QUESTIONS IN REVIEWQUESTIONS ===");
+      //console.log("Topic ID:", topicId);
 
       try {
         setLoading(true);
         const apiUrl = `/api/admin/review-questions/${topicId}`;
-        console.log("API URL:", apiUrl);
-        console.log("Making fetch request...");
+        //console.log("API URL:", apiUrl);
+        //console.log("Making fetch request...");
 
         const response = await fetch(apiUrl, {
           cache: "no-store",
         });
 
-        console.log("Response received:", response.status, response.statusText);
+        //console.log("Response received:", response.status, response.statusText);
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("API Error:", errorText);
+          //console.error("API Error:", errorText);
           throw new Error(`Failed to fetch questions: ${response.status}`);
         }
 
         const data: QuizData = await response.json();
-        console.log("Questions data received:", data);
-        console.log("Quiz name:", data.quiz_name);
-        console.log("Quiz description:", data.quiz_description);
-        console.log("Questions count:", data.questions?.length || 0);
+        //console.log("Questions data received:", data);
+        //console.log("Quiz name:", data.quiz_name);
+        //console.log("Quiz description:", data.quiz_description);
+        //console.log("Questions count:", data.questions?.length || 0);
 
         if (data.questions && Array.isArray(data.questions)) {
           setQuestions(data.questions);
-          console.log("Questions set successfully:", data.questions.length);
+          //console.log("Questions set successfully:", data.questions.length);
         } else {
           console.warn("No questions array in response");
           setQuestions([]);
@@ -238,24 +238,21 @@ export default function ReviewQuestions({
         questions: questionsWithoutImageUrl,
       };
 
-      console.log("=== APPROVE FUNCTION DEBUG ===");
-      console.log("Current quiz name state:", quizName);
-      console.log("Current quiz description state:", quizDescription);
-      console.log("Quiz name after trim:", quizName.trim());
-      console.log("Quiz description after trim:", quizDescription.trim());
-      console.log(
-        "Final quiz_description value:",
-        quizDescription.trim() || ""
-      );
-      console.log("Number of questions:", questionsWithoutImageUrl.length);
-      console.log(
-        "Complete approval data being sent:",
-        JSON.stringify(approvalData, null, 2)
-      );
-      console.log("Topic ID for API call:", topicId);
+      //console.log("=== APPROVE FUNCTION DEBUG ===");
+      //console.log("Current quiz name state:", quizName);
+      //console.log("Current quiz description state:", quizDescription);
+      //console.log("Quiz name after trim:", quizName.trim());
+      //console.log("Quiz description after trim:", quizDescription.trim());
+
+      // console.log("Number of questions:", questionsWithoutImageUrl.length);
+      // console.log(
+      //   "Complete approval data being sent:",
+      //   JSON.stringify(approvalData, null, 2)
+      // );
+      // console.log("Topic ID for API call:", topicId);
 
       const apiUrl = `/api/admin/approve/${topicId}`;
-      console.log("Making POST request to:", apiUrl);
+      // console.log("Making POST request to:", apiUrl);
 
       const res = await fetch(apiUrl, {
         method: "POST",
@@ -263,8 +260,8 @@ export default function ReviewQuestions({
         body: JSON.stringify(approvalData),
       });
 
-      console.log("Response status:", res.status);
-      console.log("Response ok:", res.ok);
+      //console.log("Response status:", res.status);
+      //console.log("Response ok:", res.ok);
 
       if (!res.ok) {
         const errText = await res.text();
@@ -273,7 +270,7 @@ export default function ReviewQuestions({
       }
 
       const responseData = await res.json();
-      console.log("Success response from API:", responseData);
+      //console.log("Success response from API:", responseData);
 
       toast({
         title: "Approved",
@@ -281,12 +278,12 @@ export default function ReviewQuestions({
       });
       onApprove();
     } catch (err) {
-      console.error("Error approving questions:", err);
-      console.error("Error details:", {
-        name: err instanceof Error ? err.name : "Unknown",
-        message: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : "No stack trace",
-      });
+      //console.error("Error approving questions:", err);
+      // console.error("Error details:", {
+      //   name: err instanceof Error ? err.name : "Unknown",
+      //   message: err instanceof Error ? err.message : String(err),
+      //   stack: err instanceof Error ? err.stack : "No stack trace",
+      // });
       toast({
         title: "Error",
         description:
@@ -389,10 +386,10 @@ export default function ReviewQuestions({
 
       try {
         fileToUpload = await compressImage(file, maxSize);
-        console.log("Image compressed:", {
-          originalSize: (file.size / 1024 / 1024).toFixed(2) + "MB",
-          compressedSize: (fileToUpload.size / 1024 / 1024).toFixed(2) + "MB",
-        });
+        // console.log("Image compressed:", {
+        //   originalSize: (file.size / 1024 / 1024).toFixed(2) + "MB",
+        //   compressedSize: (fileToUpload.size / 1024 / 1024).toFixed(2) + "MB",
+        // });
 
         toast({
           title: "Image compressed",
@@ -401,7 +398,7 @@ export default function ReviewQuestions({
           )}MB to ${(fileToUpload.size / 1024 / 1024).toFixed(1)}MB`,
         });
       } catch (error) {
-        console.error("Compression failed:", error);
+        //console.error("Compression failed:", error);
         toast({
           title: "Compression failed",
           description: "Please try with a smaller image.",
@@ -444,21 +441,21 @@ export default function ReviewQuestions({
       const formData = new FormData();
       formData.append("file", fileToUpload);
 
-      console.log("=== IMAGE UPLOAD DEBUG ===");
-      console.log(
-        "Question ID:",
-        questionId,
-        "Original file:",
-        file.name,
-        file.type,
-        ((file.size / 1024) | 0) + "KB"
-      );
-      console.log(
-        "Upload file:",
-        fileToUpload.name,
-        fileToUpload.type,
-        ((fileToUpload.size / 1024) | 0) + "KB"
-      );
+      //console.log("=== IMAGE UPLOAD DEBUG ===");
+      // console.log(
+      //   "Question ID:",
+      //   questionId,
+      //   "Original file:",
+      //   file.name,
+      //   file.type,
+      //   ((file.size / 1024) | 0) + "KB"
+      // );
+      // console.log(
+      //   "Upload file:",
+      //   fileToUpload.name,
+      //   fileToUpload.type,
+      //   ((fileToUpload.size / 1024) | 0) + "KB"
+      // );
 
       const response = await fetch(`/api/admin/replace-img/${questionId}`, {
         method: "POST",
@@ -502,7 +499,7 @@ export default function ReviewQuestions({
         description: "Question image has been replaced successfully.",
       });
     } catch (error) {
-      console.error("Image upload error:", error);
+      //console.error("Image upload error:", error);
       toast({
         title: "Upload failed",
         description:
@@ -701,7 +698,7 @@ export default function ReviewQuestions({
           </div>
         ) : (
           questions.map((q) => {
-            console.log("Rendering question:", q.question_id, q.question_type);
+            //console.log("Rendering question:", q.question_id, q.question_type);
             const isEditing = editingId === q.question_id;
             const view = isEditing && draft ? draft : q;
             const isUploading = uploadingImageFor === q.question_id;

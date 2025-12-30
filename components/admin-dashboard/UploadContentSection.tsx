@@ -82,7 +82,7 @@ export default function UploadContentSection({ onReview }: Props) {
       console.error("Error fetching data:", error);
       // Only show toast on initial load, not on auto-refresh
       if (topics.length === 0) {
-        console.log("Could not load existing topics or hash values.");
+        //console.log("Could not load existing topics or hash values.");
       }
     }
   };
@@ -95,7 +95,7 @@ export default function UploadContentSection({ onReview }: Props) {
   // Auto-refresh every 60 seconds (1 minute)
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("🔄 Auto-refreshing topics...");
+      //console.log("🔄 Auto-refreshing topics...");
       fetchTopicsAndHashes();
     }, 3000); // 60000ms = 1 minute
 
@@ -261,8 +261,8 @@ export default function UploadContentSection({ onReview }: Props) {
         form.append("week_number", weekNumber);
         form.append("hash_value", hash_value);
 
-        console.log("📝 Uploading content directly to backend...");
-        console.log("📑 Form data fields:", Array.from(form.keys()));
+        //console.log("📝 Uploading content directly to backend...");
+        //console.log("📑 Form data fields:", Array.from(form.keys()));
 
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/admin/content-upload`,
@@ -275,16 +275,16 @@ export default function UploadContentSection({ onReview }: Props) {
           }
         );
 
-        console.log(`🔗 Backend response status: ${res.status}`);
+        //console.log(`🔗 Backend response status: ${res.status}`);
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
-          console.log("❌ Backend error:", errorData);
+          //console.log("❌ Backend error:", errorData);
           throw new Error(errorData?.detail || "Failed to upload content");
         }
 
         const data = await res.json();
-        console.log("✅ Content uploaded successfully:", data);
+        //console.log("✅ Content uploaded successfully:", data);
 
         toast({
           title: "Success",
@@ -327,9 +327,9 @@ export default function UploadContentSection({ onReview }: Props) {
     setShowDeleteConfirm(true);
   };
   const handleReviewClick = async (topic: Topic) => {
-    console.log("=== HANDLE REVIEW CLICK START ===");
-    console.log("handleReviewClick called with topic:", topic);
-    console.log("Setting up review with topic ID:", topic.topic_id);
+    //console.log("=== HANDLE REVIEW CLICK START ===");
+    //console.log("handleReviewClick called with topic:", topic);
+    //console.log("Setting up review with topic ID:", topic.topic_id);
 
     // Set review data immediately to show ReviewQuestions component
     setReviewData({ topic_id: topic.topic_id }); // Just pass the topic_id
@@ -418,10 +418,10 @@ export default function UploadContentSection({ onReview }: Props) {
 
   // Show review section if in review mode
   if (showReview && reviewData) {
-    console.log("=== SHOWING REVIEW SECTION ===");
-    console.log("showReview:", showReview);
-    console.log("reviewData:", reviewData);
-    console.log("Rendering ReviewQuestions with topicId:", reviewData.topic_id);
+    //console.log("=== SHOWING REVIEW SECTION ===");
+    //console.log("showReview:", showReview);
+    //console.log("reviewData:", reviewData);
+    //console.log("Rendering ReviewQuestions with topicId:", reviewData.topic_id);
     return (
       <ReviewQuestions
         topicId={reviewData.topic_id}
@@ -664,7 +664,7 @@ export default function UploadContentSection({ onReview }: Props) {
                         t.state === "DONE") && (
                         <DropdownMenuItem
                           onClick={() => {
-                            console.log("Review button clicked for topic:", t);
+                            //console.log("Review button clicked for topic:", t);
                             handleReviewClick(t);
                           }}
                         >
