@@ -676,7 +676,9 @@ export default function LessonPage() {
           {(currentQuestion.cloud_front_url || currentQuestion.image_url) && (
             <div className="mb-2 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
               <img
-                src={currentQuestion.cloud_front_url || currentQuestion.image_url}
+                src={
+                  currentQuestion.cloud_front_url || currentQuestion.image_url
+                }
                 alt="Question image"
                 className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[30rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
               />
