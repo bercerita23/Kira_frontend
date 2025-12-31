@@ -377,7 +377,6 @@ export default function DashboardPage() {
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
         initialTopic={`Quiz ${isBintangAvailable?.recent_quiz} topics`}
-        remainingTime={isBintangAvailable!.minutes_remaining * 60}
       />
     );
   }
@@ -636,7 +635,11 @@ export default function DashboardPage() {
 
                       {/* Icon fills the middle row */}
                       <div className="flex items-center justify-center">
-                        <AwardDisplay name={d.id} size={70} className="md:w-[90px] md:h-[90px]" />
+                        <AwardDisplay
+                          name={d.id}
+                          size={70}
+                          className="md:w-[90px] md:h-[90px]"
+                        />
                       </div>
 
                       {/* Date */}

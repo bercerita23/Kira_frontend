@@ -24,7 +24,7 @@ export default function KiraGpt({
   isOpen,
   onClose,
   initialTopic = "your learning",
-  remainingTime = 60 * 60,
+  remainingTime = 10 * 60,
 }: KiraGptProps) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -461,6 +461,10 @@ export default function KiraGpt({
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  useEffect(() => {
+    setIsWarningShown(!isWarningShown);
+  }, [locked]);
+
   if (!isOpen) return null;
 
   useEffect(() => {
@@ -512,7 +516,7 @@ export default function KiraGpt({
               </button>
 
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.replace("/dashboard")}
                 className="px-5 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
               >
                 Go Home
