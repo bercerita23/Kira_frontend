@@ -31,6 +31,7 @@ type Question = {
   points: number;
   answer: string;
   image_url?: string;
+  cloud_front_url?: string;
 };
 
 type Quiz = {
@@ -116,28 +117,18 @@ export default function LessonPage() {
   const CHAT_SESSION_LIMIT_MINUTES = 5;
   const [chatTimer, setChatTimer] = useState(CHAT_SESSION_LIMIT_MINUTES * 60);
 
+  // Preload next question's image (cloudfront or fallback)
   useEffect(() => {
-    let alive = true;
-    async function load() {
-      const url = quiz?.questions[currentQuestionIndex]?.image_url;
-      if (!url) {
-        setImgBlobUrl(null);
-        return;
-      }
-
-      try {
-        const key = toS3Key(url);
-        const blobUrl = await getS3BlobUrl(key);
-        if (alive) setImgBlobUrl(blobUrl);
-      } catch (e) {
-        //console.error("S3 image fetch failed:", e);
-        if (alive) setImgBlobUrl(url);
+    if (!quiz || !quiz.questions) return;
+    const nextIndex = currentQuestionIndex + 1;
+    if (nextIndex < quiz.questions.length) {
+      const nextQ = quiz.questions[nextIndex];
+      const nextImageUrl = nextQ.cloud_front_url || nextQ.image_url;
+      if (nextImageUrl) {
+        const img = new window.Image();
+        img.src = nextImageUrl;
       }
     }
-    load();
-    return () => {
-      alive = false;
-    };
   }, [quiz, currentQuestionIndex]);
 
   useEffect(() => {
@@ -682,10 +673,10 @@ export default function LessonPage() {
           </div>
 
           {/* Image directly on green background - responsive size with better mobile height */}
-          {currentQuestion.image_url && (
+          {(currentQuestion.cloud_front_url || currentQuestion.image_url) && (
             <div className="mb-2 sm:mb-2 w-full px-2 sm:px-4 flex justify-center">
               <img
-                src={imgBlobUrl || currentQuestion.image_url}
+                src={currentQuestion.cloud_front_url || currentQuestion.image_url}
                 alt="Question image"
                 className="rounded-lg sm:rounded-xl shadow-lg w-full max-w-[min(calc(100vw-2rem),600px)] h-[18rem] xs:h-[30rem] sm:h-[20rem] md:h-[22rem] lg:h-[24rem] object-cover"
               />
