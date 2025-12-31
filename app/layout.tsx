@@ -39,7 +39,7 @@ export default function RootLayout({
       className={`${inter.variable} ${lato.variable}`}
     >
       <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-5QXFD717FT"
+          src="https://www.googletagmanager.com/gtag/js?id=G-YY3RP0GTW4"
           strategy="afterInteractive"
         />
       <Script id="ga-init" strategy="afterInteractive">

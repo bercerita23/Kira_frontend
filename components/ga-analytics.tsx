@@ -14,21 +14,19 @@ export default function GAUser() {
   const hasEverLoggedInRef = useRef(false);
 
   useEffect(() => {
-
-    
     if (!window.gtag) return;
 
     if (user?.id) {
       hasEverLoggedInRef.current = true;
 
-      window.gtag("config", "G-5QXFD717FT", {
+      window.gtag("config", "G-YY3RP0GTW4", {
         user_id: user.id,
       });
       return;
     }
 
     if (!user && hasEverLoggedInRef.current) {
-      window.gtag("config", "G-5QXFD717FT", {
+      window.gtag("config", "G-YY3RP0GTW4", {
         user_id: null,
       });
       return;
