@@ -6,32 +6,34 @@ import { useAuth } from "@/lib/context/auth-context";
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
-  }
+    dataLayer?: Object[];  }
 }
 
 export default function GAUser() {
   const { user } = useAuth();
-  const lastUserIdRef = useRef<string | null | undefined>(undefined);
+  const hasEverLoggedInRef = useRef(false);
 
   useEffect(() => {
+
+    
     if (!window.gtag) return;
 
-    const currentId = user?.id ?? null;
-
-    if (lastUserIdRef.current === currentId) return;
-    lastUserIdRef.current = currentId;
-
     if (user?.id) {
+      hasEverLoggedInRef.current = true;
+
       window.gtag("config", "G-5QXFD717FT", {
         user_id: user.id,
       });
-    } else if (lastUserIdRef.current !== undefined) {
+      return;
+    }
+
+    if (!user && hasEverLoggedInRef.current) {
       window.gtag("config", "G-5QXFD717FT", {
         user_id: null,
       });
-    } else {
+      return;
     }
-  }, [user]);
 
+  }, [user?.id]);
   return null;
 }
