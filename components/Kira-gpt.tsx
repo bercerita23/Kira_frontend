@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Mic, ArrowRight, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface ChatMessage {
   id: number;
@@ -23,7 +24,7 @@ export default function KiraGpt({
   isOpen,
   onClose,
   initialTopic = "your learning",
-  remainingTime = 60 * 60,
+  remainingTime = 10 * 60,
 }: KiraGptProps) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -35,6 +36,8 @@ export default function KiraGpt({
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+
+  const router = useRouter();
 
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
@@ -316,6 +319,7 @@ export default function KiraGpt({
 
   const [typingBotMessage, setTypingBotMessage] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [isWarningShown, setIsWarningShown] = useState<boolean>(false);
 
   const handleChatSendMessage = async () => {
     if (!chatMessage.trim() || !sessionId) return;
@@ -457,6 +461,10 @@ export default function KiraGpt({
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  useEffect(() => {
+    setIsWarningShown(!isWarningShown);
+  }, [locked]);
+
   if (!isOpen) return null;
 
   useEffect(() => {
@@ -474,6 +482,49 @@ export default function KiraGpt({
       }}
     >
       <div className="absolute inset-0 bg-green-200/60"></div>
+
+      {isWarningShown && (
+        <div
+          className="absolute inset-0 z-[999] flex items-center justify-center bg-black/60 pointer-events-auto"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Card */}
+          <div
+            className="w-[min(92vw,420px)] bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              Time’s Up !
+            </h3>
+
+            {/* Message */}
+            <p className="text-sm text-gray-600 mb-6">
+              Your time has run out. You can close this message to review your
+              chat, or return to the dashboard.
+            </p>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsWarningShown(false)}
+                className="px-5 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+              >
+                View Chat
+              </button>
+
+              <button
+                onClick={() => router.replace("/dashboard")}
+                className="px-5 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chatbot Interface */}
       <div className="relative h-full flex flex-col max-w-4xl mx-auto p-4">
@@ -556,59 +607,61 @@ export default function KiraGpt({
           </div>
 
           {/* Input Area */}
-          <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              {/* Input with Mic */}
-              <div className="flex-1 flex items-center border-2 border-red-400 rounded-full overflow-hidden">
-                <button
-                  onClick={handleMicClick}
-                  disabled={transcribing || locked}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 m-1 transition-colors ${
-                    locked
-                      ? "bg-gray-400"
-                      : transcribing
-                      ? "bg-gray-400"
-                      : recording
-                      ? "bg-green-500 animate-pulse"
-                      : "bg-red-500"
-                  }`}
-                >
-                  {locked ? (
-                    <X className="h-5 w-5 text-white" />
-                  ) : transcribing ? (
-                    <Loader2 className="h-5 w-5 text-white animate-spin" />
-                  ) : recording ? (
-                    <span className="w-3 h-3 bg-white rounded-sm"></span>
-                  ) : (
-                    <Mic className="h-5 w-5 text-black" />
-                  )}
-                </button>
-                <input
-                  type="text"
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={handleChatKeyPress}
-                  placeholder={locked ? "Session locked" : "Type Here..."}
-                  disabled={transcribing || locked}
-                  className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-400 disabled:bg-gray-50"
-                />
-              </div>
+          {!locked && (
+            <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                {/* Input with Mic */}
+                <div className="flex-1 flex items-center border-2 border-red-400 rounded-full overflow-hidden">
+                  <button
+                    onClick={handleMicClick}
+                    disabled={transcribing || locked}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 m-1 transition-colors ${
+                      locked
+                        ? "bg-gray-400"
+                        : transcribing
+                        ? "bg-gray-400"
+                        : recording
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500"
+                    }`}
+                  >
+                    {locked ? (
+                      <X className="h-5 w-5 text-white" />
+                    ) : transcribing ? (
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    ) : recording ? (
+                      <span className="w-3 h-3 bg-white rounded-sm"></span>
+                    ) : (
+                      <Mic className="h-5 w-5 text-black" />
+                    )}
+                  </button>
+                  <input
+                    type="text"
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyPress={handleChatKeyPress}
+                    placeholder={locked ? "Session locked" : "Type Here..."}
+                    disabled={transcribing || locked}
+                    className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-400 disabled:bg-gray-50"
+                  />
+                </div>
 
-              {/* Send Button */}
-              <Button
-                onClick={handleChatSendMessage}
-                disabled={!chatMessage.trim() || transcribing || locked}
-                className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 p-0 flex-shrink-0 disabled:bg-gray-400"
-              >
-                <ArrowRight className="h-5 w-5 text-white" />
-              </Button>
-            </div>
-            {locked && (
-              <div className="mt-2 text-center text-sm text-red-600 font-semibold">
-                Session locked. Please refresh to start again.
+                {/* Send Button */}
+                <Button
+                  onClick={handleChatSendMessage}
+                  disabled={!chatMessage.trim() || transcribing || locked}
+                  className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 p-0 flex-shrink-0 disabled:bg-gray-400"
+                >
+                  <ArrowRight className="h-5 w-5 text-white" />
+                </Button>
               </div>
-            )}
-          </div>
+              {locked && (
+                <div className="mt-2 text-center text-sm text-red-600 font-semibold">
+                  Session locked. Please refresh to start again.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

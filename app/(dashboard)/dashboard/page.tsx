@@ -377,7 +377,6 @@ export default function DashboardPage() {
         isOpen={showChatbot}
         onClose={() => setShowChatbot(false)}
         initialTopic={`Quiz ${isBintangAvailable?.recent_quiz} topics`}
-        remainingTime={isBintangAvailable!.minutes_remaining * 60}
       />
     );
   }

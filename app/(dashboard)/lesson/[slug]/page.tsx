@@ -114,7 +114,7 @@ export default function LessonPage() {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
 
   // Add state for chat timer (sync with KiraGpt timer duration)
-  const CHAT_SESSION_LIMIT_MINUTES = 5;
+  const CHAT_SESSION_LIMIT_MINUTES = 10;
   const [chatTimer, setChatTimer] = useState(CHAT_SESSION_LIMIT_MINUTES * 60);
 
   // Preload next question's image (cloudfront or fallback)
