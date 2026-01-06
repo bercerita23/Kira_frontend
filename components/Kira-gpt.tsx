@@ -462,7 +462,7 @@ export default function KiraGpt({
   }, [isOpen]);
 
   useEffect(() => {
-    setIsWarningShown(!isWarningShown);
+    setIsWarningShown(locked);
   }, [locked]);
 
   if (!isOpen) return null;
