@@ -305,7 +305,7 @@ const Quizzes = ({ router, onDisplay }: ChildProps) => {
                   {attempt
                     ? attempt?.attempt_count < 2
                       ? "Try Again"
-                      : "Try"
+                      : ""
                     : "Do Quiz"}
                 </button>
               </div>
