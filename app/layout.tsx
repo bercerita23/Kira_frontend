@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/context/auth-context";
 import PendoProvider from "@/components/pendo-provider";
+import GAUser from "@/components/ga-analytics";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,14 +38,24 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${lato.variable}`}
     >
+      <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-YY3RP0GTW4"
+          strategy="afterInteractive"
+        />
+      <Script id="ga-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+          `}
+      </Script>
       <body>
         <AuthProvider>
-          <PendoProvider apiKey={process.env.PENDO_API_KEY || ""}>
+            <GAUser/>
             <ThemeProvider>
               {children}
               <Toaster />
             </ThemeProvider>
-          </PendoProvider>
         </AuthProvider>
       </body>
     </html>

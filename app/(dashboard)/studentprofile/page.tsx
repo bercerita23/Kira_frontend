@@ -31,9 +31,9 @@ export default function StudentProfile() {
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
         setUserDetails(data);
-        console.log(data);
+        //console.log(data);
       } catch (err) {
-        console.error("Error fetching attempts:", err);
+        //console.error("Error fetching attempts:", err);
       }
     }
     fetchDetails();

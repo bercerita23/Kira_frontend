@@ -22,10 +22,10 @@ export default function AdminForgotPasswordPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    console.log("entering handle email submit");
+    //console.log("entering handle email submit");
 
     try {
-      console.log("email", email);
+      //console.log("email", email);
       const response = await fetch("/api/auth/request-reset-pw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
