@@ -462,7 +462,7 @@ export default function KiraGpt({
   }, [isOpen]);
 
   useEffect(() => {
-    setIsWarningShown(!isWarningShown);
+    setIsWarningShown(locked);
   }, [locked]);
 
   if (!isOpen) return null;
@@ -516,7 +516,7 @@ export default function KiraGpt({
               </button>
 
               <button
-                onClick={() => router.replace("/dashboard")}
+                onClick={onClose}
                 className="px-5 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
               >
                 Go Home
