@@ -52,8 +52,12 @@ export default function ProgressPage() {
   // Add hover state for translations
   const [hoveredBadgeName, setHoveredBadgeName] = useState<string | null>(null);
   const [hoveredBadgeDesc, setHoveredBadgeDesc] = useState<string | null>(null);
-  const [hoveredAchievementName, setHoveredAchievementName] = useState<string | null>(null);
-  const [hoveredAchievementDesc, setHoveredAchievementDesc] = useState<string | null>(null);
+  const [hoveredAchievementName, setHoveredAchievementName] = useState<
+    string | null
+  >(null);
+  const [hoveredAchievementDesc, setHoveredAchievementDesc] = useState<
+    string | null
+  >(null);
 
   // Clear all hover states when tab changes
   useEffect(() => {
@@ -74,9 +78,9 @@ export default function ProgressPage() {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -108,9 +112,9 @@ export default function ProgressPage() {
         if (!res.ok) throw new Error("Failed to fetch achievements");
         const data = await res.json();
         setAchievements(data.user_achievements || []);
-        console.log("User poiachievements:", data);
+        //console.log("User poiachievements:", data);
       } catch (err) {
-        console.error("Error fetching achievements:", err);
+        //console.error("Error fetching achievements:", err);
       }
     }
 
@@ -128,7 +132,7 @@ export default function ProgressPage() {
         const data = await res.json();
         setAllAchievements(data.achievements || []);
       } catch (err) {
-        console.error("Error fetching all achievements:", err);
+        //.error("Error fetching all achievements:", err);
       }
     }
 
@@ -144,7 +148,7 @@ export default function ProgressPage() {
         const data = await res.json();
         setBadges(data.badges || []);
       } catch (err) {
-        console.error("Error fetching badges:", err);
+        //console.error("Error fetching badges:", err);
       }
     }
 
@@ -162,10 +166,10 @@ export default function ProgressPage() {
         setPoints(data);
         // Log points to the console
         // eslint-disable-next-line no-console
-        console.log("User points:", data);
+        //console.log("User points:", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Error fetching points:", err);
+        //console.error("Error fetching points:", err);
       }
     }
     fetchPoints();
@@ -186,7 +190,7 @@ export default function ProgressPage() {
 
         if (highest > 0) setGoalPoints(highest);
       } catch (err) {
-        console.error("Error fetching all badges:", err);
+        //console.error("Error fetching all badges:", err);
       }
     }
     fetchAllBadges();
@@ -199,10 +203,10 @@ export default function ProgressPage() {
         const res = await fetch("/api/users/attempts");
         if (!res.ok) throw new Error("Failed to fetch attempts");
         const data = await res.json();
-        console.log("Fetched attempts:", data.attempts);
+        //console.log("Fetched attempts:", data.attempts);
         setAttempts(data.attempts || []);
       } catch (err) {
-        console.error("Error fetching attempts:", err);
+        //console.error("Error fetching attempts:", err);
       }
     }
     fetchAttempts();
@@ -246,8 +250,9 @@ export default function ProgressPage() {
 
                       <p className="text-sm text-gray-600">
                         {350 - points.points > 0
-                          ? `${350 - points.points
-                          } XP to reach the finish line!`
+                          ? `${
+                              350 - points.points
+                            } XP to reach the finish line!`
                           : "🎉 You've reached the maximum XP!"}
                       </p>
                     </div>
@@ -301,8 +306,8 @@ export default function ProgressPage() {
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
                                     {attempt.completed_at
                                       ? new Date(
-                                        attempt.completed_at
-                                      ).toLocaleDateString()
+                                          attempt.completed_at
+                                        ).toLocaleDateString()
                                       : "-"}
                                   </td>
                                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
@@ -399,17 +404,26 @@ export default function ProgressPage() {
                                       <div
                                         className="truncate"
                                         onMouseEnter={() => {
-                                          setTimeout(() => setHoveredBadgeName(badge.badge_id), 1000);
+                                          setTimeout(
+                                            () =>
+                                              setHoveredBadgeName(
+                                                badge.badge_id
+                                              ),
+                                            1000
+                                          );
                                         }}
-                                        onMouseLeave={() => setHoveredBadgeName(null)}
+                                        onMouseLeave={() =>
+                                          setHoveredBadgeName(null)
+                                        }
                                       >
                                         {badge.name}
                                       </div>
-                                      {hoveredBadgeName === badge.badge_id && badge.bahasa_indonesia_name && (
-                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
-                                          {badge.bahasa_indonesia_name}
-                                        </div>
-                                      )}
+                                      {hoveredBadgeName === badge.badge_id &&
+                                        badge.bahasa_indonesia_name && (
+                                          <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
+                                            {badge.bahasa_indonesia_name}
+                                          </div>
+                                        )}
                                     </td>
 
                                     <td
@@ -423,17 +437,26 @@ export default function ProgressPage() {
                                       <div
                                         className="line-clamp-2"
                                         onMouseEnter={() => {
-                                          setTimeout(() => setHoveredBadgeDesc(badge.badge_id), 1000);
+                                          setTimeout(
+                                            () =>
+                                              setHoveredBadgeDesc(
+                                                badge.badge_id
+                                              ),
+                                            1000
+                                          );
                                         }}
-                                        onMouseLeave={() => setHoveredBadgeDesc(null)}
+                                        onMouseLeave={() =>
+                                          setHoveredBadgeDesc(null)
+                                        }
                                       >
                                         {badge.description}
                                       </div>
-                                      {hoveredBadgeDesc === badge.badge_id && badge.bahasa_indonesia_description && (
-                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
-                                          {badge.bahasa_indonesia_description}
-                                        </div>
-                                      )}
+                                      {hoveredBadgeDesc === badge.badge_id &&
+                                        badge.bahasa_indonesia_description && (
+                                          <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
+                                            {badge.bahasa_indonesia_description}
+                                          </div>
+                                        )}
                                     </td>
                                     <td
                                       className={cn(
@@ -447,8 +470,8 @@ export default function ProgressPage() {
                                         {unlocked
                                           ? badge.earned_at
                                             ? new Date(
-                                              badge.earned_at
-                                            ).toLocaleDateString()
+                                                badge.earned_at
+                                              ).toLocaleDateString()
                                             : "✓"
                                           : "Locked"}
                                       </div>
@@ -531,17 +554,27 @@ export default function ProgressPage() {
                                       <div
                                         className="h-6 max-w-[160px] overflow-hidden truncate"
                                         onMouseEnter={() => {
-                                          setTimeout(() => setHoveredAchievementName(achievement.achievement_id), 1000);
+                                          setTimeout(
+                                            () =>
+                                              setHoveredAchievementName(
+                                                achievement.achievement_id
+                                              ),
+                                            1000
+                                          );
                                         }}
-                                        onMouseLeave={() => setHoveredAchievementName(null)}
+                                        onMouseLeave={() =>
+                                          setHoveredAchievementName(null)
+                                        }
                                       >
                                         {achievement.name_en}
                                       </div>
-                                      {hoveredAchievementName === achievement.achievement_id && achievement.name_ind && (
-                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
-                                          {achievement.name_ind}
-                                        </div>
-                                      )}
+                                      {hoveredAchievementName ===
+                                        achievement.achievement_id &&
+                                        achievement.name_ind && (
+                                          <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 whitespace-nowrap">
+                                            {achievement.name_ind}
+                                          </div>
+                                        )}
                                     </td>
                                     <td
                                       className={cn(
@@ -554,17 +587,27 @@ export default function ProgressPage() {
                                       <div
                                         className="line-clamp-2"
                                         onMouseEnter={() => {
-                                          setTimeout(() => setHoveredAchievementDesc(achievement.achievement_id), 1000);
+                                          setTimeout(
+                                            () =>
+                                              setHoveredAchievementDesc(
+                                                achievement.achievement_id
+                                              ),
+                                            1000
+                                          );
                                         }}
-                                        onMouseLeave={() => setHoveredAchievementDesc(null)}
+                                        onMouseLeave={() =>
+                                          setHoveredAchievementDesc(null)
+                                        }
                                       >
                                         {achievement.description_en}
                                       </div>
-                                      {hoveredAchievementDesc === achievement.achievement_id && achievement.description_ind && (
-                                        <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
-                                          {achievement.description_ind}
-                                        </div>
-                                      )}
+                                      {hoveredAchievementDesc ===
+                                        achievement.achievement_id &&
+                                        achievement.description_ind && (
+                                          <div className="absolute bottom-full left-0 mb-1 bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded z-10 max-w-xs">
+                                            {achievement.description_ind}
+                                          </div>
+                                        )}
                                     </td>
                                     <td
                                       className={cn(
@@ -587,8 +630,8 @@ export default function ProgressPage() {
                                       <div className="truncate">
                                         {unlocked && userData?.completed_at
                                           ? new Date(
-                                            userData.completed_at
-                                          ).toLocaleDateString()
+                                              userData.completed_at
+                                            ).toLocaleDateString()
                                           : "Locked"}
                                       </div>
                                     </td>
@@ -661,8 +704,8 @@ export default function ProgressPage() {
                         <span className="font-medium">Completed On:</span>{" "}
                         {selectedQuiz.completed_at
                           ? new Date(
-                            selectedQuiz.completed_at
-                          ).toLocaleDateString()
+                              selectedQuiz.completed_at
+                            ).toLocaleDateString()
                           : "N/A"}
                       </p>
                       <p className="text-lg text-gray-7000">

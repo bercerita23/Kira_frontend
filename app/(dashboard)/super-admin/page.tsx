@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/context/auth-context";
 import { DbUser } from "@/lib/api/auth";
 import Link from "next/link";
@@ -114,7 +114,16 @@ export default function SuperAdminDashboardPage() {
     userRole: user?.role,
     userEmail: user?.email,
   });
+  const [schools, setSchools] = useState<Array<School>>([]);
+  const [filteredSchool, setFilteredSchool] = useState<string | null>(null);
 
+  const filteredStudents = useMemo(() => {
+    return allUsers
+      .filter((user) => !user.is_admin && !user.is_super_admin)
+      .filter((student) =>
+        filteredSchool === null ? true : student.school_id === filteredSchool
+      );
+  }, [allUsers, filteredSchool]);
   // Fetch all users for super admin overview
   useEffect(() => {
     const fetchAllUsers = async () => {
@@ -135,6 +144,29 @@ export default function SuperAdminDashboardPage() {
           setAllUsers([]);
           return;
         }
+
+        const fetchSchools = async () => {
+          try {
+            const response = await fetch("/api/super_admin/schools", {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${
+                  document.cookie.match(/token=([^;]+)/)?.[1] || ""
+                }`,
+              },
+            });
+            if (response.ok) {
+              const schoolData = await response.json();
+              console.log("Schools:", schoolData.schools);
+              setSchools(schoolData.schools || []);
+            } else {
+              console.error("Failed to fetch schools");
+            }
+          } catch (error) {
+            console.error("Error fetching schools:", error);
+          }
+        };
+        fetchSchools();
 
         console.log(
           "📊 Super Admin Dashboard: Users array length:",
@@ -462,9 +494,41 @@ export default function SuperAdminDashboardPage() {
             {/* Students Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-lato font-[600]">
-                  <UserCheck className="h-5 w-5 text-green-600" />
-                  Students ({stats.students})
+                <CardTitle className="flex items-center justify-between font-lato font-[600]">
+                  {/* Left */}
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    Students ({stats.students})
+                  </div>
+                  <Select
+                    value={filteredSchool ?? "all"}
+                    onValueChange={(val) => {
+                      setFilteredSchool(val === "all" ? null : val);
+                    }}
+                  >
+                    <SelectTrigger className="w-[220px] font-lato font-[400] bg-white">
+                      <SelectValue placeholder="Filter by school" />
+                    </SelectTrigger>
+
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem
+                        key="all"
+                        value="all"
+                        className="font-lato font-[400]"
+                      >
+                        All Schools
+                      </SelectItem>
+                      {schools.map((school) => (
+                        <SelectItem
+                          key={school.school_id}
+                          value={school.school_id}
+                          className="font-lato font-[400]"
+                        >
+                          {school.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </CardTitle>
                 <CardDescription className="font-lato font-[400]">
                   All student accounts in the system
@@ -480,8 +544,7 @@ export default function SuperAdminDashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {allUsers
-                      .filter((user) => !user.is_admin && !user.is_super_admin)
+                    {filteredStudents
                       .slice(0, expandedSections.students ? undefined : 5)
                       .map((user) => (
                         <div
@@ -539,9 +602,7 @@ export default function SuperAdminDashboardPage() {
                           </div>
                         </div>
                       ))}
-                    {allUsers.filter(
-                      (user) => !user.is_admin && !user.is_super_admin
-                    ).length > 5 && (
+                    {filteredStudents.length > 5 && (
                       <div className="flex justify-center pt-2">
                         <Button
                           variant="outline"
@@ -563,7 +624,7 @@ export default function SuperAdminDashboardPage() {
                             <>
                               <ChevronDown className="h-4 w-4" />
                               Show More (
-                              {allUsers.filter(
+                              {filteredStudents.filter(
                                 (user) => !user.is_admin && !user.is_super_admin
                               ).length - 5}{" "}
                               more)
@@ -572,9 +633,7 @@ export default function SuperAdminDashboardPage() {
                         </Button>
                       </div>
                     )}
-                    {allUsers.filter(
-                      (user) => !user.is_admin && !user.is_super_admin
-                    ).length === 0 && (
+                    {filteredStudents.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p className="font-lato font-[400]">

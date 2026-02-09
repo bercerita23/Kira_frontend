@@ -23,11 +23,11 @@ export function middleware(request: NextRequest) {
   const userEmail = request.cookies.get("userEmail")?.value;
   const { pathname } = request.nextUrl;
 
-  console.log("🛡️ Middleware check:", {
-    pathname,
-    hasToken: !!token,
-    hasEmail: !!userEmail,
-  });
+  // console.log("🛡️ Middleware check:", {
+  //   pathname,
+  //   hasToken: !!token,
+  //   hasEmail: !!userEmail,
+  // });
 
   // Check if the path is admin auth (should be accessible to non-authenticated users)
   const isAdminAuthPath = adminAuthPaths.some((path) =>
@@ -46,16 +46,16 @@ export function middleware(request: NextRequest) {
   const isAdminPath =
     adminPaths.some((path) => pathname.startsWith(path)) && !isAdminAuthPath;
 
-  console.log("🛡️ Path checks:", {
-    isProtectedPath,
-    isAuthPath,
-    isAdminPath,
-    isAdminAuthPath,
-  });
+  // console.log("🛡️ Path checks:", {
+  //   isProtectedPath,
+  //   isAuthPath,
+  //   isAdminPath,
+  //   isAdminAuthPath,
+  // });
 
   // If trying to access admin routes without token, redirect to admin login
   if (isAdminPath && !token) {
-    console.log("🚫 Redirecting to admin login - no token for admin path");
+    //console.log("🚫 Redirecting to admin login - no token for admin path");
     const url = new URL("/admin/login", request.url);
     url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
