@@ -108,6 +108,14 @@ type StudentQuizData = {
     description: string;
     completed_at: string;
   }>;
+  chat_summary: Array<
+    {
+    session_id: string;
+    started_at: string;
+    ended_at: string;
+    duration_minutes: number
+    turn_count: number;
+  }>;
   student_info: {
     first_name: string;
     last_name: string;
@@ -117,6 +125,8 @@ type StudentQuizData = {
     deactivated: boolean;
     grade: string;
   };
+
+
 };
 
 export default function AdminDashboardPage() {
@@ -153,6 +163,7 @@ export default function AdminDashboardPage() {
   const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
+  const [showChatHistory, setShowChatHistory] = useState(false);
 
   const { user, isLoading, logout } = useAuth();
   const [showFilter, setShowFilter] = useState(false);
@@ -283,6 +294,7 @@ export default function AdminDashboardPage() {
       });
 
       const data = await response.json();
+      
 
       if (!response.ok) {
         throw new Error(data?.message || "Failed to reactivate student");
@@ -969,6 +981,8 @@ export default function AdminDashboardPage() {
                 setShowAllPointsHistory={setShowAllPointsHistory}
                 showAllQuizHistory={showAllQuizHistory}
                 setShowAllQuizHistory={setShowAllQuizHistory}
+                setShowAllChatSessions={setShowChatHistory}
+                showAllChatSessions={showChatHistory}
                 showAllAwards={showAllAwards}
                 setShowAllAwards={setShowAllAwards}
                 getUserInitials={getUserInitials}

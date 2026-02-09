@@ -105,7 +105,7 @@ export default function AnalyticsPage({
             </p>{" "}
           </div>
           <div className="flex flex-col gap-2 ">
-            <p className="text-sm"> Average per Student per Month </p>
+            <p className="text-sm"> Average per Student</p>
             {timeStats?.avg_student_per_month !== undefined
               ? (() => {
                   const totalMinutes = Math.round(

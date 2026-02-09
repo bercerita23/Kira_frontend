@@ -1,3 +1,4 @@
+"use client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QuizAverageChart from "@/components/dashboard/line-graph";
+import ChatHistoryModal from "./ChatHistoryModal";
+import { useState } from "react";
+
 type DbUser = {
   user_id: string;
   username: string;
@@ -32,6 +36,8 @@ interface StudentEditModalProps {
   setShowAllPointsHistory: (show: boolean) => void;
   showAllQuizHistory: boolean;
   setShowAllQuizHistory: (show: boolean) => void;
+  setShowAllChatSessions: (show: boolean) => void;
+  showAllChatSessions: boolean;
   showAllAwards: boolean;
   setShowAllAwards: (show: boolean) => void;
   getUserInitials: (user: DbUser) => string;
@@ -56,6 +62,8 @@ const StudentEditModal = ({
   setStudentQuizAttempts,
   showAllPointsHistory,
   setShowAllPointsHistory,
+  setShowAllChatSessions,
+  showAllChatSessions,
   showAllQuizHistory,
   setShowAllQuizHistory,
   showAllAwards,
@@ -72,6 +80,9 @@ const StudentEditModal = ({
   deactivateStudent,
   reactivateStudent,
 }: StudentEditModalProps) => {
+
+  const [activeChatSessionId, setActiveChatSessionId] = useState<number | null>(null);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 ">
       <div className="bg-white rounded-lg p-8 w-full max-w-7xl max-h-[94vh] overflow-y-auto shadow-2xl">
@@ -280,6 +291,59 @@ const StudentEditModal = ({
                       </div>
                     </div>
                   </Card>
+
+        {/* Chat Activity */}
+        {studentQuizAttempts?.chat_summary?.length > 0 && (
+          <Card className="p-6 rounded-2xl shadow-sm">
+            <div className="flex flex-col gap-4 items-start">
+              {/* Header */}
+              <h3 className="text-base font-lato font-[500]">
+                Chat Activity
+              </h3>
+
+              {/* Chat Sessions List */}
+              <div className="flex-1 w-full">
+                <div className="border rounded-lg overflow-hidden divide-y">
+                  {(showAllChatSessions
+                    ? studentQuizAttempts.chat_summary
+                    : studentQuizAttempts.chat_summary.slice(0, 3)
+                  ).map((session: any) => (
+                    <div
+                        key={session.session_id}
+                        className="flex items-center justify-between px-4 py-2 text-sm bg-white hover:bg-gray-50"
+                      >
+                        {/* Start Date */}
+                        <span className="text-black font-lato font-[400]">
+                          {new Date(session.started_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+
+                        {/* View History Button */}
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white font-lato font-[500]"
+                          onClick={() => setActiveChatSessionId(session.session_id)}
+                        >
+                          View History
+                        </Button>
+                      </div>
+                  ))}
+                </div>
+
+                {/* View Details Link */}
+                <div
+                  className="text-right mt-2 text-sm text-purple-700 font-lato font-[500] cursor-pointer hover:underline"
+                  onClick={() => setShowAllChatSessions(!showAllChatSessions)}
+                >
+                  {showAllChatSessions ? "Hide Details ⌃" : "View Details ⌄"}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
                   {/* Badges & Achievements */}
                   <Card className="p-6 rounded-2xl shadow-sm">
@@ -562,6 +626,13 @@ const StudentEditModal = ({
           </Button>
         </div>
       </div>
+          {activeChatSessionId && (
+      <ChatHistoryModal
+        sessionId={activeChatSessionId}
+        onClose={() => setActiveChatSessionId(null)}
+      />
+    )}
+
     </div>
   );
 };
