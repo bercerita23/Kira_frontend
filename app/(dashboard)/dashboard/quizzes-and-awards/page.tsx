@@ -181,7 +181,7 @@ const Quizzes = ({ router, onDisplay }: ChildProps) => {
             const unlockDow = UNLOCK_DAY_BY_NUMBER[num];
             if (unlockDow === undefined) return false;
 
-            return today >= unlockDow;
+            return today >= unlockDow; // your existing rule
           })
           .reverse();
 
@@ -296,20 +296,18 @@ const Quizzes = ({ router, onDisplay }: ChildProps) => {
                 {date ? takenDate : "N/A"}
               </span>
               <div className="flex flex-1  justify-center items-center mx-auto">
-                {shouldLock && (
-                  <button
-                    className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid  ${hideButton} ? "hidden" : ""`}
-                    onClick={() => {
-                      router.push(`/lesson/${quiz.quiz_id}`);
-                    }}
-                  >
-                    {attempt
-                      ? attempt?.attempt_count < 2
-                        ? "Try Again"
-                        : ""
-                      : "Do Quiz"}
-                  </button>
-                )}
+                <button
+                  className={`px-4 py-2 rounded text-sm text-[#2D7017] border-[#2D7017] border border-solid  ${hideButton} ? "hidden" : ""`}
+                  onClick={() => {
+                    router.push(`/lesson/${quiz.quiz_id}`);
+                  }}
+                >
+                  {attempt
+                    ? attempt?.attempt_count < 2
+                      ? "Try Again"
+                      : "Try"
+                    : "Do Quiz"}
+                </button>
               </div>
             </div>
           );
@@ -338,10 +336,10 @@ const Awards = ({ router, onDisplay }: ChildProps) => {
         setUserPoints(data.points);
         // Log points to the console
         // eslint-disable-next-line no-console
-        //console.log("User points: ", data);
+        console.log("User points: ", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        //console.error("Error fetching points:", err);
+        console.error("Error fetching points:", err);
       }
     }
     async function getAllBadges() {
@@ -358,10 +356,10 @@ const Awards = ({ router, onDisplay }: ChildProps) => {
 
         // Log points to the console
         // eslint-disable-next-line no-console
-        //console.log("User badges:", data);
+        console.log("User badges:", data);
       } catch (err) {
         // eslint-disable-next-line no-console
-        //console.error("Error fetching points:", err);
+        console.error("Error fetching points:", err);
       }
     }
 
@@ -372,10 +370,10 @@ const Awards = ({ router, onDisplay }: ChildProps) => {
         const data = await res.json();
         //console.log(data.user_achievements);
 
-        //console.log(data);
+        console.log(data);
         setAllAchievements(data.achievements);
       } catch (error) {
-        //console.error(error);
+        console.error(error);
       }
     }
 
@@ -386,7 +384,7 @@ const Awards = ({ router, onDisplay }: ChildProps) => {
         const data = await res.json();
         setUserBadges(data.badges);
       } catch (error) {
-        //console.error(error);
+        console.error(error);
       }
     }
 
@@ -395,10 +393,10 @@ const Awards = ({ router, onDisplay }: ChildProps) => {
         const res = await fetch("/api/users/achievements");
         if (!res.ok) throw new Error("Failed to fetch achievements");
         const data = await res.json();
-        //console.log("user achievements", data);
+        console.log("user achievements", data);
         setUserAchievements(data.user_achievements);
       } catch (error) {
-        //console.error(error);
+        console.error(error);
       }
     }
 

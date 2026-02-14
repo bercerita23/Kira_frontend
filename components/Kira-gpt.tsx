@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Mic, ArrowRight, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 interface ChatMessage {
   id: number;
@@ -24,7 +23,7 @@ export default function KiraGpt({
   isOpen,
   onClose,
   initialTopic = "your learning",
-  remainingTime = 10 * 60,
+  remainingTime = 60 * 60,
 }: KiraGptProps) {
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -36,8 +35,6 @@ export default function KiraGpt({
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
-
-  const router = useRouter();
 
   // Fix: Use useRef instead of let variable
   const audioChunksRef = useRef<ArrayBuffer[]>([]);
@@ -110,7 +107,7 @@ export default function KiraGpt({
 
       setTranscribing(true);
 
-      //console.log("Audio chunks count:", audioChunksRef.current.length);
+      console.log("Audio chunks count:", audioChunksRef.current.length);
       if (audioChunksRef.current.length === 0) {
         alert(
           "No audio data recorded. Please check your microphone permissions and try again."
@@ -132,7 +129,7 @@ export default function KiraGpt({
           return;
         }
 
-        //console.log("Total audio samples:", totalSamples);
+        console.log("Total audio samples:", totalSamples);
 
         // Combine all audio chunks into a single Float32Array
         const combinedAudio = new Float32Array(totalSamples);
@@ -144,12 +141,12 @@ export default function KiraGpt({
           offset += float32Chunk.length;
         }
 
-        //console.log("Combined audio length:", combinedAudio.length);
+        console.log("Combined audio length:", combinedAudio.length);
 
         // Create proper WAV file with reduced sample rate to make it smaller
         const wavBuffer = createWAVFile(combinedAudio, 16000); // Reduced from 44100 to 16000
 
-        //console.log("Sending audio to transcribe, size:", wavBuffer.byteLength);
+        console.log("Sending audio to transcribe, size:", wavBuffer.byteLength);
 
         const res = await fetch("/api/transcribe/stream", {
           method: "POST",
@@ -160,23 +157,23 @@ export default function KiraGpt({
         });
 
         const data = await res.json();
-        //console.log("Transcription response:", data);
+        console.log("Transcription response:", data);
 
         if (data.transcript) {
           // Remove duplicate words/phrases
           const cleanTranscript = removeDuplicateWords(data.transcript);
           setChatMessage(cleanTranscript);
         } else if (data.error) {
-          //console.error("Transcription error:", data.error);
+          console.error("Transcription error:", data.error);
           alert(`Transcription failed: ${data.error}`);
         } else {
-          //console.log("No transcript received");
+          console.log("No transcript received");
           alert(
             "No speech detected. Please try speaking louder or closer to the microphone."
           );
         }
       } catch (err) {
-        //console.error("Transcription request failed:", err);
+        console.error("Transcription request failed:", err);
         alert("Transcription failed. Please try again.");
       }
 
@@ -226,10 +223,10 @@ export default function KiraGpt({
 
       setRecording(true);
       setRecordingStartTime(Date.now());
-      // console.log(
-      //   "Recording started, audio context state:",
-      //   audioContext.state
-      // );
+      console.log(
+        "Recording started, audio context state:",
+        audioContext.state
+      );
     } catch (error) {
       console.error("Error starting recording:", error);
       alert("Error accessing microphone. Please check permissions.");
@@ -240,12 +237,12 @@ export default function KiraGpt({
   useEffect(() => {
     const startSession = async () => {
       try {
-        //console.log("Starting chat session with initialTopic:", initialTopic);
+        console.log("Starting chat session with initialTopic:", initialTopic);
 
         // Extract quiz ID from initialTopic, e.g. "Quiz 98 topics"
-        //console.log(initialTopic);
+        console.log(initialTopic);
         const match = initialTopic.match(/Quiz (\d+)/);
-        //console.log(match);
+        console.log(match);
         const quizId = match ? parseInt(match[1], 10) : null;
 
         if (!quizId) {
@@ -257,10 +254,10 @@ export default function KiraGpt({
         }
 
         const requestBody = { quiz_id: quizId };
-        // console.log(
-        //   "Request body being sent to /start API:",
-        //   JSON.stringify(requestBody, null, 2)
-        // );
+        console.log(
+          "Request body being sent to /start API:",
+          JSON.stringify(requestBody, null, 2)
+        );
 
         const res = await fetch("/api/users/chat/start", {
           method: "POST",
@@ -271,8 +268,8 @@ export default function KiraGpt({
         });
 
         const data = await res.json();
-        //console.log("Frontend: Response status:", res.status);
-        //console.log("Frontend: Response data:", data);
+        console.log("Frontend: Response status:", res.status);
+        console.log("Frontend: Response data:", data);
 
         if (res.ok) {
           setSessionId(data.session_id);
@@ -319,7 +316,6 @@ export default function KiraGpt({
 
   const [typingBotMessage, setTypingBotMessage] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [isWarningShown, setIsWarningShown] = useState<boolean>(false);
 
   const handleChatSendMessage = async () => {
     if (!chatMessage.trim() || !sessionId) return;
@@ -461,10 +457,6 @@ export default function KiraGpt({
     return () => clearInterval(interval);
   }, [isOpen]);
 
-  useEffect(() => {
-    setIsWarningShown(locked);
-  }, [locked]);
-
   if (!isOpen) return null;
 
   useEffect(() => {
@@ -482,49 +474,6 @@ export default function KiraGpt({
       }}
     >
       <div className="absolute inset-0 bg-green-200/60"></div>
-
-      {isWarningShown && (
-        <div
-          className="absolute inset-0 z-[999] flex items-center justify-center bg-black/60 pointer-events-auto"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Modal Card */}
-          <div
-            className="w-[min(92vw,420px)] bg-white rounded-2xl shadow-2xl p-6 flex flex-col items-center text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Title */}
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Time’s Up !
-            </h3>
-
-            {/* Message */}
-            <p className="text-sm text-gray-600 mb-6">
-              Your time has run out. You can close this message to review your
-              chat, or return to the dashboard.
-            </p>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsWarningShown(false)}
-                className="px-5 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-              >
-                View Chat
-              </button>
-
-              <button
-                onClick={onClose}
-                className="px-5 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
-              >
-                Go Home
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chatbot Interface */}
       <div className="relative h-full flex flex-col max-w-4xl mx-auto p-4">
@@ -607,61 +556,59 @@ export default function KiraGpt({
           </div>
 
           {/* Input Area */}
-          {!locked && (
-            <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                {/* Input with Mic */}
-                <div className="flex-1 flex items-center border-2 border-red-400 rounded-full overflow-hidden">
-                  <button
-                    onClick={handleMicClick}
-                    disabled={transcribing || locked}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 m-1 transition-colors ${
-                      locked
-                        ? "bg-gray-400"
-                        : transcribing
-                        ? "bg-gray-400"
-                        : recording
-                        ? "bg-green-500 animate-pulse"
-                        : "bg-red-500"
-                    }`}
-                  >
-                    {locked ? (
-                      <X className="h-5 w-5 text-white" />
-                    ) : transcribing ? (
-                      <Loader2 className="h-5 w-5 text-white animate-spin" />
-                    ) : recording ? (
-                      <span className="w-3 h-3 bg-white rounded-sm"></span>
-                    ) : (
-                      <Mic className="h-5 w-5 text-black" />
-                    )}
-                  </button>
-                  <input
-                    type="text"
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    onKeyPress={handleChatKeyPress}
-                    placeholder={locked ? "Session locked" : "Type Here..."}
-                    disabled={transcribing || locked}
-                    className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-400 disabled:bg-gray-50"
-                  />
-                </div>
-
-                {/* Send Button */}
-                <Button
-                  onClick={handleChatSendMessage}
-                  disabled={!chatMessage.trim() || transcribing || locked}
-                  className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 p-0 flex-shrink-0 disabled:bg-gray-400"
+          <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              {/* Input with Mic */}
+              <div className="flex-1 flex items-center border-2 border-red-400 rounded-full overflow-hidden">
+                <button
+                  onClick={handleMicClick}
+                  disabled={transcribing || locked}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 m-1 transition-colors ${
+                    locked
+                      ? "bg-gray-400"
+                      : transcribing
+                      ? "bg-gray-400"
+                      : recording
+                      ? "bg-green-500 animate-pulse"
+                      : "bg-red-500"
+                  }`}
                 >
-                  <ArrowRight className="h-5 w-5 text-white" />
-                </Button>
+                  {locked ? (
+                    <X className="h-5 w-5 text-white" />
+                  ) : transcribing ? (
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  ) : recording ? (
+                    <span className="w-3 h-3 bg-white rounded-sm"></span>
+                  ) : (
+                    <Mic className="h-5 w-5 text-black" />
+                  )}
+                </button>
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={handleChatKeyPress}
+                  placeholder={locked ? "Session locked" : "Type Here..."}
+                  disabled={transcribing || locked}
+                  className="flex-1 px-4 py-3 focus:outline-none text-sm placeholder-gray-400 disabled:bg-gray-50"
+                />
               </div>
-              {locked && (
-                <div className="mt-2 text-center text-sm text-red-600 font-semibold">
-                  Session locked. Please refresh to start again.
-                </div>
-              )}
+
+              {/* Send Button */}
+              <Button
+                onClick={handleChatSendMessage}
+                disabled={!chatMessage.trim() || transcribing || locked}
+                className="w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 p-0 flex-shrink-0 disabled:bg-gray-400"
+              >
+                <ArrowRight className="h-5 w-5 text-white" />
+              </Button>
             </div>
-          )}
+            {locked && (
+              <div className="mt-2 text-center text-sm text-red-600 font-semibold">
+                Session locked. Please refresh to start again.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
