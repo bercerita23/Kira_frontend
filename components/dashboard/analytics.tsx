@@ -20,7 +20,7 @@ interface QuizStats {
 }
 
 interface TimeStats {
-  avg_student_per_month: number;
+  avg_minutes_per_student: number;
   total_minutes: number;
 }
 
@@ -54,6 +54,7 @@ export default function AnalyticsPage({
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
   const [showClassStandings, setShowClassStandings] = useState(false);
 
+  console.log(timeStats)
   useEffect(() => {
     if (quizStats && quizStats.length > 0) {
       setSelectedQuiz(quizStats[quizStats.length - 1]);
@@ -106,10 +107,10 @@ export default function AnalyticsPage({
           </div>
           <div className="flex flex-col gap-2 ">
             <p className="text-sm"> Average per Student</p>
-            {timeStats?.avg_student_per_month !== undefined
+            {timeStats?.avg_minutes_per_student !== undefined
               ? (() => {
                   const totalMinutes = Math.round(
-                    timeStats.avg_student_per_month
+                    timeStats.avg_minutes_per_student
                   );
                   const hours = Math.floor(totalMinutes / 60);
                   const minutes = totalMinutes % 60;

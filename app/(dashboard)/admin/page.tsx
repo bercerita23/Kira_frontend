@@ -108,14 +108,6 @@ type StudentQuizData = {
     description: string;
     completed_at: string;
   }>;
-  chat_summary: Array<
-    {
-    session_id: string;
-    started_at: string;
-    ended_at: string;
-    duration_minutes: number
-    turn_count: number;
-  }>;
   student_info: {
     first_name: string;
     last_name: string;
@@ -125,8 +117,6 @@ type StudentQuizData = {
     deactivated: boolean;
     grade: string;
   };
-
-
 };
 
 export default function AdminDashboardPage() {
@@ -163,7 +153,6 @@ export default function AdminDashboardPage() {
   const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
-  const [showChatHistory, setShowChatHistory] = useState(false);
 
   const { user, isLoading, logout } = useAuth();
   const [showFilter, setShowFilter] = useState(false);
@@ -294,7 +283,6 @@ export default function AdminDashboardPage() {
       });
 
       const data = await response.json();
-      
 
       if (!response.ok) {
         throw new Error(data?.message || "Failed to reactivate student");
@@ -361,7 +349,9 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/admin/student/${student.username}`);
       if (!res.ok) throw new Error("Failed to fetch student quiz attempts");
       const data = await res.json();
+      console.log("Quiz attempts:", data);
       setStudentQuizAttempts(data); // store it in state
+      console.log(studentQuizAttempts);
     } catch (error) {
       console.error("Error fetching student quiz attempts:", error);
       setStudentQuizAttempts(null); // clear or fallback
@@ -489,6 +479,7 @@ export default function AdminDashboardPage() {
 
         const timeStatsRes = await fetch("/api/admin/time-stats");
         const timeStatsData = await timeStatsRes.json();
+        console.log("Fetched time stats:", timeStatsData);
         if (timeStatsData) {
           setTimeStats(timeStatsData);
         }
@@ -978,8 +969,6 @@ export default function AdminDashboardPage() {
                 setShowAllPointsHistory={setShowAllPointsHistory}
                 showAllQuizHistory={showAllQuizHistory}
                 setShowAllQuizHistory={setShowAllQuizHistory}
-                setShowAllChatSessions={setShowChatHistory}
-                showAllChatSessions={showChatHistory}
                 showAllAwards={showAllAwards}
                 setShowAllAwards={setShowAllAwards}
                 getUserInitials={getUserInitials}
