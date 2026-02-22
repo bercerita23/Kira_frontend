@@ -78,6 +78,8 @@ export interface CurrentUser {
   school_id: string;
 }
 
+
+
 // This is the raw user fetched from /users endpoint
 export interface DbUser {
   user_id: string;
@@ -94,6 +96,16 @@ export interface DbUser {
   deactivated?: boolean;
   grade?: string;
   notes?: string;
+}
+
+export interface SuperAdminUser extends DbUser {
+  chat_sessions_data?: {
+    session_id: number;
+    started_at: string;
+    ended_at?: string;
+    turn_count: number;
+    duration_minutes: number;
+  }[];
 }
 
 export const authApi = {

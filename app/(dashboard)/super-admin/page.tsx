@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/context/auth-context";
-import { DbUser } from "@/lib/api/auth";
+import {  } from "@/lib/api/auth";
 import Link from "next/link";
 import {
   Select,
@@ -11,6 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { SuperAdminUser } from "@/lib/api/auth";
 import {
   Users,
   UserCheck,
@@ -80,11 +81,19 @@ import {
 
 // Icons
 import { MoreVertical, Power } from "lucide-react";
+import ChatHistoryModal from "@/components/ChatSessionModal";
 
 export default function SuperAdminDashboardPage() {
   const { user, isLoading, logout } = useAuth();
-  const [allUsers, setAllUsers] = useState<DbUser[]>([]);
+  const [allUsers, setAllUsers] = useState<SuperAdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [studentSessions, setStudentSessions] = useState<any[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [activeStudent, setActiveStudent] = useState<SuperAdminUser | null>(null);
+  const [showAllChatSessions, setShowAllChatSessions] = useState(false);
+  const [activeChatSessionId, setActiveChatSessionId] = useState<number | null>(null);
+
+
   const [expandedSections, setExpandedSections] = useState({
     students: false,
     admins: false,
@@ -103,9 +112,9 @@ export default function SuperAdminDashboardPage() {
     mau: 0,
     highEngagement: 0,
     lowEngagement: 0,
-    inactive7Days: [] as DbUser[],
-    inactive14Days: [] as DbUser[],
-    inactive30Days: [] as DbUser[],
+    inactive7Days: [] as SuperAdminUser[],
+    inactive14Days: [] as SuperAdminUser[],
+    inactive30Days: [] as SuperAdminUser[],
   });
 
   console.log("🔒 Super Admin page render:", {
@@ -366,7 +375,7 @@ export default function SuperAdminDashboardPage() {
   console.log("✅ Super Admin page: Access granted for super admin user");
 
   // Helper function to get user initials
-  const getUserInitials = (user: DbUser) => {
+  const getUserInitials = (user: SuperAdminUser) => {
     const firstInitial = user.first_name?.charAt(0)?.toUpperCase() || "";
     const lastInitial = user.last_name?.charAt(0)?.toUpperCase() || "";
     return (
@@ -375,7 +384,7 @@ export default function SuperAdminDashboardPage() {
   };
 
   // Helper function to get display name
-  const getDisplayName = (user: DbUser) => {
+  const getDisplayName = (user: SuperAdminUser) => {
     const firstName = user.first_name || "";
     const lastName = user.last_name || "";
     if (firstName || lastName) {
@@ -394,7 +403,7 @@ export default function SuperAdminDashboardPage() {
   };
 
   // Helper function to get user role badge
-  const getUserRoleBadge = (user: DbUser) => {
+  const getUserRoleBadge = (user: SuperAdminUser) => {
     if (user.is_super_admin) {
       return (
         <Badge className="bg-purple-100 text-purple-800">Super Admin</Badge>
@@ -486,7 +495,12 @@ export default function SuperAdminDashboardPage() {
                       .map((user) => (
                         <div
                           key={user.user_id}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 transition-colors"
+                          onClick={() => {
+                          setActiveStudent(user);
+                          setShowAllChatSessions(false);
+                          setStudentSessions(user.chat_sessions_data || []);
+                        }}
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 transition-colors cursor-pointer"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar>
@@ -1298,6 +1312,124 @@ export default function SuperAdminDashboardPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* =============================== */}
+{/* Student Chat Sessions Modal */}
+{/* =============================== */}
+      {activeStudent && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl shadow-2xl">
+            
+            {/* Header */}
+            <CardHeader className="flex flex-row items-center justify-between border-b">
+              <div>
+                <CardTitle className="text-lg font-lato font-[600]">
+                  Chat Activity – {activeStudent.first_name} {activeStudent.last_name}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground font-lato font-[400]">
+                  {studentSessions.length} total session
+                  {studentSessions.length !== 1 && "s"}
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setActiveStudent(null);
+                  setStudentSessions([]);
+                  setShowAllChatSessions(false);
+                }}
+              >
+                ✕
+              </Button>
+            </CardHeader>
+
+            {/* Content */}
+            <CardContent className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              
+
+              {/* No Sessions */}
+              {studentSessions.length === 0 && (
+                <p className="text-center text-muted-foreground">
+                  No chat sessions found.
+                </p>
+              )}
+
+              {/* Sessions List */}
+              {studentSessions.length > 0 && (
+                <div className="flex flex-col gap-4 items-start">
+                  <div className="flex-1 w-full">
+                    <div className="border rounded-lg overflow-hidden divide-y bg-white">
+                      {(showAllChatSessions
+                        ? studentSessions
+                        : studentSessions.slice(0, 3)
+                      ).map((session: any) => (
+                        <div
+                          key={session.session_id}
+                          className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                        >
+                          {/* Left: Date + Stats */}
+                          <div className="flex flex-col">
+                            <span className="font-lato font-[500] text-black">
+                              {new Date(session.started_at).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+
+                          {/* View Button */}
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white font-lato font-[500]"
+                            onClick={() =>
+                              setActiveChatSessionId(session.session_id)
+                            }
+                          >
+                            View History
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Expand / Collapse */}
+                    {studentSessions.length > 3 && (
+                      <div
+                        className="text-right mt-3 text-sm text-purple-700 font-lato font-[500] cursor-pointer hover:underline"
+                        onClick={() =>
+                          setShowAllChatSessions(!showAllChatSessions)
+                        }
+                      >
+                        {showAllChatSessions
+                          ? "Hide Details ⌃"
+                          : "View Details ⌄"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* =============================== */}
+      {/* Chat History Modal */}
+      {/* =============================== */}
+      {activeChatSessionId && (
+        <ChatHistoryModal
+          sessionId={activeChatSessionId}
+          onClose={() => setActiveChatSessionId(null)}
+        />
+      )}
+
+      
+        
     </div>
   );
 }
@@ -1797,7 +1929,7 @@ function ManageSchoolsTab({
   allUsers,
   loadingUsers,
 }: {
-  allUsers: DbUser[];
+  allUsers: SuperAdminUser[];
   loadingUsers: boolean;
 }) {
   const [defaultPrompts, setDefaultPrompts] = useState<{
@@ -2014,7 +2146,7 @@ function ManageSchoolsTab({
               .toLowerCase()
               .includes(searchTerm.toLowerCase()) ||
             item.admins.some(
-              (admin: DbUser) =>
+              (admin: SuperAdminUser) =>
                 admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 admin.first_name
                   .toLowerCase()
@@ -3226,7 +3358,7 @@ function ManageSchoolsTab({
                                 </p>
 
                                 {admins &&
-                                  admins.map((admin: DbUser) => (
+                                  admins.map((admin: SuperAdminUser) => (
                                     <div
                                       key={admin.user_id}
                                       className="flex items-center justify-between bg-white rounded p-3 border"
@@ -3412,7 +3544,7 @@ function ManageSchoolsTab({
                                 <p className="text-sm text-gray-600">
                                   Administrators ({admins.length}):
                                 </p>
-                                {admins.map((admin: DbUser) => (
+                                {admins.map((admin: SuperAdminUser) => (
                                   <div
                                     key={admin.user_id}
                                     className="flex items-center justify-between bg-white rounded p-3 border"
@@ -3491,6 +3623,8 @@ function ManageSchoolsTab({
             )}
           </CardContent>
         </Card>{" "}
+        
+
       </div>
     </>
   );

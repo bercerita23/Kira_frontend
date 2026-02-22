@@ -20,7 +20,7 @@ interface QuizStats {
 }
 
 interface TimeStats {
-  avg_minutes_per_student: number;
+  avg_student_per_month: number;
   total_minutes: number;
 }
 
@@ -107,10 +107,10 @@ export default function AnalyticsPage({
           </div>
           <div className="flex flex-col gap-2 ">
             <p className="text-sm"> Average per Student</p>
-            {timeStats?.avg_minutes_per_student !== undefined
+            {timeStats?.avg_student_per_month !== undefined
               ? (() => {
                   const totalMinutes = Math.round(
-                    timeStats.avg_minutes_per_student
+                    timeStats.avg_student_per_month
                   );
                   const hours = Math.floor(totalMinutes / 60);
                   const minutes = totalMinutes % 60;
