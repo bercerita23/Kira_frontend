@@ -2606,7 +2606,7 @@ function ManageSchoolsTab({
   const [display, setDisplay] = useState<string>("active");
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-
+  const [showInactiveSchools, setShowInactiveSchools] = useState(true);
   const handleDeactivateSchool = async (schoolID: string) => {
     try {
       const res = await fetch(
@@ -3411,15 +3411,25 @@ function ManageSchoolsTab({
         )}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-lato font-[600]">
-              <School className="h-5 w-5 text-blue-600" />
-              Inactive Schools ({inactiveSchools.length})
-            </CardTitle>
+            <CardTitle className="flex items-center justify-between font-lato font-[600]">
+              <div className="flex items-center gap-2">
+                <School className="h-5 w-5 text-blue-600" />
+                Inactive Schools ({inactiveSchools.length})
+              </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowInactiveSchools((prev) => !prev)}
+                  className="h-8 w-8 p-0"
+                >
+                  {showInactiveSchools ? "−" : "+"}
+                </Button>
+              </CardTitle>
             <CardDescription className="font-lato font-[400]">
               Schools that are currently inactive.
             </CardDescription>
           </CardHeader>
-
+          {showInactiveSchools && (
           <CardContent>
             {loadingInactive ? (
               <div className="text-center py-8">
@@ -3548,7 +3558,7 @@ function ManageSchoolsTab({
                   })}
               </div>
             )}
-          </CardContent>
+          </CardContent>)}
         </Card>{" "}
       </div>
     </>
