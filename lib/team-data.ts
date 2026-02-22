@@ -33,7 +33,7 @@ export const interns = [
     subtitle: "Khashayar Moradpour",
   },
   {
-    imageUrl: "/team/rhenjiro.jpg",
+    imageUrl: "/team/rheniro.jpg",
     title: "Software Engineer Intern",
     subtitle: "Rhenjiro Gunawan",
   },

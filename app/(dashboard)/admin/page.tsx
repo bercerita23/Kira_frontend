@@ -108,14 +108,6 @@ type StudentQuizData = {
     description: string;
     completed_at: string;
   }>;
-  chat_summary: Array<
-    {
-    session_id: string;
-    started_at: string;
-    ended_at: string;
-    duration_minutes: number
-    turn_count: number;
-  }>;
   student_info: {
     first_name: string;
     last_name: string;
@@ -125,8 +117,6 @@ type StudentQuizData = {
     deactivated: boolean;
     grade: string;
   };
-
-
 };
 
 export default function AdminDashboardPage() {
@@ -163,7 +153,6 @@ export default function AdminDashboardPage() {
   const [quizStats, setQuizStats] = useState<QuizStat[] | null>(null);
   const [showAllQuizHistory, setShowAllQuizHistory] = useState(false);
   const [showAllAwards, setShowAllAwards] = useState(false);
-  const [showChatHistory, setShowChatHistory] = useState(false);
 
   const { user, isLoading, logout } = useAuth();
   const [showFilter, setShowFilter] = useState(false);
@@ -268,13 +257,13 @@ export default function AdminDashboardPage() {
           },
         });
       }
-      //console.log("✅ Student deactivated:", data);
+      console.log("✅ Student deactivated:", data);
       toast({
         title: "Student Deactivated",
         description: "The student account has been deactivated.",
       });
     } catch (error) {
-      //console.error("❌ Error deactivating student:", error);
+      console.error("❌ Error deactivating student:", error);
       toast({
         title: "Deactivation Failed",
         description: "Failed to deactivate student account.",
@@ -294,13 +283,12 @@ export default function AdminDashboardPage() {
       });
 
       const data = await response.json();
-      
 
       if (!response.ok) {
         throw new Error(data?.message || "Failed to reactivate student");
       }
 
-      //console.log("✅ Student reactivated:", data);
+      console.log("✅ Student reactivated:", data);
       if (studentQuizAttempts) {
         setStudentQuizAttempts({
           ...studentQuizAttempts,
@@ -315,7 +303,7 @@ export default function AdminDashboardPage() {
         description: "The student account has been reactivated.",
       });
     } catch (error) {
-      //console.error("❌ Reactivation failed:", error);
+      console.error("❌ Reactivation failed:", error);
       toast({
         title: "Reactivation Failed",
         description: "Failed to reactivate student account.",
@@ -361,11 +349,11 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/admin/student/${student.username}`);
       if (!res.ok) throw new Error("Failed to fetch student quiz attempts");
       const data = await res.json();
-      //console.log("Quiz attempts:", data);
+      console.log("Quiz attempts:", data);
       setStudentQuizAttempts(data); // store it in state
-      //console.log(studentQuizAttempts);
+      console.log(studentQuizAttempts);
     } catch (error) {
-      //console.error("Error fetching student quiz attempts:", error);
+      console.error("Error fetching student quiz attempts:", error);
       setStudentQuizAttempts(null); // clear or fallback
     }
   };
@@ -423,7 +411,7 @@ export default function AdminDashboardPage() {
       if (editForm.grade.trim()) payload.grade = editForm.grade;
       if (editStudent.school) payload.school = editStudent.school;
 
-      //console.log("🟡 Sending update payload to /api/admin/update:", payload);
+      console.log("🟡 Sending update payload to /api/admin/update:", payload);
 
       const res = await fetch("/api/admin/update", {
         method: "PATCH",
@@ -459,13 +447,13 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const fetchSchoolName = async () => {
-      //console.log("Fetching school name for school_id:", user?.school_id);
+      console.log("Fetching school name for school_id:", user?.school_id);
       if (!user?.school_id) return;
 
       try {
         const response = await fetch("/api/auth/school");
         const schools = await response.json();
-        //console.log("Fetched schools:", schools);
+        console.log("Fetched schools:", schools);
         const school = schools.find(
           (s: { school_id: string }) => s.school_id === user.school_id
         );
@@ -476,7 +464,7 @@ export default function AdminDashboardPage() {
 
         const quizStatsRes = await fetch("/api/admin/quizzes");
         const quizStats = await quizStatsRes.json();
-        //console.log("Fetched stats:", quizStats);
+        console.log("Fetched stats:", quizStats);
 
         if (quizStats) {
           setQuizStats(quizStats);
@@ -484,19 +472,19 @@ export default function AdminDashboardPage() {
 
         const scoresRes = await fetch("/api/admin/mean-scores");
         const studentMeanScore = await scoresRes.json();
-        //console.log("Fetched scores:", studentMeanScore);
+        console.log("Fetched scores:", studentMeanScore);
         if (studentMeanScore) {
           setStudentStats(studentMeanScore);
         }
 
         const timeStatsRes = await fetch("/api/admin/time-stats");
         const timeStatsData = await timeStatsRes.json();
-        //console.log("Fetched time stats:", timeStatsData);
+        console.log("Fetched time stats:", timeStatsData);
         if (timeStatsData) {
           setTimeStats(timeStatsData);
         }
       } catch (error) {
-        //console.error("Failed to fetch school data:", error);
+        console.error("Failed to fetch school data:", error);
       }
     };
 
@@ -526,7 +514,7 @@ export default function AdminDashboardPage() {
           setStudents(data);
         }
       } catch (error) {
-        //console.error("Failed to fetch students:", error);
+        console.error("Failed to fetch students:", error);
       } finally {
         setLoadingStudents(false);
       }
@@ -981,8 +969,6 @@ export default function AdminDashboardPage() {
                 setShowAllPointsHistory={setShowAllPointsHistory}
                 showAllQuizHistory={showAllQuizHistory}
                 setShowAllQuizHistory={setShowAllQuizHistory}
-                setShowAllChatSessions={setShowChatHistory}
-                showAllChatSessions={showChatHistory}
                 showAllAwards={showAllAwards}
                 setShowAllAwards={setShowAllAwards}
                 getUserInitials={getUserInitials}

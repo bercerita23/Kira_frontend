@@ -31,7 +31,7 @@ export default function ChatHistoryModal({ sessionId, onClose }: Props) {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const res = await fetch(`/api/admin/chat-history/${sessionId}`, {
+        const res = await fetch(`/api/super_admin/chat-history/${sessionId}`, {
           cache: "no-store",
         });
         const json = await res.json();

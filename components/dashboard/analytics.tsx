@@ -54,6 +54,7 @@ export default function AnalyticsPage({
   const [selectedQuiz, setSelectedQuiz] = useState<QuizStats | null>(null);
   const [showClassStandings, setShowClassStandings] = useState(false);
 
+  console.log(timeStats)
   useEffect(() => {
     if (quizStats && quizStats.length > 0) {
       setSelectedQuiz(quizStats[quizStats.length - 1]);
